@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, FileText, Users, Send, Download, Award, Zap, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from '@/hooks/use-toast';
+import { Download, Send, Award, Loader2, Users, FileText, Mail } from 'lucide-react';
 
 interface CertificateManagementProps {
   eventId: string;
@@ -13,300 +14,310 @@ interface CertificateManagementProps {
   stakeholders: any[];
 }
 
+// Predefined certificate templates
+const CERTIFICATE_TEMPLATES = [
+  {
+    id: 'template-1',
+    name: 'Classic Blue',
+    description: 'Professional blue gradient design',
+    preview: 'bg-gradient-to-br from-blue-600 to-blue-800'
+  },
+  {
+    id: 'template-2',
+    name: 'Elegant Purple',
+    description: 'Sophisticated purple theme',
+    preview: 'bg-gradient-to-br from-purple-600 to-purple-800'
+  },
+  {
+    id: 'template-3',
+    name: 'Modern Green',
+    description: 'Fresh green modern design',
+    preview: 'bg-gradient-to-br from-green-600 to-green-800'
+  },
+  {
+    id: 'template-4',
+    name: 'Warm Orange',
+    description: 'Vibrant orange energy theme',
+    preview: 'bg-gradient-to-br from-orange-600 to-orange-800'
+  },
+  {
+    id: 'template-5',
+    name: 'Royal Gold',
+    description: 'Luxurious gold premium design',
+    preview: 'bg-gradient-to-br from-yellow-600 to-yellow-800'
+  }
+];
+
 export default function CertificateManagement({
   eventId,
   templates,
   stakeholders,
 }: CertificateManagementProps) {
-  const [activeTab, setActiveTab] = useState('templates');
-  const [isAutoGenerating, setIsAutoGenerating] = useState(false);
+  const [selectedTemplates, setSelectedTemplates] = useState({
+    participant: 'template-1',
+    volunteer: 'template-2',
+    speaker: 'template-3'
+  });
+  const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [isDistributing, setIsDistributing] = useState<string | null>(null);
 
-  const handleAutoGenerate = async () => {
-    setIsAutoGenerating(true);
+  const handleGenerateAndDownload = async (role: string) => {
     try {
-      // Call auto-generate API
-      const response = await fetch(`/api/certificates/auto-generate`, {
+      setIsGenerating(role);
+
+      const response = await fetch('/api/certificates/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId }),
+        body: JSON.stringify({
+          eventId,
+          role,
+          templateId: selectedTemplates[role as keyof typeof selectedTemplates],
+          action: 'download'
+        }),
       });
 
       if (response.ok) {
-        const results = await response.json();
-        alert(`Successfully generated ${results.filter((r: any) => r.success).length} certificates!`);
-        // Refresh the page or update state
-        window.location.reload();
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${role}_certificates.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: 'Success',
+          description: `${role.charAt(0).toUpperCase() + role.slice(1)} certificates downloaded successfully`,
+        });
       } else {
-        alert('Failed to auto-generate certificates');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate certificates');
       }
     } catch (error) {
-      console.error('Error auto-generating certificates:', error);
-      alert('Error auto-generating certificates');
+      console.error('Error generating certificates:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to generate certificates',
+        variant: 'destructive',
+      });
     } finally {
-      setIsAutoGenerating(false);
+      setIsGenerating(null);
     }
   };
 
-  const certificateStats = {
-    totalTemplates: templates.length,
-    totalStakeholders: stakeholders.length,
-    certificatesGenerated: stakeholders.filter(s => s.certificateGenerated).length,
-    emailsSent: stakeholders.filter(s => s.emailsSent?.certificate).length,
+  const handleDistributeViaEmail = async (role: string) => {
+    try {
+      setIsDistributing(role);
+
+      const response = await fetch('/api/certificates/distribute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          role,
+          templateId: selectedTemplates[role as keyof typeof selectedTemplates],
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: result.message,
+        });
+      } else {
+        throw new Error(result.error || 'Failed to distribute certificates');
+      }
+    } catch (error) {
+      console.error('Error distributing certificates:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to distribute certificates',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDistributing(null);
+    }
   };
+
+  // Get role counts from stakeholders
+  const getRoleCount = (role: string) => {
+    return stakeholders.filter(s => s.role === role).length;
+  };
+
+  const CertificateSection = ({ role, title, icon }: { role: string; title: string; icon: React.ReactNode }) => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {icon}
+          {title} Certificates
+        </CardTitle>
+        <CardDescription>
+          Generate certificates for {getRoleCount(role)} {role}s
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Template Selection */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">Select Template</label>
+          <Select
+            value={selectedTemplates[role as keyof typeof selectedTemplates]}
+            onValueChange={(value) =>
+              setSelectedTemplates(prev => ({ ...prev, [role]: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Choose template" />
+            </SelectTrigger>
+            <SelectContent>
+              {CERTIFICATE_TEMPLATES.map((template) => (
+                <SelectItem key={template.id} value={template.id}>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-4 h-4 rounded ${template.preview}`}></div>
+                    {template.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Template Preview */}
+        <div className="border rounded-lg p-4">
+          <div className="text-sm text-gray-600 mb-2">Template Preview:</div>
+          {(() => {
+            const template = CERTIFICATE_TEMPLATES.find(t => t.id === selectedTemplates[role as keyof typeof selectedTemplates]);
+            return template ? (
+              <div className={`h-20 rounded ${template.preview} flex items-center justify-center text-white text-sm font-medium`}>
+                {template.name} - {template.description}
+              </div>
+            ) : null;
+          })()}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button
+            onClick={() => handleGenerateAndDownload(role)}
+            disabled={isGenerating === role || getRoleCount(role) === 0}
+            className="flex-1"
+          >
+            {isGenerating === role ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Auto Generate & Download
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => handleDistributeViaEmail(role)}
+            disabled={isDistributing === role || getRoleCount(role) === 0}
+            className="flex-1"
+          >
+            {isDistributing === role ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Mail className="h-4 w-4 mr-2" />
+            )}
+            Distribute via Email
+          </Button>
+        </div>
+
+        {getRoleCount(role) === 0 && (
+          <p className="text-sm text-gray-500 text-center py-2">
+            No {role}s found for this event
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Templates</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{certificateStats.totalTemplates}</div>
-            <p className="text-xs text-muted-foreground">
-              Certificate templates created
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stakeholders</CardTitle>
+            <CardTitle className="text-sm font-medium">Participants</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{certificateStats.totalStakeholders}</div>
-            <p className="text-xs text-muted-foreground">
-              Total participants
-            </p>
+            <div className="text-2xl font-bold">{getRoleCount('participant')}</div>
+            <p className="text-xs text-muted-foreground">Event participants</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Generated</CardTitle>
-            <Download className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Volunteers</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{certificateStats.certificatesGenerated}</div>
-            <p className="text-xs text-muted-foreground">
-              Certificates generated
-            </p>
+            <div className="text-2xl font-bold">{getRoleCount('volunteer')}</div>
+            <p className="text-xs text-muted-foreground">Event volunteers</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Emails Sent</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Speakers</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{certificateStats.emailsSent}</div>
-            <p className="text-xs text-muted-foreground">
-              Certificate emails sent
-            </p>
+            <div className="text-2xl font-bold">{getRoleCount('speaker')}</div>
+            <p className="text-xs text-muted-foreground">Event speakers</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="generate">Generate</TabsTrigger>
-          <TabsTrigger value="distribute">Distribute</TabsTrigger>
-        </TabsList>
+      {/* Certificate Generation Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <CertificateSection
+          role="participant"
+          title="Participant"
+          icon={<Users className="h-5 w-5" />}
+        />
 
-        <TabsContent value="templates" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Certificate Templates</h3>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={handleAutoGenerate}
-                disabled={isAutoGenerating}
-              >
-                {isAutoGenerating ? (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="h-4 w-4 mr-2" />
-                    Auto-Generate Certificates
-                  </>
-                )}
-              </Button>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
+        <CertificateSection
+          role="volunteer"
+          title="Volunteer"
+          icon={<Award className="h-5 w-5" />}
+        />
+
+        <CertificateSection
+          role="speaker"
+          title="Speaker"
+          icon={<FileText className="h-5 w-5" />}
+        />
+      </div>
+
+      {/* Instructions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>How to Use Certificate Generation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-sm text-gray-600">
+            <div className="flex items-start gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium mt-0.5">1</div>
+              <p><strong>Select Template:</strong> Choose from 5 predefined professional certificate templates for each role type.</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium mt-0.5">2</div>
+              <p><strong>Auto Generate & Download:</strong> Generates certificates for all users with that role and downloads them as a ZIP file.</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium mt-0.5">3</div>
+              <p><strong>Distribute via Email:</strong> Generates certificates and automatically sends them to each user via email.</p>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.length === 0 ? (
-              <Card className="col-span-full">
-                <CardContent className="flex flex-col items-center justify-center py-8">
-                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Templates Yet</h3>
-                  <p className="text-muted-foreground text-center mb-4">
-                    Default certificate templates will be created automatically when you first access this page.
-                  </p>
-                  <Button onClick={() => window.location.reload()}>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Load Default Templates
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              templates.map((template) => (
-                <Card
-                  key={template._id}
-                  className={`cursor-pointer hover:shadow-md transition-shadow ${template.templateType === 'generated'
-                      ? 'border-blue-200 bg-blue-50/50'
-                      : ''
-                    }`}
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base">{template.name}</CardTitle>
-                        {template.templateType === 'generated' && (
-                          <Badge variant="outline" className="text-blue-600 border-blue-300">
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            Default
-                          </Badge>
-                        )}
-                      </div>
-                      <Badge variant={template.isActive ? 'default' : 'secondary'}>
-                        {template.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
-                    <CardDescription>{template.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Type:</span>
-                        <span className="font-medium capitalize">
-                          {template.templateType === 'generated' ? 'Auto-Generated' : template.templateType}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Fields:</span>
-                        <span className="font-medium">{template.fields?.length || 0}</span>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        {template.templateType === 'generated' ? (
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Award className="h-3 w-3 mr-1" />
-                            Use Template
-                          </Button>
-                        ) : (
-                          <>
-                            <Button size="sm" variant="outline" className="flex-1">
-                              Edit
-                            </Button>
-                            <Button size="sm" variant="outline" className="flex-1">
-                              Preview
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="generate" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Generate Certificates</h3>
-            <Button disabled={templates.length === 0}>
-              <Download className="h-4 w-4 mr-2" />
-              Bulk Generate
-            </Button>
-          </div>
-
-          {templates.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Templates Available</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  You need to create a certificate template before generating certificates.
-                </p>
-                <Button onClick={() => setActiveTab('templates')}>
-                  Create Template
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Certificate Generation</CardTitle>
-                  <CardDescription>
-                    Select a template and stakeholders to generate certificates.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Certificate generation interface will be implemented here.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="distribute" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Distribute Certificates</h3>
-            <Button disabled={certificateStats.certificatesGenerated === 0}>
-              <Send className="h-4 w-4 mr-2" />
-              Send Emails
-            </Button>
-          </div>
-
-          {certificateStats.certificatesGenerated === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8">
-                <Send className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Certificates to Distribute</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Generate certificates first before you can distribute them.
-                </p>
-                <Button onClick={() => setActiveTab('generate')}>
-                  Generate Certificates
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Email Distribution</CardTitle>
-                  <CardDescription>
-                    Send certificates to stakeholders via email.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Email distribution interface will be implemented here.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

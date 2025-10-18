@@ -26,13 +26,16 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
   }
 
   try {
-    const mongoUser = await getUserByClerkId(clerkId);
+    const mongoUserDoc = await getUserByClerkId(clerkId);
+    // Convert Mongoose document to plain object for Client Component
+    const mongoUser = JSON.parse(JSON.stringify(mongoUserDoc));
+
     // Await searchParams in Next.js 15+
     const params = await searchParams;
     const organizedEventsPage = Number(params.page) || 1;
 
     // Get comprehensive user event data including role-based events
-    const userEventData = await getUserEventData(mongoUser._id, organizedEventsPage);
+    const userEventData = await getUserEventData(mongoUserDoc._id, organizedEventsPage);
 
     const myOrganizedEvents = userEventData.organizedEvents || [];
     const eventsByRole = userEventData.eventsByRole || {
@@ -43,7 +46,7 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
     };
 
     // Legacy ticket data for backward compatibility
-    const myTickets = eventsByRole.participant.filter(event => event.orderInfo) || [];
+    const myTickets = eventsByRole.participant.filter((event: any) => event.orderInfo) || [];
 
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -63,7 +66,7 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
           />
 
           {/* Legacy Events Organized Section - Only show if user has organized events but no role-based events */}
-          {myOrganizedEvents.length > 0 && Object.values(eventsByRole).every(events => events.length === 0) && (
+          {myOrganizedEvents.length > 0 && Object.values(eventsByRole).every((events: any) => events.length === 0) && (
             <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
               <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
                 <div className="flex items-center justify-between">
@@ -87,7 +90,7 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
           )}
 
           {/* Legacy My Tickets Section - Only show if user has tickets but no role-based events */}
-          {myTickets.length > 0 && Object.values(eventsByRole).every(events => events.length === 0) && (
+          {myTickets.length > 0 && Object.values(eventsByRole).every((events: any) => events.length === 0) && (
             <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
               <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
                 <div className="flex items-center justify-between">

@@ -11,10 +11,9 @@ interface EventCardsProps {
   page?: string;
   user?: any; // Pre-fetched user data
   isBookedEvent?: boolean; // Whether these are booked events
-  showRoleBadge?: boolean; // Whether to show role badges
 }
 
-const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page, user, isBookedEvent = false, showRoleBadge = false }: EventCardsProps) => {
+const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page, user, isBookedEvent = false }: EventCardsProps) => {
   if (!events || events.length === 0) {
     return (
       <NoResults
@@ -41,7 +40,6 @@ const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page
             likedEvent={likedEvent}
             page={page}
             isBookedEvent={isBookedEvent}
-            showRoleBadge={showRoleBadge}
           />
         );
       })}

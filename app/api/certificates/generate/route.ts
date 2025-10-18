@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
+import { getUserByClerkId } from '@/lib/actions/user.action';
 import {
 	generateCertificate,
 	bulkGenerateCertificates,
 	getEventCertificates,
+	generateCertificatesForRole,
 } from '@/lib/actions/certificate.action';
+import JSZip from 'jszip';
 
 /**
  * GET /api/certificates/generate - Get generated certificates for an event

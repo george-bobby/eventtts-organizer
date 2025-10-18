@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import EventCards from "./EventCards";
 import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/auth";
 import { UserRoleType } from "@/lib/models/userrole.model";
-import { 
-  Users, 
-  Mic, 
-  HandHeart, 
+import {
+  Users,
+  Mic,
+  HandHeart,
   Ticket,
   Calendar,
   Settings,
@@ -28,12 +28,12 @@ interface RoleBasedEventSectionsProps {
   mongoUser: any;
 }
 
-const RoleBasedEventSections = ({ 
-  eventsByRole, 
-  currentUserId, 
-  mongoUser 
+const RoleBasedEventSections = ({
+  eventsByRole,
+  currentUserId,
+  mongoUser
 }: RoleBasedEventSectionsProps) => {
-  
+
   const roleConfigs = [
     {
       role: 'organizer' as UserRoleType,
@@ -128,7 +128,7 @@ const RoleBasedEventSections = ({
     <div className="space-y-8">
       {sectionsToShow.map((config) => {
         const IconComponent = config.icon;
-        
+
         return (
           <section key={config.role} className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
             <div className={`bg-gradient-to-r ${config.gradient} px-8 py-6`}>
@@ -144,9 +144,9 @@ const RoleBasedEventSections = ({
                   <Badge className="bg-white/20 text-white border-white/30">
                     {config.events.length} {config.events.length === 1 ? 'Event' : 'Events'}
                   </Badge>
-                  <Button 
-                    asChild 
-                    size="lg" 
+                  <Button
+                    asChild
+                    size="lg"
                     className="bg-white text-gray-700 hover:bg-gray-100 font-semibold hidden sm:flex"
                   >
                     <Link href={config.actionButton.href}>{config.actionButton.text}</Link>
@@ -162,7 +162,6 @@ const RoleBasedEventSections = ({
                 emptyStateSubtext={config.emptySubtext}
                 page="profile"
                 user={mongoUser}
-                showRoleBadge={true}
                 isBookedEvent={config.role === 'participant'}
               />
             </div>

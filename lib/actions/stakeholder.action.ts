@@ -95,7 +95,6 @@ export async function getEventStakeholders(
 	eventId: string,
 	filters?: {
 		role?: string;
-		attendanceStatus?: string;
 		search?: string;
 	}
 ) {
@@ -108,15 +107,10 @@ export async function getEventStakeholders(
 			query.role = filters.role;
 		}
 
-		if (filters?.attendanceStatus) {
-			query.attendanceStatus = filters.attendanceStatus;
-		}
-
 		if (filters?.search) {
 			query.$or = [
 				{ name: { $regex: filters.search, $options: 'i' } },
 				{ email: { $regex: filters.search, $options: 'i' } },
-				{ 'additionalInfo.company': { $regex: filters.search, $options: 'i' } },
 			];
 		}
 

@@ -1,7 +1,22 @@
 import { Schema, model, models, Document } from 'mongoose';
 
 // Define the role types
-export type UserRoleType = 'organizer' | 'volunteer' | 'speaker' | 'participant';
+export type UserRoleType =
+	| 'organizer'
+	| 'volunteer'
+	| 'speaker'
+	| 'participant';
+
+// Define permission types
+export type PermissionType =
+	| 'canManageEvent'
+	| 'canVerifyTickets'
+	| 'canViewAttendees'
+	| 'canManageStakeholders'
+	| 'canViewAnalytics'
+	| 'canSendUpdates'
+	| 'canManageCertificates'
+	| 'canManageGallery';
 
 // Interface for user role
 export interface IUserRole extends Document {
@@ -137,7 +152,7 @@ userRoleSchema.pre('save', function (next) {
 });
 
 // Static method to get role permissions
-userRoleSchema.statics.getRolePermissions = function(role: UserRoleType) {
+userRoleSchema.statics.getRolePermissions = function (role: UserRoleType) {
 	switch (role) {
 		case 'organizer':
 			return {
@@ -188,7 +203,8 @@ userRoleSchema.statics.getRolePermissions = function(role: UserRoleType) {
 	}
 };
 
-const UserRole = models.UserRole || model<IUserRole>('UserRole', userRoleSchema);
+const UserRole =
+	models.UserRole || model<IUserRole>('UserRole', userRoleSchema);
 
 export default UserRole;
 export type UserRoleDocument = IUserRole & Document;

@@ -32,12 +32,11 @@ interface Props {
   user?: any; // The pre-fetched user data
   likedEvent?: boolean; // Whether this event is liked by the current user
   isBookedEvent?: boolean; // Whether this is a booked event (for tickets section)
-  showRoleBadge?: boolean; // Whether to show role badge
 }
 
-const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBookedEvent = false, showRoleBadge = false }: Props) => {
+const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBookedEvent = false }: Props) => {
   // Check if current user is the organizer of this event
-  const isOrganizer = user && String(event.organizer._id) === String(user._id);
+  const isOrganizer = user && event.organizer && String(event.organizer._id) === String(user._id);
 
   return (
     <div className="group border-0 h-96 w-full max-w-sm rounded-lg flex flex-col hover:shadow-lg shadow-md relative bg-white overflow-hidden">
@@ -60,17 +59,17 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
 
 
 
-        {/* Role badge */}
-        {showRoleBadge && event.userRole && (
-          <div className={`absolute top-3 right-3 ${getRoleBadgeColor(event.userRole.role as any)} text-xs px-3 py-1 rounded-full font-medium shadow-lg`}>
-            {getRoleDisplayName(event.userRole.role as any)}
+        {/* Sold out badge */}
+        {event.soldOut && (
+          <div className="absolute top-3 right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+            Sold Out
           </div>
         )}
 
-        {/* Sold out badge - position below role badge if both exist */}
-        {event.soldOut && (
-          <div className={`absolute ${showRoleBadge && event.userRole ? 'top-12' : 'top-3'} right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg`}>
-            Sold Out
+        {/* Role badge - positioned at bottom right of image */}
+        {event.userRole && (
+          <div className={`absolute bottom-2 right-2 ${getRoleBadgeColor(event.userRole.role as any)} text-xs px-2 py-1 rounded-full font-medium shadow-lg`}>
+            {getRoleDisplayName(event.userRole.role as any)}
           </div>
         )}
       </Link>
@@ -198,7 +197,7 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
         </div>
       </Link>
 
-      <div className="flex justify-between items-center p-2 border-t">
+      <div className="flex justify-between items-center p-2 border-t relative">
         <Badge variant={"secondary"} className="w-fit">
           {event.organizer
             ? `${(event.organizer as any)?.firstName || ''} ${(event.organizer as any)?.lastName || ''}`
@@ -219,6 +218,8 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
             </span>
           )}
         </div>
+
+
       </div>
     </div>
   );

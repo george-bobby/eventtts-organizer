@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { getUserByClerkId } from '../actions/user.action';
 import { hasEventPermission, canAccessEventManagement } from '../utils/auth';
-import { IUserRole } from '../models/userrole.model';
+import { IUserRole, PermissionType } from '../models/userrole.model';
 
 export interface AuthenticatedRequest extends NextRequest {
 	user?: {
@@ -21,7 +21,7 @@ export async function withAuth(
 	return async (req: NextRequest) => {
 		try {
 			const { userId: clerkId } = await auth();
-			
+
 			if (!clerkId) {
 				return NextResponse.json(
 					{ error: 'Authentication required' },
@@ -31,10 +31,7 @@ export async function withAuth(
 
 			const mongoUser = await getUserByClerkId(clerkId);
 			if (!mongoUser) {
-				return NextResponse.json(
-					{ error: 'User not found' },
-					{ status: 404 }
-				);
+				return NextResponse.json({ error: 'User not found' }, { status: 404 });
 			}
 
 			// Add user info to request
@@ -60,13 +57,16 @@ export async function withAuth(
  * Middleware to require event access (any role)
  */
 export async function withEventAccess(
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string
 ) {
 	return withAuth(async (req: AuthenticatedRequest) => {
 		try {
 			const eventId = getEventId(req);
-			
+
 			if (!eventId) {
 				return NextResponse.json(
 					{ error: 'Event ID is required' },
@@ -74,11 +74,17 @@ export async function withEventAccess(
 				);
 			}
 
-			const canAccess = await canAccessEventManagement(req.user!.mongoId, eventId);
-			
+			const canAccess = await canAccessEventManagement(
+				req.user!.mongoId,
+				eventId
+			);
+
 			if (!canAccess) {
 				return NextResponse.json(
-					{ error: 'Access denied: You do not have permission to access this event' },
+					{
+						error:
+							'Access denied: You do not have permission to access this event',
+					},
 					{ status: 403 }
 				);
 			}
@@ -98,14 +104,17 @@ export async function withEventAccess(
  * Middleware to require specific event permission
  */
 export async function withEventPermission(
-	permission: keyof IUserRole['permissions'],
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	permission: PermissionType,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string
 ) {
 	return withAuth(async (req: AuthenticatedRequest) => {
 		try {
 			const eventId = getEventId(req);
-			
+
 			if (!eventId) {
 				return NextResponse.json(
 					{ error: 'Event ID is required' },
@@ -118,11 +127,13 @@ export async function withEventPermission(
 				eventId,
 				permission
 			);
-			
+
 			if (!hasPermission) {
 				return NextResponse.json(
-					{ 
-						error: `Access denied: You do not have permission to ${permission.replace('can', '').toLowerCase()}` 
+					{
+						error: `Access denied: You do not have permission to ${permission
+							.replace('can', '')
+							.toLowerCase()}`,
 					},
 					{ status: 403 }
 				);
@@ -145,12 +156,12 @@ export async function withEventPermission(
 export function getEventIdFromParams(req: NextRequest): string {
 	const url = new URL(req.url);
 	const pathSegments = url.pathname.split('/');
-	const eventIndex = pathSegments.findIndex(segment => segment === 'event');
-	
+	const eventIndex = pathSegments.findIndex((segment) => segment === 'event');
+
 	if (eventIndex !== -1 && eventIndex + 1 < pathSegments.length) {
 		return pathSegments[eventIndex + 1];
 	}
-	
+
 	return '';
 }
 
@@ -180,48 +191,72 @@ export async function getEventIdFromBody(req: NextRequest): Promise<string> {
 
 // Require management permissions (organizer, volunteer with management rights)
 export const withManagementAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canManageEvent', handler, getEventId);
 
 // Require ticket verification permissions (organizer, volunteer)
 export const withTicketAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canVerifyTickets', handler, getEventId);
 
 // Require attendee viewing permissions (organizer, volunteer, speaker)
 export const withAttendeeAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canViewAttendees', handler, getEventId);
 
 // Require stakeholder management permissions (organizer only)
 export const withStakeholderAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canManageStakeholders', handler, getEventId);
 
 // Require analytics viewing permissions (organizer only)
 export const withAnalyticsAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canViewAnalytics', handler, getEventId);
 
 // Require update sending permissions (organizer only)
 export const withUpdateAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canSendUpdates', handler, getEventId);
 
 // Require certificate management permissions (organizer only)
 export const withCertificateAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canManageCertificates', handler, getEventId);
 
 // Require gallery management permissions (organizer, speaker)
 export const withGalleryAccess = (
-	handler: (req: AuthenticatedRequest, eventId: string) => Promise<NextResponse>,
+	handler: (
+		req: AuthenticatedRequest,
+		eventId: string
+	) => Promise<NextResponse>,
 	getEventId: (req: NextRequest) => string = getEventIdFromParams
 ) => withEventPermission('canManageGallery', handler, getEventId);

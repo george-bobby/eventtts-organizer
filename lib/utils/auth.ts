@@ -1,8 +1,15 @@
 import { auth } from '@clerk/nextjs';
 import { getUserByClerkId } from '../actions/user.action';
-import { checkUserPermission, getUserHighestRole } from '../actions/userrole.action';
+import {
+	checkUserPermission,
+	getUserHighestRole,
+} from '../actions/userrole.action';
 import { getEventById } from '../actions/event.action';
-import { UserRoleType, IUserRole } from '../models/userrole.model';
+import {
+	UserRoleType,
+	IUserRole,
+	PermissionType,
+} from '../models/userrole.model';
 
 export interface AuthContext {
 	userId: string | null;
@@ -25,7 +32,7 @@ export interface EventAuthContext extends AuthContext {
 export async function getAuthContext(): Promise<AuthContext> {
 	try {
 		const { userId: clerkId } = await auth();
-		
+
 		if (!clerkId) {
 			return {
 				userId: null,
@@ -36,7 +43,7 @@ export async function getAuthContext(): Promise<AuthContext> {
 		}
 
 		const mongoUser = await getUserByClerkId(clerkId);
-		
+
 		return {
 			userId: mongoUser?._id?.toString() || null,
 			clerkId,
@@ -57,9 +64,11 @@ export async function getAuthContext(): Promise<AuthContext> {
 /**
  * Get event-specific authentication context with role and permissions
  */
-export async function getEventAuthContext(eventId: string): Promise<EventAuthContext> {
+export async function getEventAuthContext(
+	eventId: string
+): Promise<EventAuthContext> {
 	const authContext = await getAuthContext();
-	
+
 	if (!authContext.isAuthenticated || !authContext.userId) {
 		return {
 			...authContext,
@@ -73,7 +82,7 @@ export async function getEventAuthContext(eventId: string): Promise<EventAuthCon
 
 	try {
 		const event = await getEventById(eventId);
-		
+
 		if (!event) {
 			return {
 				...authContext,
@@ -95,14 +104,46 @@ export async function getEventAuthContext(eventId: string): Promise<EventAuthCon
 		let permissions: IUserRole['permissions'] = {};
 		if (userRole) {
 			// Get specific permissions for this user/event combination
-			const hasManageEvent = await checkUserPermission(authContext.userId, eventId, 'canManageEvent');
-			const hasVerifyTickets = await checkUserPermission(authContext.userId, eventId, 'canVerifyTickets');
-			const hasViewAttendees = await checkUserPermission(authContext.userId, eventId, 'canViewAttendees');
-			const hasManageStakeholders = await checkUserPermission(authContext.userId, eventId, 'canManageStakeholders');
-			const hasViewAnalytics = await checkUserPermission(authContext.userId, eventId, 'canViewAnalytics');
-			const hasSendUpdates = await checkUserPermission(authContext.userId, eventId, 'canSendUpdates');
-			const hasManageCertificates = await checkUserPermission(authContext.userId, eventId, 'canManageCertificates');
-			const hasManageGallery = await checkUserPermission(authContext.userId, eventId, 'canManageGallery');
+			const hasManageEvent = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canManageEvent'
+			);
+			const hasVerifyTickets = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canVerifyTickets'
+			);
+			const hasViewAttendees = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canViewAttendees'
+			);
+			const hasManageStakeholders = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canManageStakeholders'
+			);
+			const hasViewAnalytics = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canViewAnalytics'
+			);
+			const hasSendUpdates = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canSendUpdates'
+			);
+			const hasManageCertificates = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canManageCertificates'
+			);
+			const hasManageGallery = await checkUserPermission(
+				authContext.userId,
+				eventId,
+				'canManageGallery'
+			);
 
 			permissions = {
 				canManageEvent: hasManageEvent,
@@ -143,7 +184,10 @@ export async function getEventAuthContext(eventId: string): Promise<EventAuthCon
 /**
  * Check if user has permission to access event management features
  */
-export async function canAccessEventManagement(userId: string, eventId: string): Promise<boolean> {
+export async function canAccessEventManagement(
+	userId: string,
+	eventId: string
+): Promise<boolean> {
 	try {
 		const event = await getEventById(eventId);
 		if (!event) return false;
@@ -154,9 +198,21 @@ export async function canAccessEventManagement(userId: string, eventId: string):
 		}
 
 		// Check if user has management permissions through roles
-		const hasManagePermission = await checkUserPermission(userId, eventId, 'canManageEvent');
-		const hasVerifyPermission = await checkUserPermission(userId, eventId, 'canVerifyTickets');
-		const hasViewPermission = await checkUserPermission(userId, eventId, 'canViewAttendees');
+		const hasManagePermission = await checkUserPermission(
+			userId,
+			eventId,
+			'canManageEvent'
+		);
+		const hasVerifyPermission = await checkUserPermission(
+			userId,
+			eventId,
+			'canVerifyTickets'
+		);
+		const hasViewPermission = await checkUserPermission(
+			userId,
+			eventId,
+			'canViewAttendees'
+		);
 
 		return hasManagePermission || hasVerifyPermission || hasViewPermission;
 	} catch (error) {
@@ -171,7 +227,7 @@ export async function canAccessEventManagement(userId: string, eventId: string):
 export async function hasEventPermission(
 	userId: string,
 	eventId: string,
-	permission: keyof IUserRole['permissions']
+	permission: PermissionType
 ): Promise<boolean> {
 	try {
 		const event = await getEventById(eventId);
@@ -195,28 +251,32 @@ export async function hasEventPermission(
  */
 export async function requireAuth(): Promise<AuthContext> {
 	const authContext = await getAuthContext();
-	
+
 	if (!authContext.isAuthenticated) {
 		throw new Error('Authentication required');
 	}
-	
+
 	return authContext;
 }
 
 /**
  * Require event access and return event auth context
  */
-export async function requireEventAccess(eventId: string): Promise<EventAuthContext> {
+export async function requireEventAccess(
+	eventId: string
+): Promise<EventAuthContext> {
 	const eventAuthContext = await getEventAuthContext(eventId);
-	
+
 	if (!eventAuthContext.isAuthenticated) {
 		throw new Error('Authentication required');
 	}
-	
+
 	if (!eventAuthContext.canAccess) {
-		throw new Error('Access denied: You do not have permission to access this event');
+		throw new Error(
+			'Access denied: You do not have permission to access this event'
+		);
 	}
-	
+
 	return eventAuthContext;
 }
 
@@ -228,14 +288,19 @@ export async function requireEventPermission(
 	permission: keyof IUserRole['permissions']
 ): Promise<EventAuthContext> {
 	const eventAuthContext = await requireEventAccess(eventId);
-	
-	const hasPermission = eventAuthContext.isOrganizer || 
+
+	const hasPermission =
+		eventAuthContext.isOrganizer ||
 		eventAuthContext.permissions?.[permission] === true;
-	
+
 	if (!hasPermission) {
-		throw new Error(`Access denied: You do not have permission to ${permission.replace('can', '').toLowerCase()}`);
+		throw new Error(
+			`Access denied: You do not have permission to ${(permission as string)
+				.replace('can', '')
+				.toLowerCase()}`
+		);
 	}
-	
+
 	return eventAuthContext;
 }
 
@@ -249,7 +314,7 @@ export function getRoleDisplayName(role: UserRoleType): string {
 		speaker: 'Speaker',
 		participant: 'Participant',
 	};
-	
+
 	return roleNames[role] || role;
 }
 
@@ -263,6 +328,6 @@ export function getRoleBadgeColor(role: UserRoleType): string {
 		speaker: 'bg-blue-100 text-blue-800',
 		participant: 'bg-gray-100 text-gray-800',
 	};
-	
+
 	return roleColors[role] || 'bg-gray-100 text-gray-800';
 }

@@ -298,3 +298,67 @@ export const DEFAULT_TEMPLATES = [
 		},
 	},
 ];
+
+// Certificate color templates
+export const CERTIFICATE_TEMPLATES = [
+	{
+		id: 'template-1',
+		name: 'Classic Blue',
+		description: 'Professional blue gradient design',
+		colors: {
+			primary: '#1e40af',
+			secondary: '#3b82f6',
+			accent: '#60a5fa',
+			text: '#1f2937',
+		},
+		style: 'classic',
+	},
+	{
+		id: 'template-2',
+		name: 'Elegant Purple',
+		description: 'Sophisticated purple theme',
+		colors: {
+			primary: '#7c3aed',
+			secondary: '#a855f7',
+			accent: '#c084fc',
+			text: '#1f2937',
+		},
+		style: 'elegant',
+	},
+	{
+		id: 'template-3',
+		name: 'Modern Green',
+		description: 'Fresh green modern design',
+		colors: {
+			primary: '#059669',
+			secondary: '#10b981',
+			accent: '#34d399',
+			text: '#1f2937',
+		},
+		style: 'modern',
+	},
+	{
+		id: 'template-4',
+		name: 'Warm Orange',
+		description: 'Vibrant orange energy theme',
+		colors: {
+			primary: '#ea580c',
+			secondary: '#f97316',
+			accent: '#fb923c',
+			text: '#1f2937',
+		},
+		style: 'warm',
+	},
+	{
+		id: 'template-5',
+		name: 'Royal Gold',
+		description: 'Luxurious gold premium design',
+		colors: {
+			primary: '#d97706',
+			secondary: '#f59e0b',
+			accent: '#fbbf24',
+			text: '#1f2937',
+		},
+		style: 'royal',
+	},
+];

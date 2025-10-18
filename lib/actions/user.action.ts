@@ -85,6 +85,23 @@ export async function getUserById(userId: string) {
 	}
 }
 
+export async function getUserByEmail(email: string) {
+	try {
+		await connectToDatabase();
+
+		const user = await User.findOne({ email: email.toLowerCase() });
+
+		if (!user) {
+			return null; // Return null if user not found
+		}
+
+		return JSON.parse(JSON.stringify(user));
+	} catch (error) {
+		console.log(error);
+		throw error;
+	}
+}
+
 export interface UpdateUserParams {
 	clerkId: string;
 	userData: {

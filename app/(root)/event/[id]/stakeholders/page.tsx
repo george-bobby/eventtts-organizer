@@ -12,7 +12,6 @@ interface StakeholdersPageProps {
   }>;
   searchParams: Promise<{
     role?: string;
-    attendanceStatus?: string;
     search?: string;
   }>;
 }
@@ -34,7 +33,6 @@ export default async function StakeholdersPage({
     const [stakeholders, stats] = await Promise.all([
       getEventStakeholders(id, {
         role: searchFilters.role,
-        attendanceStatus: searchFilters.attendanceStatus,
         search: searchFilters.search,
       }),
       getStakeholderStats(id),
@@ -43,24 +41,24 @@ export default async function StakeholdersPage({
     return (
       <div className="bg-gray-50 min-h-screen">
         {/* Header Section */}
-        <section className="bg-gradient-to-r from-teal-500 to-teal-600 py-8">
+        <section className="bg-gradient-to-r from-red-500 to-red-600 py-8">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center gap-4 mb-4">
-              <Button asChild variant="outline" size="sm" className="bg-white text-teal-600 hover:bg-gray-100">
+              <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
                 <Link href={`/event/${id}/manage`}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Dashboard
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="sm" className="bg-white text-teal-600 hover:bg-gray-100">
+              <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
                 <Link href={`/event/${id}`}>
                   View Event Page
                 </Link>
               </Button>
             </div>
             <h1 className="text-3xl font-bold text-white">Stakeholder Management</h1>
-            <p className="text-teal-100 mt-2">
-              Manage attendees, speakers, volunteers, and other event participants
+            <p className="text-red-100 mt-2">
+              Invite volunteers and speakers to your event via email
             </p>
           </div>
         </section>
@@ -73,7 +71,6 @@ export default async function StakeholdersPage({
             stats={stats}
             filters={{
               role: searchFilters.role,
-              attendanceStatus: searchFilters.attendanceStatus,
               search: searchFilters.search,
             }}
           />
@@ -84,10 +81,10 @@ export default async function StakeholdersPage({
     console.error('Error loading stakeholders page:', error);
     return (
       <div className="bg-gray-50 min-h-screen">
-        <section className="bg-gradient-to-r from-teal-500 to-teal-600 py-8">
+        <section className="bg-gradient-to-r from-red-500 to-teal-red py-8">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center gap-4 mb-4">
-              <Button asChild variant="outline" size="sm" className="bg-white text-teal-600 hover:bg-gray-100">
+              <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
                 <Link href={`/event/${id}/manage`}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Dashboard

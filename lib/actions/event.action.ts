@@ -915,15 +915,14 @@ export async function getEventsByUserRoles(userId: string) {
 				populate: [
 					{ path: 'organizer', select: 'firstName lastName' },
 					{ path: 'category', select: 'name' },
+					{ path: 'tags', select: 'name' },
 				],
 			})
-			.sort({ createdAt: -1 });
-
-		// Add ticket-based events to participant role
+			.sort({ createdAt: -1 }); // Add ticket-based events to participant role
 		const ticketEvents = orders
-			.filter((order) => order.event) // Filter out orders with deleted events
+			.filter((order) => order.event && order.event._id) // Filter out orders with deleted events or missing _id
 			.map((order) => ({
-				...order.event,
+				...(order.event.toObject ? order.event.toObject() : order.event),
 				userRole: {
 					role: 'participant',
 					assignedAt: order.createdAt,
@@ -949,15 +948,17 @@ export async function getEventsByUserRoles(userId: string) {
 
 		// Merge ticket events with role-based participant events (avoid duplicates)
 		const existingParticipantEventIds = new Set(
-			eventsByRole.participant.map((event) => event._id.toString())
+			eventsByRole.participant.map((event: any) => event._id.toString())
 		);
 
 		ticketEvents.forEach((ticketEvent) => {
-			if (!existingParticipantEventIds.has(ticketEvent._id.toString())) {
+			if (
+				ticketEvent._id &&
+				!existingParticipantEventIds.has(ticketEvent._id.toString())
+			) {
 				eventsByRole.participant.push(ticketEvent);
 			}
 		});
-
 		return JSON.parse(JSON.stringify(eventsByRole));
 	} catch (error) {
 		console.error('Error getting events by user roles:', error);

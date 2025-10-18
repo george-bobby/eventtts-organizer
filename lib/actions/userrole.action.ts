@@ -2,7 +2,11 @@
 
 import mongoose from 'mongoose';
 import { connectToDatabase } from '../dbconnection';
-import UserRole, { UserRoleType, IUserRole } from '../models/userrole.model';
+import UserRole, {
+	UserRoleType,
+	IUserRole,
+	PermissionType,
+} from '../models/userrole.model';
 import User from '../models/user.model';
 import Event from '../models/event.model';
 import { revalidatePath } from 'next/cache';
@@ -54,7 +58,9 @@ export async function createUserRole(params: CreateUserRoleParams) {
 		});
 
 		if (existingRole) {
-			throw new Error(`User already has the role '${params.role}' for this event`);
+			throw new Error(
+				`User already has the role '${params.role}' for this event`
+			);
 		}
 
 		const userRole = await UserRole.create({
@@ -179,7 +185,7 @@ export async function getEventsByUserRole(userId: string, role?: UserRoleType) {
 export async function checkUserPermission(
 	userId: string,
 	eventId: string,
-	permission: keyof IUserRole['permissions']
+	permission: PermissionType
 ): Promise<boolean> {
 	try {
 		await connectToDatabase();
@@ -204,7 +210,10 @@ export async function checkUserPermission(
 /**
  * Get user's highest role for an event
  */
-export async function getUserHighestRole(userId: string, eventId: string): Promise<UserRoleType | null> {
+export async function getUserHighestRole(
+	userId: string,
+	eventId: string
+): Promise<UserRoleType | null> {
 	try {
 		await connectToDatabase();
 
@@ -230,10 +239,10 @@ export async function getUserHighestRole(userId: string, eventId: string): Promi
 		let highestRoleValue = 0;
 
 		userRoles.forEach((userRole) => {
-			const roleValue = roleHierarchy[userRole.role];
+			const roleValue = roleHierarchy[userRole.role as UserRoleType];
 			if (roleValue > highestRoleValue) {
 				highestRoleValue = roleValue;
-				highestRole = userRole.role;
+				highestRole = userRole.role as UserRoleType;
 			}
 		});
 
