@@ -6,6 +6,8 @@ import {
 	bulkImportStakeholders,
 	getStakeholderStats,
 } from '@/lib/actions/stakeholder.action';
+import { hasEventPermission } from '@/lib/utils/auth';
+import { getUserByClerkId } from '@/lib/actions/user.action';
 
 /**
  * GET /api/stakeholders - Get stakeholders for an event
@@ -29,6 +31,18 @@ export async function GET(request: NextRequest) {
 				{ error: 'Event ID is required' },
 				{ status: 400 }
 			);
+		}
+
+		// Check if user has permission to view attendees/stakeholders
+		const user = await getUserByClerkId(userId);
+		const canViewAttendees = await hasEventPermission(
+			user._id.toString(),
+			eventId,
+			'canViewAttendees'
+		);
+
+		if (!canViewAttendees) {
+			return NextResponse.json({ error: 'Access denied' }, { status: 403 });
 		}
 
 		if (getStats) {
@@ -80,6 +94,18 @@ export async function POST(request: NextRequest) {
 				{ error: 'Event ID is required' },
 				{ status: 400 }
 			);
+		}
+
+		// Check if user has permission to manage stakeholders
+		const user = await getUserByClerkId(userId);
+		const canManageStakeholders = await hasEventPermission(
+			user._id.toString(),
+			eventId,
+			'canManageStakeholders'
+		);
+
+		if (!canManageStakeholders) {
+			return NextResponse.json({ error: 'Access denied' }, { status: 403 });
 		}
 
 		if (type === 'single') {

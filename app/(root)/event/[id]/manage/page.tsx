@@ -5,12 +5,11 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Flag, Bell, CheckSquare, Target } from 'lucide-react';
-import { getEventById } from '@/lib/actions/event.action';
-import { getUserByClerkId } from '@/lib/actions/user.action';
+import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Bell, CheckSquare, Target } from 'lucide-react';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
 import DeleteEventButton from '@/components/shared/DeleteEventButton';
 import { headers } from 'next/headers';
+import { getEventAuthContext, getRoleDisplayName, getRoleBadgeColor } from '@/lib/utils/auth';
 
 interface EventManagePageProps {
   params: Promise<{ id: string }>;
@@ -25,28 +24,34 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
     redirect('/sign-in');
   }
 
-  const [event, user] = await Promise.all([
-    getEventById(id),
-    getUserByClerkId(clerkId)
-  ]);
+  // Get event auth context with role-based permissions
+  const eventAuthContext = await getEventAuthContext(id);
 
-  if (!event) {
+  if (!eventAuthContext.isAuthenticated) {
+    redirect('/sign-in');
+  }
+
+  if (!eventAuthContext.event) {
     redirect('/');
   }
 
-  // Check if user is the organizer
-  if (String(event.organizer._id) !== String(user._id)) {
+  if (!eventAuthContext.canAccess) {
     redirect(`/event/${id}`);
   }
 
-  const managementOptions = [
+  const { event, userRole, permissions, isOrganizer } = eventAuthContext;
+
+  // Define all management options with their required permissions
+  const allManagementOptions = [
     {
       title: 'Edit Event',
       description: 'Update event details, description, and settings',
       icon: Edit,
       href: `/event/${id}/update`,
       color: 'bg-blue-500 hover:bg-blue-600',
-      iconColor: 'text-blue-600'
+      iconColor: 'text-blue-600',
+      requiredPermission: 'canManageEvent',
+      organizerOnly: true
     },
     {
       title: 'View Issues',
@@ -54,7 +59,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: AlertTriangle,
       href: `/event/${id}/issues`,
       color: 'bg-orange-500 hover:bg-orange-600',
-      iconColor: 'text-orange-600'
+      iconColor: 'text-orange-600',
+      requiredPermission: 'canViewAttendees'
     },
     {
       title: 'Feedback Management',
@@ -62,7 +68,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: MessageSquare,
       href: `/event/${id}/feedbacks`,
       color: 'bg-indigo-500 hover:bg-indigo-600',
-      iconColor: 'text-indigo-600'
+      iconColor: 'text-indigo-600',
+      requiredPermission: 'canViewAnalytics'
     },
     {
       title: 'Manage Attendees',
@@ -70,7 +77,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: Users,
       href: `/event/${id}/attendees`,
       color: 'bg-green-500 hover:bg-green-600',
-      iconColor: 'text-green-600'
+      iconColor: 'text-green-600',
+      requiredPermission: 'canViewAttendees'
     },
     {
       title: 'Generate Report',
@@ -78,7 +86,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: FileText,
       href: `/event/${id}/report`,
       color: 'bg-purple-500 hover:bg-purple-600',
-      iconColor: 'text-purple-600'
+      iconColor: 'text-purple-600',
+      requiredPermission: 'canViewAnalytics'
     },
     {
       title: 'Event Analytics',
@@ -86,7 +95,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: BarChart3,
       href: `/event/${id}/analytics`,
       color: 'bg-cyan-500 hover:bg-cyan-600',
-      iconColor: 'text-cyan-600'
+      iconColor: 'text-cyan-600',
+      requiredPermission: 'canViewAnalytics'
     },
     {
       title: 'Verify Tickets',
@@ -94,7 +104,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: CheckSquare,
       href: `/event/${id}/verify`,
       color: 'bg-slate-500 hover:bg-slate-600',
-      iconColor: 'text-slate-600'
+      iconColor: 'text-slate-600',
+      requiredPermission: 'canVerifyTickets'
     },
     {
       title: 'Event Notifications',
@@ -102,7 +113,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: Bell,
       href: `/event/${id}/notifications`,
       color: 'bg-emerald-500 hover:bg-emerald-600',
-      iconColor: 'text-emerald-600'
+      iconColor: 'text-emerald-600',
+      requiredPermission: 'canSendUpdates'
     },
     {
       title: 'Photo Gallery',
@@ -110,7 +122,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: Camera,
       href: `/event/${id}/gallery`,
       color: 'bg-pink-500 hover:bg-pink-600',
-      iconColor: 'text-pink-600'
+      iconColor: 'text-pink-600',
+      requiredPermission: 'canManageGallery'
     },
     {
       title: 'Certificates',
@@ -118,7 +131,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: Award,
       href: `/event/${id}/certificates`,
       color: 'bg-yellow-500 hover:bg-yellow-600',
-      iconColor: 'text-yellow-600'
+      iconColor: 'text-yellow-600',
+      requiredPermission: 'canManageCertificates'
     },
     {
       title: 'Stakeholders',
@@ -126,7 +140,8 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: UserCheck,
       href: `/event/${id}/stakeholders`,
       color: 'bg-teal-500 hover:bg-teal-600',
-      iconColor: 'text-teal-600'
+      iconColor: 'text-teal-600',
+      requiredPermission: 'canManageStakeholders'
     },
     {
       title: 'Plan Event',
@@ -134,9 +149,26 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       icon: Target,
       href: `/event/${id}/plan`,
       color: 'bg-purple-500 hover:bg-purple-600',
-      iconColor: 'text-purple-600'
+      iconColor: 'text-purple-600',
+      requiredPermission: 'canManageEvent'
     },
   ];
+
+  // Filter management options based on user permissions
+  const managementOptions = allManagementOptions.filter(option => {
+    // Organizer has access to everything
+    if (isOrganizer) return true;
+
+    // If option is organizer-only, deny access
+    if (option.organizerOnly) return false;
+
+    // Check if user has the required permission
+    if (option.requiredPermission && permissions) {
+      return permissions[option.requiredPermission as keyof typeof permissions] === true;
+    }
+
+    return false;
+  });
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -158,9 +190,24 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
           </div>
 
           <div className="text-white">
-            <h1 className="text-4xl font-bold mb-4">Event Management Dashboard</h1>
+            <div className="flex items-center gap-4 mb-4">
+              <h1 className="text-4xl font-bold">Event Management Dashboard</h1>
+              {userRole && (
+                <Badge className={`${getRoleBadgeColor(userRole)} border-white/30`}>
+                  {getRoleDisplayName(userRole)}
+                </Badge>
+              )}
+              {isOrganizer && (
+                <Badge className="bg-white/20 text-white border-white/30">
+                  Event Organizer
+                </Badge>
+              )}
+            </div>
             <p className="text-red-100 text-lg mb-6">
-              Manage all aspects of your event from this central dashboard
+              {isOrganizer
+                ? 'Manage all aspects of your event from this central dashboard'
+                : `Manage event features based on your ${userRole ? getRoleDisplayName(userRole).toLowerCase() : 'assigned'} role`
+              }
             </p>
           </div>
         </div>
@@ -220,51 +267,76 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
         </Card>
 
         {/* Management Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          {managementOptions.map((option, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer group">
-              <Link href={option.href}>
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className={`p-3 rounded-lg ${option.color.replace('hover:', '')} bg-opacity-10 mr-4`}>
-                      <option.icon className={`w-6 h-6 ${option.iconColor}`} />
+        {managementOptions.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            {managementOptions.map((option, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer group">
+                <Link href={option.href}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center mb-4">
+                      <div className={`p-3 rounded-lg ${option.color.replace('hover:', '')} bg-opacity-10 mr-4`}>
+                        <option.icon className={`w-6 h-6 ${option.iconColor}`} />
+                      </div>
                     </div>
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2 group-hover:text-red-600 transition-colors">
-                    {option.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    {option.description}
-                  </p>
-                </CardContent>
-              </Link>
-            </Card>
-          ))}
-        </div>
-
-        {/* Danger Zone */}
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-600 flex items-center gap-2">
-              <Trash2 className="w-5 h-5" />
-              Danger Zone
-            </CardTitle>
-            <CardDescription>
-              Irreversible actions that will permanently affect your event
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-              <div>
-                <h4 className="font-semibold text-red-800">Delete Event</h4>
-                <p className="text-sm text-red-600">
-                  Permanently delete this event and all associated data
-                </p>
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-red-600 transition-colors">
+                      {option.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {option.description}
+                    </p>
+                  </CardContent>
+                </Link>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="mb-8">
+            <CardContent className="p-8 text-center">
+              <div className="text-gray-500 mb-4">
+                <UserCheck className="w-16 h-16 mx-auto mb-4 opacity-50" />
               </div>
-              <DeleteEventButton eventId={String(event._id)} />
-            </div>
-          </CardContent>
-        </Card>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No Management Options Available
+              </h3>
+              <p className="text-gray-600">
+                Your current role ({userRole ? getRoleDisplayName(userRole) : 'Participant'}) doesn't have access to management features for this event.
+              </p>
+              <div className="mt-4">
+                <Button asChild variant="outline">
+                  <Link href={`/event/${id}`}>
+                    View Event Details
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Danger Zone - Only show for organizers */}
+        {isOrganizer && (
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600 flex items-center gap-2">
+                <Trash2 className="w-5 h-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription>
+                Irreversible actions that will permanently affect your event
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                <div>
+                  <h4 className="font-semibold text-red-800">Delete Event</h4>
+                  <p className="text-sm text-red-600">
+                    Permanently delete this event and all associated data
+                  </p>
+                </div>
+                <DeleteEventButton eventId={String(event._id)} />
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </section>
     </div>
   );

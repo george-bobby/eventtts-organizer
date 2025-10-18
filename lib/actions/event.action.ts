@@ -10,6 +10,7 @@ import Order from '../models/order.model';
 import { Types, Document, FilterQuery } from 'mongoose';
 import { getEventStatistics } from './order.action';
 import { createFeedbackTemplate } from './feedback.action';
+import { getEventsByUserRole, getUserRoles } from './userrole.action';
 
 // Import related models for cleanup
 import EventGalleryImage from '../models/eventgallery.model';
@@ -893,6 +894,97 @@ export async function fixEventCapacities() {
 		return { result1, result2, result3 };
 	} catch (error) {
 		console.log(error);
+		throw error;
+	}
+}
+
+/**
+ * Get events where user has specific roles
+ */
+export async function getEventsByUserRoles(userId: string) {
+	try {
+		await connectToDatabase();
+
+		// Get events by role using the UserRole system
+		const eventsByRole = await getEventsByUserRole(userId);
+
+		// Also get events where user is a ticket holder (participant)
+		const orders = await Order.find({ user: userId })
+			.populate({
+				path: 'event',
+				populate: [
+					{ path: 'organizer', select: 'firstName lastName' },
+					{ path: 'category', select: 'name' },
+				],
+			})
+			.sort({ createdAt: -1 });
+
+		// Add ticket-based events to participant role
+		const ticketEvents = orders
+			.filter((order) => order.event) // Filter out orders with deleted events
+			.map((order) => ({
+				...order.event,
+				userRole: {
+					role: 'participant',
+					assignedAt: order.createdAt,
+					permissions: {
+						canManageEvent: false,
+						canVerifyTickets: false,
+						canViewAttendees: false,
+						canManageStakeholders: false,
+						canViewAnalytics: false,
+						canSendUpdates: false,
+						canManageCertificates: false,
+						canManageGallery: false,
+					},
+				},
+				orderInfo: {
+					_id: order._id,
+					totalTickets: order.totalTickets,
+					totalAmount: order.totalAmount,
+					createdAt: order.createdAt,
+					stripeId: order.stripeId,
+				},
+			}));
+
+		// Merge ticket events with role-based participant events (avoid duplicates)
+		const existingParticipantEventIds = new Set(
+			eventsByRole.participant.map((event) => event._id.toString())
+		);
+
+		ticketEvents.forEach((ticketEvent) => {
+			if (!existingParticipantEventIds.has(ticketEvent._id.toString())) {
+				eventsByRole.participant.push(ticketEvent);
+			}
+		});
+
+		return JSON.parse(JSON.stringify(eventsByRole));
+	} catch (error) {
+		console.error('Error getting events by user roles:', error);
+		throw error;
+	}
+}
+
+/**
+ * Get comprehensive user event data including organized events and role-based events
+ */
+export async function getUserEventData(userId: string, page = 1) {
+	try {
+		await connectToDatabase();
+
+		// Get organized events (legacy system)
+		const organizedEvents = await getEventsByUserId({ userId, page });
+
+		// Get role-based events
+		const roleBasedEvents = await getEventsByUserRoles(userId);
+
+		return {
+			organizedEvents: organizedEvents.data,
+			eventsByRole: roleBasedEvents,
+			totalPages: organizedEvents.totalPages,
+		};
+	} catch (error) {
+		console.error('Error getting user event data:', error);
 		throw error;
 	}
 }

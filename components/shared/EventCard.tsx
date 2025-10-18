@@ -9,6 +9,7 @@ import CancelTicketButton from "./CancelTicketButton";
 import { Button } from "@/components/ui/button";
 import { EventWithSubEvents } from "@/lib/actions/event.action";
 import { Settings, AlertTriangle, Ticket, MessageSquare } from "lucide-react";
+import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/auth";
 
 interface Props {
   event: EventWithSubEvents & {
@@ -20,15 +21,21 @@ interface Props {
       createdAt: Date;
       stripeId: string;
     };
+    userRole?: {
+      role: string;
+      assignedAt: Date;
+      permissions: any;
+    };
   };
   currentUserId: string | null;
   page?: string;
   user?: any; // The pre-fetched user data
   likedEvent?: boolean; // Whether this event is liked by the current user
   isBookedEvent?: boolean; // Whether this is a booked event (for tickets section)
+  showRoleBadge?: boolean; // Whether to show role badge
 }
 
-const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBookedEvent = false }: Props) => {
+const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBookedEvent = false, showRoleBadge = false }: Props) => {
   // Check if current user is the organizer of this event
   const isOrganizer = user && String(event.organizer._id) === String(user._id);
 
@@ -53,8 +60,16 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
 
 
 
+        {/* Role badge */}
+        {showRoleBadge && event.userRole && (
+          <div className={`absolute top-3 right-3 ${getRoleBadgeColor(event.userRole.role as any)} text-xs px-3 py-1 rounded-full font-medium shadow-lg`}>
+            {getRoleDisplayName(event.userRole.role as any)}
+          </div>
+        )}
+
+        {/* Sold out badge - position below role badge if both exist */}
         {event.soldOut && (
-          <div className="absolute top-3 right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+          <div className={`absolute ${showRoleBadge && event.userRole ? 'top-12' : 'top-3'} right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg`}>
             Sold Out
           </div>
         )}

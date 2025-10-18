@@ -13,7 +13,10 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { headers } from "next/headers";
-import { MessageSquare, AlertTriangle } from "lucide-react";
+import { MessageSquare, AlertTriangle, Settings, CheckSquare, Users, BarChart3 } from "lucide-react";
+import { getUserHighestRole } from "@/lib/actions/userrole.action";
+import { getRoleDisplayName } from "@/lib/utils/auth";
+import RoleBadge from "@/components/shared/RoleBadge";
 
 interface Props {
 	params: Promise<{ id: string }>;
@@ -29,6 +32,7 @@ const Page = async ({ params }: Props) => {
 	let user = null;
 	let likedEvent = false;
 	let isRegistered = false;
+	let userRole = null;
 
 	if (userId) {
 		user = await getUserByClerkId(userId);
@@ -39,6 +43,8 @@ const Page = async ({ params }: Props) => {
 				userId: user._id,
 				eventId: awaitedParams.id,
 			});
+			// Get user's role for this event
+			userRole = await getUserHighestRole(user._id.toString(), awaitedParams.id);
 		}
 	}
 
@@ -88,6 +94,13 @@ const Page = async ({ params }: Props) => {
 					>{`By ${(event.organizer as any)?.firstName || ''} ${(event.organizer as any)?.lastName || ''}`}</Badge>
 				</div>
 
+				{/* User role badge */}
+				{userRole && (
+					<div className="mb-4">
+						<RoleBadge role={userRole} size="lg" />
+					</div>
+				)}
+
 				{/* Action buttons based on user relationship to event */}
 				<div className="flex flex-wrap gap-3">
 					{!userId ? (
@@ -105,13 +118,49 @@ const Page = async ({ params }: Props) => {
 								option="eventPage"
 							/>
 						</div>
-					) : isOrganizer ? (
-						// Show Manage Event button for organizers
-						<Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white">
-							<Link href={`/event/${event._id}/manage`}>
-								⚙️ Manage Event
-							</Link>
-						</Button>
+					) : isOrganizer || userRole ? (
+						// Show role-based action buttons
+						<div className="flex flex-wrap gap-3">
+							{/* Management button for organizers and volunteers */}
+							{(isOrganizer || userRole === 'organizer' || userRole === 'volunteer') && (
+								<Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white">
+									<Link href={`/event/${event._id}/manage`}>
+										<Settings className="w-4 h-4 mr-2" />
+										{isOrganizer || userRole === 'organizer' ? 'Manage Event' : 'Event Tools'}
+									</Link>
+								</Button>
+							)}
+
+							{/* Ticket verification for volunteers and organizers */}
+							{(userRole === 'volunteer' || userRole === 'organizer' || isOrganizer) && (
+								<Button asChild size="lg" variant="outline" className="border-green-200 text-green-700 hover:bg-green-50">
+									<Link href={`/event/${event._id}/verify`}>
+										<CheckSquare className="w-4 h-4 mr-2" />
+										Verify Tickets
+									</Link>
+								</Button>
+							)}
+
+							{/* Attendee management for organizers and volunteers */}
+							{(userRole === 'volunteer' || userRole === 'organizer' || isOrganizer) && (
+								<Button asChild size="lg" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+									<Link href={`/event/${event._id}/attendees`}>
+										<Users className="w-4 h-4 mr-2" />
+										View Attendees
+									</Link>
+								</Button>
+							)}
+
+							{/* Analytics for organizers only */}
+							{(userRole === 'organizer' || isOrganizer) && (
+								<Button asChild size="lg" variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-50">
+									<Link href={`/event/${event._id}/analytics`}>
+										<BarChart3 className="w-4 h-4 mr-2" />
+										Analytics
+									</Link>
+								</Button>
+							)}
+						</div>
 					) : isRegistered ? (
 						// Show View Ticket and Report Issue/Submit Feedback buttons for registered users
 						<>

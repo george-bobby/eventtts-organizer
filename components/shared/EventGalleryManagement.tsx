@@ -57,9 +57,11 @@ export default function EventGalleryManagement({
 	const [isLoadingImages, setIsLoadingImages] = useState(false);
 	const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 	const [isDeletingImage, setIsDeletingImage] = useState(false);
+	const [isDragging, setIsDragging] = useState(false);
 	const { toast } = useToast();
 	const router = useRouter();
 	const tagInputRef = useRef<HTMLInputElement>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -273,107 +275,234 @@ export default function EventGalleryManagement({
 		}
 	};
 
-	return (
-		<div className="space-y-6">
-			{/* Upload Section */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Upload Images</CardTitle>
-					<CardDescription>
-						Upload images to the {eventTitle} gallery. Add tags to help organize and filter images.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					{/* Desktop Layout - 2 Column Grid */}
-					<div className="hidden md:grid md:grid-cols-2 md:gap-4">
-						{/* Select Images */}
-						<div className="space-y-2">
-							<Label htmlFor="file-upload">Select Images</Label>
-							<Input
-								id="file-upload"
-								type="file"
-								accept="image/*"
-								multiple
-								onChange={handleFileSelect}
-								disabled={isUploading}
-							/>
-							{selectedFiles.length > 0 && (
-								<p className="text-sm text-gray-500">
-									{selectedFiles.length} file(s) selected
-								</p>
-							)}
-						</div>
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault();
+		setIsDragging(true);
+	};
 
-						{/* Tags */}
-						<div className="space-y-2">
-							<Label htmlFor="tags">Tags (optional)</Label>
-							<div className="relative">
-								<div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[42px] bg-white">
-									{selectedTags.map((tag) => (
-										<Badge
-											key={tag}
-											variant="secondary"
-											className="flex items-center gap-1"
-										>
-											{tag}
-											<X
-												className="h-3 w-3 cursor-pointer"
-												onClick={() => removeTag(tag)}
-											/>
-										</Badge>
-									))}
-									<Input
-										ref={tagInputRef}
-										id="tags"
-										placeholder={
-											selectedTags.length === 0
-												? 'Type and press Enter...'
-												: 'Add more...'
-										}
-										value={tagInput}
-										onChange={handleTagInputChange}
-										onKeyDown={handleTagInputKeyDown}
-										onFocus={() => setShowTagSuggestions(tagInput.length > 0)}
-										onBlur={() => setTimeout(() => setShowTagSuggestions(false), 200)}
-										disabled={isUploading}
-										className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto min-w-[150px]"
-									/>
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault();
+		setIsDragging(false);
+	};
+
+	const handleDrop = (e: React.DragEvent) => {
+		e.preventDefault();
+		setIsDragging(false);
+
+		const files = Array.from(e.dataTransfer.files).filter(file =>
+			file.type.startsWith('image/')
+		);
+
+		if (files.length > 0) {
+			setSelectedFiles(files);
+		}
+	};
+
+	const removeFile = (index: number) => {
+		setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+	};
+
+	const formatFileSize = (bytes: number) => {
+		if (bytes === 0) return '0 Bytes';
+		const k = 1024;
+		const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+		return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+	};
+
+	return (
+		<div className="flex flex-col lg:flex-row gap-6">
+			{/* Upload Section - Left Side (40%) */}
+			<div className="lg:w-[40%]">
+				<Card className="border shadow-sm h-full">
+					<CardHeader className="bg-gray-50 border-b">
+						<CardTitle className="text-lg flex items-center gap-2">
+							<Upload className="h-5 w-5 text-gray-700" />
+							Upload Images
+						</CardTitle>
+						<CardDescription className="text-sm">
+							Upload images to the {eventTitle} gallery
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="p-4">
+						<div className="space-y-4">
+							{/* Drag and Drop Zone */}
+							<div
+								onDragOver={handleDragOver}
+								onDragLeave={handleDragLeave}
+								onDrop={handleDrop}
+								onClick={() => fileInputRef.current?.click()}
+								className={`
+									relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
+									transition-all duration-200 hover:border-gray-400 hover:bg-gray-50
+									${isDragging ? 'border-gray-500 bg-gray-100' : 'border-gray-300'}
+									${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+								`}
+							>
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept="image/*"
+									multiple
+									onChange={handleFileSelect}
+									disabled={isUploading}
+									className="hidden"
+								/>
+
+								<div className="flex flex-col items-center gap-2">
+									<div className="p-3 bg-gray-100 rounded-full">
+										<ImageIcon className="h-8 w-8 text-gray-600" />
+									</div>
+
+									<div>
+										<p className="text-sm font-medium text-gray-700 mb-1">
+											{isDragging ? 'Drop images here' : 'Drag & drop or click'}
+										</p>
+										<p className="text-xs text-gray-500">
+											PNG, JPG, GIF (Max 10MB)
+										</p>
+									</div>
 								</div>
-								{showTagSuggestions && filteredSuggestions.length > 0 && (
-									<div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
-										{filteredSuggestions.map((tag) => (
+							</div>
+
+							{/* Selected Files Preview */}
+							{selectedFiles.length > 0 && (
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<Label className="text-sm font-medium">
+											Selected ({selectedFiles.length})
+										</Label>
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => setSelectedFiles([])}
+											disabled={isUploading}
+											className="h-7 text-xs text-gray-600 hover:text-gray-900"
+										>
+											Clear
+										</Button>
+									</div>
+
+									<div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
+										{selectedFiles.map((file, index) => (
 											<div
-												key={tag}
-												className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-												onClick={() => addTag(tag)}
+												key={index}
+												className="relative group border rounded overflow-hidden bg-gray-50"
 											>
-												{tag}
+												<div className="aspect-square relative bg-gray-100">
+													<Image
+														src={URL.createObjectURL(file)}
+														alt={file.name}
+														fill
+														className="object-cover"
+													/>
+													<Button
+														variant="destructive"
+														size="icon"
+														className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+														onClick={() => removeFile(index)}
+														disabled={isUploading}
+													>
+														<X className="h-3 w-3" />
+													</Button>
+												</div>
+												<div className="p-1 bg-white">
+													<p className="text-xs truncate" title={file.name}>
+														{file.name}
+													</p>
+												</div>
 											</div>
 										))}
 									</div>
-								)}
+								</div>
+							)}
+
+							{/* Tags Section */}
+							<div className="space-y-2">
+								<Label htmlFor="tags" className="text-sm font-medium">
+									Tags <span className="text-gray-400 font-normal">(optional)</span>
+								</Label>
+								<div className="relative">
+									<div className="flex flex-wrap gap-1.5 p-2 border rounded min-h-[42px] bg-white focus-within:border-gray-400">
+										{selectedTags.map((tag) => (
+											<Badge
+												key={tag}
+												variant="secondary"
+												className="flex items-center gap-1 text-xs"
+											>
+												{tag}
+												<X
+													className="h-3 w-3 cursor-pointer"
+													onClick={() => removeTag(tag)}
+												/>
+											</Badge>
+										))}
+										<Input
+											ref={tagInputRef}
+											id="tags"
+											placeholder="Type and press Enter..."
+											value={tagInput}
+											onChange={handleTagInputChange}
+											onKeyDown={handleTagInputKeyDown}
+											onFocus={() => setShowTagSuggestions(tagInput.length > 0)}
+											onBlur={() => setTimeout(() => setShowTagSuggestions(false), 200)}
+											disabled={isUploading}
+											className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto min-w-[120px] text-sm"
+										/>
+									</div>
+									{showTagSuggestions && filteredSuggestions.length > 0 && (
+										<div className="absolute z-10 w-full mt-1 bg-white border rounded shadow-lg max-h-40 overflow-y-auto">
+											{filteredSuggestions.map((tag) => (
+												<div
+													key={tag}
+													className="px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50"
+													onClick={() => addTag(tag)}
+												>
+													{tag}
+												</div>
+											))}
+										</div>
+									)}
+								</div>
 							</div>
-						</div>
 
-						{/* Caption */}
-						<div className="space-y-2">
-							<Label htmlFor="caption">Caption (optional)</Label>
-							<Textarea
-								id="caption"
-								placeholder="Add a caption for these images"
-								value={imageCaption}
-								onChange={(e) => setImageCaption(e.target.value)}
-								disabled={isUploading}
-								rows={2}
-							/>
-						</div>
+							{/* Caption Section */}
+							<div className="space-y-2">
+								<Label htmlFor="caption" className="text-sm font-medium">
+									Caption <span className="text-gray-400 font-normal">(optional)</span>
+								</Label>
+								<Textarea
+									id="caption"
+									placeholder="Add a caption..."
+									value={imageCaption}
+									onChange={(e) => setImageCaption(e.target.value)}
+									disabled={isUploading}
+									rows={2}
+									className="resize-none text-sm"
+								/>
+							</div>
 
-						{/* Upload Button */}
-						<div className="flex items-end">
+							{/* Upload Progress */}
+							{isUploading && (
+								<div className="space-y-2 p-3 bg-gray-50 border rounded">
+									<div className="flex justify-between text-xs font-medium">
+										<span className="text-gray-700">Uploading...</span>
+										<span className="text-gray-600">{uploadProgress}%</span>
+									</div>
+									<div className="w-full bg-gray-200 rounded-full h-2">
+										<div
+											className="bg-gray-800 h-2 rounded-full transition-all"
+											style={{ width: `${uploadProgress}%` }}
+										/>
+									</div>
+								</div>
+							)}
+
+							{/* Upload Button */}
 							<Button
 								onClick={handleUpload}
 								disabled={isUploading || selectedFiles.length === 0}
-								className="w-full"
+								className="w-full bg-gray-900 hover:bg-gray-800 text-white"
 							>
 								{isUploading ? (
 									<>
@@ -388,185 +517,81 @@ export default function EventGalleryManagement({
 								)}
 							</Button>
 						</div>
-					</div>
+					</CardContent>
+				</Card>
+			</div>
 
-					{/* Mobile Layout - Stacked */}
-					<div className="md:hidden space-y-4">
-						{/* Select Images */}
-						<div className="space-y-2">
-							<Label htmlFor="file-upload-mobile">Select Images</Label>
-							<Input
-								id="file-upload-mobile"
-								type="file"
-								accept="image/*"
-								multiple
-								onChange={handleFileSelect}
-								disabled={isUploading}
-							/>
-							{selectedFiles.length > 0 && (
-								<p className="text-sm text-gray-500">
-									{selectedFiles.length} file(s) selected
-								</p>
-							)}
-						</div>
-
-						{/* Tags */}
-						<div className="space-y-2">
-							<Label htmlFor="tags-mobile">Tags (optional)</Label>
-							<div className="relative">
-								<div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[42px] bg-white">
-									{selectedTags.map((tag) => (
-										<Badge
-											key={tag}
-											variant="secondary"
-											className="flex items-center gap-1"
-										>
-											{tag}
-											<X
-												className="h-3 w-3 cursor-pointer"
-												onClick={() => removeTag(tag)}
+			{/* Gallery Section - Right Side (60%) */}
+			<div className="lg:w-[60%]">
+				<Card className="border shadow-sm h-full">
+					<CardHeader className="bg-gray-50 border-b">
+						<CardTitle className="text-lg">Gallery Images ({existingImages.length})</CardTitle>
+						<CardDescription className="text-sm">
+							View and manage images in the {eventTitle} gallery
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{isLoadingImages ? (
+							<div className="flex justify-center items-center py-12">
+								<Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+							</div>
+						) : existingImages.length === 0 ? (
+							<div className="text-center py-12 text-gray-500">
+								<ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+								<p>No images uploaded yet</p>
+								<p className="text-sm mt-2">Upload your first image to get started</p>
+							</div>
+						) : (
+							<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+								{existingImages.map((image) => (
+									<div
+										key={image._id}
+										className="group relative border rounded overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+										onClick={() => setSelectedImage(image)}
+									>
+										<div className="aspect-square bg-gray-100 relative">
+											<Image
+												src={image.thumbnailUrl || image.fileUrl}
+												alt={image.originalName}
+												fill
+												className="object-cover"
 											/>
-										</Badge>
-									))}
-									<Input
-										id="tags-mobile"
-										placeholder={
-											selectedTags.length === 0
-												? 'Type and press Enter...'
-												: 'Add more...'
-										}
-										value={tagInput}
-										onChange={handleTagInputChange}
-										onKeyDown={handleTagInputKeyDown}
-										onFocus={() => setShowTagSuggestions(tagInput.length > 0)}
-										onBlur={() => setTimeout(() => setShowTagSuggestions(false), 200)}
-										disabled={isUploading}
-										className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto min-w-[150px]"
-									/>
-								</div>
-							</div>
-						</div>
-
-						{/* Caption */}
-						<div className="space-y-2">
-							<Label htmlFor="caption-mobile">Caption (optional)</Label>
-							<Textarea
-								id="caption-mobile"
-								placeholder="Add a caption for these images"
-								value={imageCaption}
-								onChange={(e) => setImageCaption(e.target.value)}
-								disabled={isUploading}
-								rows={2}
-							/>
-						</div>
-
-						{/* Upload Button */}
-						<Button
-							onClick={handleUpload}
-							disabled={isUploading || selectedFiles.length === 0}
-							className="w-full"
-						>
-							{isUploading ? (
-								<>
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-									Uploading...
-								</>
-							) : (
-								<>
-									<Upload className="h-4 w-4 mr-2" />
-									Upload {selectedFiles.length > 0 && `(${selectedFiles.length})`}
-								</>
-							)}
-						</Button>
-					</div>
-
-					{/* Upload Progress */}
-					{isUploading && (
-						<div className="space-y-2">
-							<div className="flex justify-between text-sm">
-								<span>Uploading...</span>
-								<span>{uploadProgress}%</span>
-							</div>
-							<div className="w-full bg-gray-200 rounded-full h-2">
-								<div
-									className="bg-blue-600 h-2 rounded-full transition-all"
-									style={{ width: `${uploadProgress}%` }}
-								/>
-							</div>
-						</div>
-					)}
-				</CardContent>
-			</Card>
-
-			{/* Gallery Section */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Gallery Images ({existingImages.length})</CardTitle>
-					<CardDescription>
-						View and manage images in the {eventTitle} gallery
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{isLoadingImages ? (
-						<div className="flex justify-center items-center py-12">
-							<Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-						</div>
-					) : existingImages.length === 0 ? (
-						<div className="text-center py-12 text-gray-500">
-							<ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-							<p>No images uploaded yet</p>
-							<p className="text-sm mt-2">Upload your first image to get started</p>
-						</div>
-					) : (
-						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-							{existingImages.map((image) => (
-								<div
-									key={image._id}
-									className="group relative border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-									onClick={() => setSelectedImage(image)}
-								>
-									<div className="aspect-square bg-gray-100 relative">
-										<Image
-											src={image.thumbnailUrl || image.fileUrl}
-											alt={image.originalName}
-											fill
-											className="object-cover"
-										/>
-									</div>
-									<div className="p-2">
-										<p className="text-xs truncate font-medium">{image.originalName}</p>
-										<div className="flex flex-wrap gap-1 mt-1">
-											{image.tags.slice(0, 2).map((tag) => (
-												<Badge key={tag} variant="secondary" className="text-xs">
-													{tag}
-												</Badge>
-											))}
-											{image.tags.length > 2 && (
-												<Badge variant="secondary" className="text-xs">
-													+{image.tags.length - 2}
-												</Badge>
-											)}
+										</div>
+										<div className="p-2 bg-white">
+											<p className="text-xs truncate font-medium">{image.originalName}</p>
+											<div className="flex flex-wrap gap-1 mt-1">
+												{image.tags.slice(0, 2).map((tag) => (
+													<Badge key={tag} variant="secondary" className="text-xs">
+														{tag}
+													</Badge>
+												))}
+												{image.tags.length > 2 && (
+													<Badge variant="secondary" className="text-xs">
+														+{image.tags.length - 2}
+													</Badge>
+												)}
+											</div>
+										</div>
+										<div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+											<Button
+												size="icon"
+												variant="destructive"
+												className="h-7 w-7"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleDeleteImage(image._id);
+												}}
+											>
+												<Trash2 className="h-3 w-3" />
+											</Button>
 										</div>
 									</div>
-									<div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-										<Button
-											size="icon"
-											variant="destructive"
-											className="h-8 w-8"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleDeleteImage(image._id);
-											}}
-										>
-											<Trash2 className="h-4 w-4" />
-										</Button>
-									</div>
-								</div>
-							))}
-						</div>
-					)}
-				</CardContent>
-			</Card>
+								))}
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</div>
 
 			{/* Image Preview Dialog */}
 			<Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>

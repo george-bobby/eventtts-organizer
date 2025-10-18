@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import EventCards from "@/components/shared/EventCards";
 import EventCreatorDashboard from "@/components/shared/EventCreatorDashboard";
-import { getEventsByUserId } from "@/lib/actions/event.action";
+import RoleBasedEventSections from "@/components/shared/RoleBasedEventSections";
+import { getEventsByUserId, getUserEventData } from "@/lib/actions/event.action";
 import { getOrdersByUserId } from "@/lib/actions/order.action";
 import { IOrder } from "@/types";
 import { getUserByClerkId } from "@/lib/actions/user.action";
@@ -30,26 +31,19 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
     const params = await searchParams;
     const organizedEventsPage = Number(params.page) || 1;
 
-    const organizedEventsPromise = getEventsByUserId({ userId: mongoUser._id, page: organizedEventsPage });
-    const ordersPromise = getOrdersByUserId({ userId: mongoUser._id });
+    // Get comprehensive user event data including role-based events
+    const userEventData = await getUserEventData(mongoUser._id, organizedEventsPage);
 
-    const [organizedEvents, orders] = await Promise.all([
-      organizedEventsPromise,
-      ordersPromise,
-    ]);
+    const myOrganizedEvents = userEventData.organizedEvents || [];
+    const eventsByRole = userEventData.eventsByRole || {
+      organizer: [],
+      volunteer: [],
+      speaker: [],
+      participant: []
+    };
 
-    const myTickets = orders?.data.map((order: IOrder) => ({
-      ...order.event,
-      orderId: order._id, // Add order ID for cancellation
-      orderInfo: {
-        _id: order._id,
-        totalTickets: order.totalTickets,
-        totalAmount: order.totalAmount,
-        createdAt: order.createdAt,
-        stripeId: order.stripeId
-      }
-    })) || [];
-    const myOrganizedEvents = organizedEvents?.data || [];
+    // Legacy ticket data for backward compatibility
+    const myTickets = eventsByRole.participant.filter(event => event.orderInfo) || [];
 
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -61,50 +55,61 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
             </section>
           )}
 
-          {/* Events Organized Section */}
-          <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-white">Events Organized</h3>
-                <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
-                  <Link href="/create">Create New Event</Link>
-                </Button>
-              </div>
-            </div>
-            <div className="p-8">
-              <EventCards
-                events={myOrganizedEvents}
-                currentUserId={clerkId}
-                emptyTitle="No events have been created yet"
-                emptyStateSubtext="Go create some now!"
-                page="profile"
-                user={mongoUser}
-              />
-            </div>
-          </section>
+          {/* Role-Based Event Sections */}
+          <RoleBasedEventSections
+            eventsByRole={eventsByRole}
+            currentUserId={clerkId}
+            mongoUser={mongoUser}
+          />
 
-          {/* My Tickets Section */}
-          <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-white">My Tickets</h3>
-                <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
-                  <Link href="/explore">Explore More Events</Link>
-                </Button>
+          {/* Legacy Events Organized Section - Only show if user has organized events but no role-based events */}
+          {myOrganizedEvents.length > 0 && Object.values(eventsByRole).every(events => events.length === 0) && (
+            <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-bold text-white">Events Organized</h3>
+                  <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
+                    <Link href="/create">Create New Event</Link>
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="p-8">
-              <EventCards
-                events={myTickets}
-                currentUserId={clerkId}
-                emptyTitle="No event tickets purchased yet"
-                emptyStateSubtext="No worries - plenty of exciting events to explore!"
-                user={mongoUser}
-                page="profile"
-                isBookedEvent={true}
-              />
-            </div>
-          </section>
+              <div className="p-8">
+                <EventCards
+                  events={myOrganizedEvents}
+                  currentUserId={clerkId}
+                  emptyTitle="No events have been created yet"
+                  emptyStateSubtext="Go create some now!"
+                  page="profile"
+                  user={mongoUser}
+                />
+              </div>
+            </section>
+          )}
+
+          {/* Legacy My Tickets Section - Only show if user has tickets but no role-based events */}
+          {myTickets.length > 0 && Object.values(eventsByRole).every(events => events.length === 0) && (
+            <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-bold text-white">My Tickets</h3>
+                  <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
+                    <Link href="/explore">Explore More Events</Link>
+                  </Button>
+                </div>
+              </div>
+              <div className="p-8">
+                <EventCards
+                  events={myTickets}
+                  currentUserId={clerkId}
+                  emptyTitle="No event tickets purchased yet"
+                  emptyStateSubtext="No worries - plenty of exciting events to explore!"
+                  user={mongoUser}
+                  page="profile"
+                  isBookedEvent={true}
+                />
+              </div>
+            </section>
+          )}
 
         </div>
       </div>

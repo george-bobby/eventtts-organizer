@@ -7,6 +7,7 @@ import Event from '../models/event.model';
 import User from '../models/user.model';
 import { revalidatePath } from 'next/cache';
 import * as XLSX from 'xlsx';
+import { assignRoleFromStakeholder } from './userrole.action';
 
 export interface CreateStakeholderParams {
 	eventId: string;
@@ -63,7 +64,23 @@ export async function createStakeholder(params: CreateStakeholderParams) {
 			user: existingUser?._id,
 		});
 
+		// If user exists, assign them the role for this event
+		if (existingUser) {
+			try {
+				await assignRoleFromStakeholder(
+					existingUser._id.toString(),
+					params.eventId,
+					params.role,
+					params.importedBy
+				);
+			} catch (roleError) {
+				console.error('Error assigning role to user:', roleError);
+				// Don't fail stakeholder creation if role assignment fails
+			}
+		}
+
 		revalidatePath(`/event/${params.eventId}/stakeholders`);
+		revalidatePath('/dashboard'); // Refresh dashboard to show new role assignments
 		return JSON.parse(JSON.stringify(stakeholder));
 	} catch (error) {
 		console.error('Error creating stakeholder:', error);
