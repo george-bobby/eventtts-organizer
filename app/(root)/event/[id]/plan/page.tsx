@@ -101,7 +101,7 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
       </section>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-full px-4 py-6">
         <EventPlanner event={targetEvent} isSubEvent={isSubEvent} />
       </div>
     </div>

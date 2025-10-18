@@ -105,6 +105,121 @@ export async function saveEventTasks(
 	}
 }
 
+// Create a new task
+export async function createTask(
+	eventId: string,
+	userId: string,
+	taskData: {
+		content: string;
+		column: string;
+		priority: string;
+		estimatedDuration: string;
+	}
+) {
+	try {
+		await connectToDatabase();
+
+		const mongoUser = await getUserByClerkId(userId);
+		if (!mongoUser) {
+			throw new Error('User not found');
+		}
+
+		// Generate a unique ID for the task
+		const taskId = `task-${Date.now()}-${Math.random()
+			.toString(36)
+			.substr(2, 9)}`;
+
+		const newTask = new Task({
+			id: taskId,
+			content: taskData.content,
+			column: taskData.column,
+			priority: taskData.priority,
+			estimatedDuration: taskData.estimatedDuration,
+			completed: false,
+			subtasks: [],
+			event: eventId,
+			organizer: mongoUser._id,
+		});
+
+		await newTask.save();
+
+		return {
+			success: true,
+			task: {
+				id: newTask.id,
+				content: newTask.content,
+				column: newTask.column,
+				priority: newTask.priority,
+				estimatedDuration: newTask.estimatedDuration,
+				completed: newTask.completed,
+				subtasks: newTask.subtasks,
+			},
+		};
+	} catch (error) {
+		console.error('Error creating task:', error);
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : 'Unknown error',
+		};
+	}
+}
+
+// Add a subtask to an existing task
+export async function addSubtask(
+	eventId: string,
+	userId: string,
+	taskId: string,
+	content: string
+) {
+	try {
+		await connectToDatabase();
+
+		const mongoUser = await getUserByClerkId(userId);
+		if (!mongoUser) {
+			throw new Error('User not found');
+		}
+
+		// Generate a unique ID for the subtask
+		const subtaskId = `subtask-${Date.now()}-${Math.random()
+			.toString(36)
+			.substr(2, 9)}`;
+
+		const newSubtask = {
+			id: subtaskId,
+			content,
+			completed: false,
+		};
+
+		// Find the task and add the subtask
+		const task = await Task.findOneAndUpdate(
+			{
+				id: taskId,
+				event: eventId,
+				organizer: mongoUser._id,
+			},
+			{
+				$push: { subtasks: newSubtask },
+			},
+			{ new: true }
+		);
+
+		if (!task) {
+			throw new Error('Task not found');
+		}
+
+		return {
+			success: true,
+			subtask: newSubtask,
+		};
+	} catch (error) {
+		console.error('Error adding subtask:', error);
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : 'Unknown error',
+		};
+	}
+}
+
 // Update a single task
 export async function updateTask(
 	eventId: string,

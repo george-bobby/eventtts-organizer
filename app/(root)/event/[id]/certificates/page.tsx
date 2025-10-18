@@ -7,6 +7,7 @@ import { getCertificateTemplates } from '@/lib/actions/certificate.action';
 import { getEventStakeholders } from '@/lib/actions/stakeholder.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import CertificateManagement from '@/components/shared/CertificateManagement';
+import { headers } from 'next/headers';
 
 interface CertificatesPageProps {
   params: Promise<{
@@ -15,8 +16,9 @@ interface CertificatesPageProps {
 }
 
 export default async function CertificatesPage({ params }: CertificatesPageProps) {
+  await headers();
   const { id } = await params;
-  const { userId } = auth();
+  const { userId } = await auth();
 
   if (!userId) {
     redirect('/sign-in');

@@ -5,12 +5,14 @@ import {
 	getFeedbackAnalytics,
 } from '@/lib/actions/feedback.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
+import { headers } from 'next/headers';
 
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ eventId: string }> }
 ) {
 	try {
+		await headers();
 		const authResult = await auth();
 		const { userId: clerkId } = authResult;
 		const { eventId } = await params;
@@ -41,14 +43,14 @@ export async function GET(
 		// Get feedback responses
 		const responsesData = await getFeedbackResponses({
 			eventId,
-			organizerId: mongoUser._id,
+			organizerId: mongoUser._id.toString(),
 			page,
 			limit,
 		});
 
 		let analytics = null;
 		if (includeAnalytics) {
-			analytics = await getFeedbackAnalytics(eventId, mongoUser._id);
+			analytics = await getFeedbackAnalytics(eventId, mongoUser._id.toString());
 		}
 
 		return NextResponse.json({

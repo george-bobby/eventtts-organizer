@@ -10,12 +10,14 @@ import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
 import DeleteEventButton from '@/components/shared/DeleteEventButton';
+import { headers } from 'next/headers';
 
 interface EventManagePageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function EventManagePage({ params }: EventManagePageProps) {
+  await headers();
   const { id } = await params;
   const { userId: clerkId } = await auth();
 
@@ -87,14 +89,6 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       iconColor: 'text-cyan-600'
     },
     {
-      title: 'Plan Event',
-      description: 'AI-powered task planning and management board',
-      icon: Target,
-      href: `/event/${id}/plan`,
-      color: 'bg-purple-500 hover:bg-purple-600',
-      iconColor: 'text-purple-600'
-    },
-    {
       title: 'Verify Tickets',
       description: 'Verify attendee tickets with entry codes',
       icon: CheckSquare,
@@ -133,6 +127,14 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       href: `/event/${id}/stakeholders`,
       color: 'bg-teal-500 hover:bg-teal-600',
       iconColor: 'text-teal-600'
+    },
+    {
+      title: 'Plan Event',
+      description: 'AI-powered task planning and management board',
+      icon: Target,
+      href: `/event/${id}/plan`,
+      color: 'bg-purple-500 hover:bg-purple-600',
+      iconColor: 'text-purple-600'
     },
   ];
 

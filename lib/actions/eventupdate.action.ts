@@ -73,7 +73,8 @@ export async function createEventUpdate(params: CreateEventUpdateParams) {
 			throw new Error('User not found');
 		}
 
-		if (String(event.organizer) !== params.createdBy) {
+		// Convert both ObjectIds to strings for comparison
+		if (String(event.organizer) !== String(params.createdBy)) {
 			throw new Error('Unauthorized: Only event organizer can create updates');
 		}
 
@@ -219,13 +220,19 @@ export async function publishEventUpdate(updateId: string, userId: string) {
 	try {
 		await connectToDatabase();
 
-		const update = await EventUpdate.findById(updateId).populate('event');
+		const update = await EventUpdate.findById(updateId).populate({
+			path: 'event',
+			populate: { path: 'organizer' },
+		});
 		if (!update) {
 			throw new Error('Event update not found');
 		}
 
 		// Check if user is the organizer
-		if (String(update.event.organizer) !== userId) {
+		const organizerId = String(
+			update.event.organizer._id || update.event.organizer
+		);
+		if (organizerId !== String(userId)) {
 			throw new Error('Unauthorized: Only event organizer can publish updates');
 		}
 

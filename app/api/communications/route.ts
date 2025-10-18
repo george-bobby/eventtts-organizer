@@ -7,7 +7,6 @@ import {
 	ThankYouEmailData,
 } from '@/lib/email/resend';
 import { getEventStakeholders } from '@/lib/actions/stakeholder.action';
-import { getEventPhotoGalleries } from '@/lib/actions/gallery.action';
 import Event from '@/lib/models/event.model';
 import User from '@/lib/models/user.model';
 import { connectToDatabase } from '@/lib/dbconnection';
@@ -71,13 +70,8 @@ export async function POST(request: NextRequest) {
 		// Get gallery link if requested
 		let galleryUrl = '';
 		if (includeGalleryLink) {
-			const galleries = await getEventPhotoGalleries(eventId);
-			if (galleries.length > 0) {
-				// Use the first public gallery or create a general link
-				const publicGallery =
-					galleries.find((g: any) => g.visibility === 'public') || galleries[0];
-				galleryUrl = `${process.env.NEXT_PUBLIC_APP_URL}/gallery/${publicGallery.shareableLink}`;
-			}
+			// Use the new event gallery view URL
+			galleryUrl = `${process.env.NEXT_PUBLIC_APP_URL}/event/${eventId}/gallery/view`;
 		}
 
 		let results = [];

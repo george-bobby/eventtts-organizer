@@ -399,3 +399,44 @@ export async function bulkUpdateAttendance(
 		throw error;
 	}
 }
+
+/**
+ * Update stakeholder role (admin only)
+ */
+export async function updateStakeholderRole(
+	stakeholderId: string,
+	role: 'attendee' | 'speaker' | 'volunteer' | 'organizer' | 'sponsor',
+	adminUserId: string
+) {
+	try {
+		await connectToDatabase();
+
+		// Get the stakeholder to find the event
+		const stakeholder = await Stakeholder.findById(stakeholderId).populate(
+			'event'
+		);
+		if (!stakeholder) {
+			throw new Error('Stakeholder not found');
+		}
+
+		// Verify the admin is the event organizer
+		const event = await Event.findById(stakeholder.event);
+		if (!event) {
+			throw new Error('Event not found');
+		}
+
+		if (String(event.organizer) !== String(adminUserId)) {
+			throw new Error('Unauthorized: Only event organizer can change roles');
+		}
+
+		// Update the role
+		stakeholder.role = role;
+		await stakeholder.save();
+
+		revalidatePath(`/event/${stakeholder.event}/stakeholders`);
+		return JSON.parse(JSON.stringify(stakeholder));
+	} catch (error) {
+		console.error('Error updating stakeholder role:', error);
+		throw error;
+	}
+}

@@ -3,9 +3,11 @@ import { auth } from '@clerk/nextjs';
 import { sendFeedbackEmailsManually } from '@/lib/actions/feedback.action';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
+import { headers } from 'next/headers';
 
 export async function POST(request: NextRequest) {
 	try {
+		await headers();
 		const { userId } = await auth();
 
 		if (!userId) {
@@ -33,12 +35,13 @@ export async function POST(request: NextRequest) {
 		console.log('Event organizer check:', {
 			eventId,
 			eventFound: !!event,
-			eventOrganizer: event?.organizer?.toString(),
+			eventOrganizer: event?.organizer?._id?.toString(),
 			mongoUserId: mongoUser._id.toString(),
-			isOrganizer: event?.organizer?.toString() === mongoUser._id.toString(),
+			isOrganizer:
+				event?.organizer?._id?.toString() === mongoUser._id.toString(),
 		});
 
-		if (!event || event.organizer.toString() !== mongoUser._id.toString()) {
+		if (!event || event.organizer._id.toString() !== mongoUser._id.toString()) {
 			return NextResponse.json(
 				{ error: 'Unauthorized: You are not the organizer of this event' },
 				{ status: 403 }

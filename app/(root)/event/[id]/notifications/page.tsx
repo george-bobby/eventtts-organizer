@@ -7,12 +7,14 @@ import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import EventUpdatesManagement from '@/components/shared/EventUpdatesManagement';
+import { headers } from 'next/headers';
 
 interface EventUpdatesPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function EventUpdatesPage({ params }: EventUpdatesPageProps) {
+  await headers();
   const { id } = await params;
   const { userId: clerkId } = await auth();
 
@@ -64,7 +66,7 @@ export default async function EventUpdatesPage({ params }: EventUpdatesPageProps
         <EventUpdatesManagement
           eventId={id}
           eventTitle={event.title}
-          organizerId={user._id}
+          organizerId={String(user._id)}
         />
       </div>
     </div>

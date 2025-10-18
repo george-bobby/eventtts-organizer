@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
+import { headers } from 'next/headers';
 import {
 	createEventUpdate,
 	getEventUpdates,
+	publishEventUpdate,
 } from '@/lib/actions/eventupdate.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 
@@ -11,6 +13,8 @@ import { getUserByClerkId } from '@/lib/actions/user.action';
  */
 export async function GET(request: NextRequest) {
 	try {
+		// Await headers() before accessing request.url for Next.js 15 compatibility
+		await headers();
 		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -119,9 +123,18 @@ export async function POST(request: NextRequest) {
 			metadata,
 		});
 
+		// Automatically publish the update and send emails
+		const publishedUpdate = await publishEventUpdate(
+			eventUpdate._id,
+			mongoUser._id.toString()
+		);
+
 		return NextResponse.json({
 			success: true,
-			data: eventUpdate,
+			data: publishedUpdate,
+			message: sendEmail
+				? 'Event update created and emails sent to attendees'
+				: 'Event update created successfully',
 		});
 	} catch (error) {
 		console.error('Error creating event update:', error);

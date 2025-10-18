@@ -7,12 +7,14 @@ import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import FeedbackManagement from '@/components/shared/FeedbackManagement';
+import { headers } from 'next/headers';
 
 interface FeedbackManagementPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function FeedbackManagementPage({ params }: FeedbackManagementPageProps) {
+  await headers();
   const { id } = await params;
   const { userId: clerkId } = await auth();
 

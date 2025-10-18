@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
 import { createIssue } from '@/lib/actions/issue.action';
 
 export async function POST(request: NextRequest) {
@@ -59,6 +60,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
 	try {
+		// Await headers() before accessing request.url for Next.js 15 compatibility
+		await headers();
 		const { userId } = await auth();
 
 		if (!userId) {

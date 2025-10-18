@@ -1,4 +1,6 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
+import { auth } from '@clerk/nextjs';
+import { headers } from 'next/headers';
 
 const f = createUploadthing();
 
@@ -44,9 +46,18 @@ export const ourFileRouter = {
 	photoGalleryUploader: f({
 		image: { maxFileSize: '8MB', maxFileCount: 50 },
 	})
-		.middleware(async ({ req }) => {
-			// Simplified middleware without Clerk auth to avoid Next.js 15 compatibility issues
-			return { userId: 'temp-user', uploadType: 'photo-gallery' };
+		.middleware(async () => {
+			// Await headers first for Next.js 15 compatibility
+			await headers();
+
+			// Get authenticated user from Clerk
+			const authResult = await auth();
+			const userId = authResult.userId;
+
+			if (!userId) {
+				throw new Error('Unauthorized');
+			}
+			return { userId, uploadType: 'photo-gallery' };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
 			console.log('Photo gallery upload complete for userId:', metadata.userId);

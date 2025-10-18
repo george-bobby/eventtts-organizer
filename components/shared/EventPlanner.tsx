@@ -113,7 +113,7 @@ const SubtaskItem: React.FC<{
         </div>
 
         {!isEditing && (
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+          <div className="opacity-60 group-hover:opacity-100 transition-opacity flex gap-1">
             <Button
               size="sm"
               variant="ghost"
@@ -198,7 +198,8 @@ const TaskCard: React.FC<{
   onDeleteTask: (taskId: string) => void;
   onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
   onDeleteSubtask: (taskId: string, subtaskId: string) => void;
-}> = ({ task, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask }) => {
+  onAddSubtask: (taskId: string) => void;
+}> = ({ task, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask, onAddSubtask }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
   const [editPriority, setEditPriority] = useState(task.priority || 'medium');
@@ -287,7 +288,7 @@ const TaskCard: React.FC<{
         {!isEditing && (
           <div className="flex items-center gap-2">
             <PriorityBadge priority={task.priority} />
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+            <div className="opacity-60 group-hover:opacity-100 transition-opacity flex gap-1">
               <Button
                 size="sm"
                 variant="ghost"
@@ -316,9 +317,22 @@ const TaskCard: React.FC<{
         </div>
       )}
 
-      {!isEditing && totalSubtasks > 0 && (
-        <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
-          <span>{totalSubtasks} subtask{totalSubtasks !== 1 ? 's' : ''}</span>
+      {!isEditing && (
+        <div className="flex items-center justify-between mb-2">
+          {totalSubtasks > 0 && (
+            <div className="flex items-center gap-1 text-xs text-gray-600">
+              <span>{totalSubtasks} subtask{totalSubtasks !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onAddSubtask(task.id)}
+            className="h-5 w-5 p-0 text-gray-400 hover:text-green-600 ml-auto"
+            title="Add Subtask"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
         </div>
       )}
 
@@ -346,7 +360,9 @@ const Column: React.FC<{
   onDeleteTask: (taskId: string) => void;
   onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
   onDeleteSubtask: (taskId: string, subtaskId: string) => void;
-}> = ({ title, columnId, tasks, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask }) => {
+  onAddTask: (columnId: string) => void;
+  onAddSubtask: (taskId: string) => void;
+}> = ({ title, columnId, tasks, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask, onAddTask, onAddSubtask }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'task',
     drop: (item: { id: string; column: string }) => onDropTask(item.id, columnId),
@@ -366,15 +382,24 @@ const Column: React.FC<{
   };
 
   return (
-    <div ref={drop as any} className={`min-w-[320px] p-4 border-2 border-dashed border-transparent rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50/50 shadow-lg scale-105' : 'hover:shadow-md'
+    <div ref={drop as any} className={`flex-1 min-w-0 p-2 border-2 border-dashed border-transparent rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50/50 shadow-lg scale-105' : 'hover:shadow-md'
       }`}>
-      <div className={`bg-white rounded-xl p-5 shadow-lg border-t-4 ${getColumnColor()}`}>
+      <div className={`bg-white rounded-xl p-4 shadow-lg border-t-4 ${getColumnColor()}`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800">{title}</h2>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs font-semibold bg-white/70">
               {tasks.length}
             </Badge>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onAddTask(columnId)}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+              title="Add Task"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
           </div>
         </div>
         <div className="space-y-3 min-h-[200px]">
@@ -388,6 +413,7 @@ const Column: React.FC<{
               onDeleteTask={onDeleteTask}
               onEditSubtask={onEditSubtask}
               onDeleteSubtask={onDeleteSubtask}
+              onAddSubtask={onAddSubtask}
             />
           ))}
           {tasks.length === 0 && (
@@ -728,6 +754,85 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
     });
   };
 
+  const handleAddTask = async (columnId: string) => {
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId: event._id,
+          content: 'New Task',
+          column: columnId,
+          priority: 'medium',
+          estimatedDuration: '1 hour',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create task');
+      }
+
+      const data = await response.json();
+
+      // Add the new task to local state
+      setTasks((prev) => [...prev, data.task]);
+
+      toast({
+        title: "Success",
+        description: "New task created successfully.",
+      });
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddSubtask = async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}/subtasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId: event._id,
+          content: 'New Subtask',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create subtask');
+      }
+
+      const data = await response.json();
+
+      // Add the new subtask to local state
+      setTasks((prev) => prev.map((task) =>
+        task.id === taskId
+          ? { ...task, subtasks: [...task.subtasks, data.subtask] }
+          : task
+      ));
+
+      toast({
+        title: "Success",
+        description: "New subtask created successfully.",
+      });
+    } catch (error) {
+      console.error('Error creating subtask:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create subtask. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const columns = [
     { id: 'planning', title: 'Planning', icon: '📋' },
     { id: 'developing', title: 'In Progress', icon: '🔧' },
@@ -796,8 +901,8 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
       {/* Task Board */}
       {tasks.length > 0 && (
         <DndProvider backend={HTML5Backend}>
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 shadow-inner">
-            <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 shadow-inner">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               {columns.map((col) => (
                 <Column
                   key={col.id}
@@ -810,6 +915,8 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
                   onDeleteTask={handleDeleteTask}
                   onEditSubtask={handleEditSubtask}
                   onDeleteSubtask={handleDeleteSubtask}
+                  onAddTask={handleAddTask}
+                  onAddSubtask={handleAddSubtask}
                 />
               ))}
             </div>

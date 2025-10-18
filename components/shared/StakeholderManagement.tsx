@@ -173,6 +173,36 @@ export default function StakeholderManagement({
     }
   };
 
+  const handleUpdateRole = async (stakeholderId: string, role: string) => {
+    try {
+      const response = await fetch(`/api/stakeholders/${stakeholderId}/role`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update role');
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Role updated successfully',
+      });
+
+      router.refresh();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update role',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleBulkUpdate = async (status: string) => {
     if (selectedStakeholders.length === 0) {
       toast({
@@ -627,9 +657,25 @@ export default function StakeholderManagement({
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getRoleBadgeColor(stakeholder.role)}>
-                              {stakeholder.role}
-                            </Badge>
+                            <Select
+                              value={stakeholder.role}
+                              onValueChange={(value) => handleUpdateRole(stakeholder._id, value)}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue>
+                                  <Badge className={getRoleBadgeColor(stakeholder.role)}>
+                                    {stakeholder.role}
+                                  </Badge>
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="attendee">Attendee</SelectItem>
+                                <SelectItem value="speaker">Speaker</SelectItem>
+                                <SelectItem value="volunteer">Volunteer</SelectItem>
+                                <SelectItem value="organizer">Organizer</SelectItem>
+                                <SelectItem value="sponsor">Sponsor</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <Select

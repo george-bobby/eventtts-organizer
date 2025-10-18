@@ -12,12 +12,7 @@ import { getEventStatistics } from './order.action';
 import { createFeedbackTemplate } from './feedback.action';
 
 // Import related models for cleanup
-import {
-	PhotoGallery,
-	Photo,
-	PhotoAccess,
-	PhotoComment,
-} from '../models/gallery.model';
+import EventGalleryImage from '../models/eventgallery.model';
 import { CertificateTemplate, Certificate } from '../models/certificate.model';
 import { FeedbackTemplate, FeedbackResponse } from '../models/feedback.model';
 import { Stakeholder } from '../models/stakeholder.model';
@@ -607,22 +602,9 @@ export async function deleteEventById(eventId: string) {
 			`Starting deletion of event ${eventId} and all related data...`
 		);
 
-		// 1. Delete photos and photo-related data
-		console.log('Deleting photo gallery data...');
-		const galleries = await PhotoGallery.find({ event: eventObjectId });
-		const galleryIds = galleries.map((g) => g._id);
-
-		if (galleryIds.length > 0) {
-			const photos = await Photo.find({ gallery: { $in: galleryIds } });
-			const photoIds = photos.map((p) => p._id);
-
-			if (photoIds.length > 0) {
-				await PhotoComment.deleteMany({ photo: { $in: photoIds } });
-			}
-			await PhotoAccess.deleteMany({ gallery: { $in: galleryIds } });
-			await Photo.deleteMany({ gallery: { $in: galleryIds } });
-			await PhotoGallery.deleteMany({ event: eventObjectId });
-		}
+		// 1. Delete event gallery images
+		console.log('Deleting event gallery images...');
+		await EventGalleryImage.deleteMany({ event: eventObjectId });
 
 		// 2. Delete certificates
 		console.log('Deleting certificate data...');

@@ -22,7 +22,8 @@ export async function createUser(userData: CreateUserParams) {
 
 		const user = await User.create(userData);
 
-		return JSON.parse(JSON.stringify(user));
+		// Return the user object with the actual ObjectId, not stringified
+		return user;
 	} catch (error) {
 		console.log(error);
 		throw error;
@@ -59,7 +60,8 @@ export async function getUserByClerkId(clerkId: string) {
 			}
 		}
 
-		return JSON.parse(JSON.stringify(user));
+		// Return the user object with the actual ObjectId, not stringified
+		return user;
 	} catch (error) {
 		console.log(error);
 		throw error;

@@ -7,11 +7,21 @@ import {
 	updateTask,
 	updateMultipleTasks,
 	deleteEventTasks,
+	createTask,
 } from '@/lib/actions/task.action';
 
 // Zod schema for GET request
 const getRequestSchema = z.object({
 	eventId: z.string(),
+});
+
+// Zod schema for POST request (create task)
+const createRequestSchema = z.object({
+	eventId: z.string(),
+	content: z.string().min(1, 'Task content is required'),
+	column: z.enum(['planning', 'developing', 'reviewing', 'finished']),
+	priority: z.enum(['high', 'medium', 'low']).default('medium'),
+	estimatedDuration: z.string().default('1 hour'),
 });
 
 // Zod schema for PUT request (update task)
@@ -96,6 +106,45 @@ export async function GET(request: NextRequest) {
 		return NextResponse.json(
 			{
 				error: 'Failed to get tasks',
+				message: error instanceof Error ? error.message : 'Unknown error',
+			},
+			{ status: 500 }
+		);
+	}
+}
+
+// POST - Create a new task
+export async function POST(request: NextRequest) {
+	try {
+		const { userId } = await auth();
+		if (!userId) {
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
+		const body = await request.json();
+		const { eventId, content, column, priority, estimatedDuration } =
+			createRequestSchema.parse(body);
+
+		const result = await createTask(eventId, userId, {
+			content,
+			column,
+			priority,
+			estimatedDuration,
+		});
+
+		if (!result.success) {
+			return NextResponse.json({ error: result.error }, { status: 400 });
+		}
+
+		return NextResponse.json({
+			success: true,
+			task: result.task,
+		});
+	} catch (error) {
+		console.error('Error creating task:', error);
+		return NextResponse.json(
+			{
+				error: 'Failed to create task',
 				message: error instanceof Error ? error.message : 'Unknown error',
 			},
 			{ status: 500 }

@@ -66,7 +66,7 @@ export default async function AttendeePage({ params }: AttendeePageProps) {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <AttendeeManagement
           eventId={eventId}
-          organizerId={mongoUser._id}
+          organizerId={String(mongoUser._id)}
           eventTitle={event.title}
         />
       </div>
