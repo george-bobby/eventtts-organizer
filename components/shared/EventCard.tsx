@@ -38,6 +38,12 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
   // Check if current user is the organizer of this event
   const isOrganizer = user && event.organizer && String(event.organizer._id) === String(user._id);
 
+  // Safety check for event ID
+  if (!event._id) {
+    console.error('EventCard: event._id is undefined', event);
+    return null; // Don't render the card if there's no valid ID
+  }
+
   return (
     <div className="group border-0 h-96 w-full max-w-sm rounded-lg flex flex-col hover:shadow-lg shadow-md relative bg-white overflow-hidden">
       {/* Image Container */}

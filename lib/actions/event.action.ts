@@ -10,7 +10,11 @@ import Order from '../models/order.model';
 import { Types, Document, FilterQuery } from 'mongoose';
 import { getEventStatistics } from './order.action';
 import { createFeedbackTemplate } from './feedback.action';
-import { getEventsByUserRole, getUserRoles } from './userrole.action';
+import {
+	getEventsByUserRole,
+	getUserRoles,
+	createUserRole,
+} from './userrole.action';
 
 // Import related models for cleanup
 import EventGalleryImage from '../models/eventgallery.model';
@@ -107,6 +111,19 @@ export async function createEvent(eventData: any) {
 			}
 		}
 
+		// Auto-assign the event creator as organizer in the UserRole system
+		try {
+			await createUserRole({
+				userId: mainEvent.organizer.toString(),
+				eventId: mainEvent._id.toString(),
+				role: 'organizer',
+				assignedBy: mainEvent.organizer.toString(), // Self-assigned
+			});
+		} catch (roleError) {
+			console.error('Error auto-assigning organizer role:', roleError);
+			// Don't fail the entire event creation if role assignment fails
+		}
+
 		if (subEvents?.length > 0) {
 			const subEventIds = [];
 			for (const subEventData of subEvents) {
@@ -125,6 +142,21 @@ export async function createEvent(eventData: any) {
 				};
 				const subEvent = await Event.create(newSubEvent);
 				subEventIds.push(subEvent._id);
+
+				// Auto-assign organizer role for sub-events too
+				try {
+					await createUserRole({
+						userId: subEvent.organizer.toString(),
+						eventId: subEvent._id.toString(),
+						role: 'organizer',
+						assignedBy: subEvent.organizer.toString(),
+					});
+				} catch (roleError) {
+					console.error(
+						'Error auto-assigning organizer role for sub-event:',
+						roleError
+					);
+				}
 			}
 			mainEvent.subEvents = subEventIds;
 			await mainEvent.save();

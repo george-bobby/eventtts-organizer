@@ -13,9 +13,8 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { headers } from "next/headers";
-import { MessageSquare, AlertTriangle, Settings, CheckSquare, Users, BarChart3 } from "lucide-react";
+import { MessageSquare, AlertTriangle, Settings, CheckSquare, Users, Ticket } from "lucide-react";
 import { getUserHighestRole } from "@/lib/actions/userrole.action";
-import { getRoleDisplayName } from "@/lib/utils/auth";
 import RoleBadge from "@/components/shared/RoleBadge";
 
 interface Props {
@@ -121,12 +120,32 @@ const Page = async ({ params }: Props) => {
 					) : isOrganizer || userRole ? (
 						// Show role-based action buttons
 						<div className="flex flex-wrap gap-3">
-							{/* Management button for organizers and volunteers */}
-							{(isOrganizer || userRole === 'organizer' || userRole === 'volunteer') && (
+							{/* Management button for organizers only */}
+							{(isOrganizer || userRole === 'organizer') && (
 								<Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white">
 									<Link href={`/event/${event._id}/manage`}>
 										<Settings className="w-4 h-4 mr-2" />
-										{isOrganizer || userRole === 'organizer' ? 'Manage Event' : 'Event Tools'}
+										Manage Event
+									</Link>
+								</Button>
+							)}
+
+							{/* Event Management for volunteers and speakers */}
+							{(userRole === 'volunteer' || userRole === 'speaker') && (
+								<Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
+									<Link href={`/event/${event._id}/manage`}>
+										<Settings className="w-4 h-4 mr-2" />
+										{userRole === 'volunteer' ? 'Volunteer Tools' : 'Speaker Tools'}
+									</Link>
+								</Button>
+							)}
+
+							{/* View Ticket for participants */}
+							{userRole === 'participant' && (
+								<Button asChild size="lg" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+									<Link href={`/event/${event._id}/ticket`}>
+										<Ticket className="w-4 h-4 mr-2" />
+										View Ticket
 									</Link>
 								</Button>
 							)}
@@ -141,8 +160,8 @@ const Page = async ({ params }: Props) => {
 								</Button>
 							)}
 
-							{/* Attendee management for organizers and volunteers */}
-							{(userRole === 'volunteer' || userRole === 'organizer' || isOrganizer) && (
+							{/* Attendee management for organizers, volunteers, and speakers */}
+							{(userRole === 'volunteer' || userRole === 'speaker' || userRole === 'organizer' || isOrganizer) && (
 								<Button asChild size="lg" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
 									<Link href={`/event/${event._id}/attendees`}>
 										<Users className="w-4 h-4 mr-2" />
@@ -151,14 +170,35 @@ const Page = async ({ params }: Props) => {
 								</Button>
 							)}
 
-							{/* Analytics for organizers only */}
-							{(userRole === 'organizer' || isOrganizer) && (
-								<Button asChild size="lg" variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-50">
-									<Link href={`/event/${event._id}/analytics`}>
-										<BarChart3 className="w-4 h-4 mr-2" />
-										Analytics
-									</Link>
-								</Button>
+							{/* Submit feedback and report issue for participants */}
+							{userRole === 'participant' && (
+								<>
+									{(() => {
+										const now = new Date();
+										// Create a proper date object by combining endDate and endTime
+										const endDate = new Date(event.endDate);
+										const [hours, minutes] = event.endTime.split(':').map(Number);
+										endDate.setHours(hours, minutes, 0, 0);
+										const isEventOver = now > endDate;
+
+										return isEventOver ? (
+											<Button asChild size="lg" variant="outline" className="border-green-200 text-green-700 hover:bg-green-50">
+												<Link href={`/event/${event._id}/submit/feedback`}>
+													<MessageSquare className="w-4 h-4 mr-2" />
+													Submit Feedback
+												</Link>
+											</Button>
+										) : (
+											<Button asChild size="lg" variant="outline" className="border-orange-200 text-orange-700 hover:bg-orange-50">
+												<Link href={`/event/${event._id}/submit/issue`}>
+													<AlertTriangle className="w-4 h-4 mr-2" />
+													Report Issue
+												</Link>
+											</Button>
+										);
+									})()
+									}
+								</>
 							)}
 						</div>
 					) : isRegistered ? (

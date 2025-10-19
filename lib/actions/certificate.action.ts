@@ -22,6 +22,14 @@ import { getEventById } from './event.action';
 import { getUserByClerkId } from './user.action';
 import { Resend } from 'resend';
 import { CERTIFICATE_TEMPLATES } from '../constants/certificate-templates';
+import {
+	generateCertificateHTML as generateNewCertificateHTML,
+	getSampleCertificateData,
+	getTemplateById,
+	getColorSchemeById,
+	CERTIFICATE_TEMPLATES_NEW,
+	COLOR_OPTIONS,
+} from '../constants/certificate-template-manager';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -477,6 +485,33 @@ export async function generateCertificateHTML(
 		role: string;
 	}
 ) {
+	// Use new template system if template ID matches new templates
+	const newTemplate = getTemplateById(template.style);
+	if (newTemplate) {
+		// Extract color scheme from template ID
+		const colorId = template.id.includes('blue')
+			? 'blue'
+			: template.id.includes('purple')
+			? 'purple'
+			: template.id.includes('green')
+			? 'green'
+			: template.id.includes('orange')
+			? 'orange'
+			: template.id.includes('gold')
+			? 'gold'
+			: 'blue';
+
+		return generateNewCertificateHTML(newTemplate.id, colorId, {
+			recipientName: certificateData.recipientName,
+			eventName: certificateData.eventName,
+			organizerName: certificateData.organizerName,
+			certificateType: certificateData.certificateType,
+			eventDate: certificateData.eventDate,
+			role: certificateData.role,
+		});
+	}
+
+	// Fallback to old template system
 	const { colors } = template;
 
 	return `
@@ -651,7 +686,23 @@ export async function generateCertificatesForRole(
 		});
 
 		if (userRoles.length === 0) {
-			throw new Error(`No users found with role: ${role}`);
+			console.warn(`No users found with role: ${role} for event: ${eventId}`);
+			return {
+				certificates: [],
+				event: {
+					title: event.title,
+					date: new Date(event.startDate).toLocaleDateString('en-US', {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric',
+					}),
+				},
+				template:
+					CERTIFICATE_TEMPLATES.find((t) => t.id === templateId)?.name ||
+					'Unknown Template',
+				role,
+				message: `No users found with role: ${role}. No certificates generated.`,
+			};
 		}
 
 		// Get template
@@ -733,6 +784,20 @@ export async function distributeCertificatesViaEmail(
 			templateId,
 			organizer._id.toString()
 		);
+
+		// Check if any certificates were generated
+		if (result.certificates.length === 0) {
+			return {
+				success: true,
+				message:
+					result.message ||
+					`No users found with role: ${role}. No certificates distributed.`,
+				emailsSent: 0,
+				totalCertificates: 0,
+				event: result.event,
+				role,
+			};
+		}
 
 		const emailResults = [];
 

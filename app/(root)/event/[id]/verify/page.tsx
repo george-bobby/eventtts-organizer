@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
+import { getUserHighestRole } from '@/lib/actions/userrole.action';
+import { hasEventPermission } from '@/lib/utils/auth';
 import TicketVerification from '@/components/shared/TicketVerification';
 
 interface VerifyPageProps {
@@ -29,8 +31,16 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
     redirect('/');
   }
 
-  // Check if user is the organizer
-  if (String(event.organizer._id) !== String(user._id)) {
+  // Check if user has permission to verify tickets (organizer or volunteer)
+  const isOrganizer = String(event.organizer._id) === String(user._id);
+  const userRole = await getUserHighestRole(user._id.toString(), id);
+  const canVerifyTickets = await hasEventPermission(
+    user._id.toString(),
+    id,
+    'canVerifyTickets'
+  );
+
+  if (!isOrganizer && !canVerifyTickets) {
     redirect(`/event/${id}`);
   }
 

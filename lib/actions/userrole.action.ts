@@ -146,6 +146,7 @@ export async function getEventsByUserRole(userId: string, role?: UserRoleType) {
 				populate: [
 					{ path: 'organizer', select: 'firstName lastName' },
 					{ path: 'category', select: 'name' },
+					{ path: 'tags', select: 'name' },
 				],
 			})
 			.sort({ 'event.startDate': 1 });
@@ -159,9 +160,25 @@ export async function getEventsByUserRole(userId: string, role?: UserRoleType) {
 		};
 
 		userRoles.forEach((userRole) => {
-			if (userRole.event) {
+			if (userRole.event && userRole.event._id) {
+				// Ensure the event object has all necessary fields including _id
+				const eventData = userRole.event.toObject
+					? userRole.event.toObject()
+					: userRole.event;
+
+				// Debug logging to check event data
+				if (!eventData.title || !eventData.description) {
+					console.warn('Event missing required fields:', {
+						id: eventData._id,
+						title: eventData.title,
+						description: eventData.description,
+						role: userRole.role,
+					});
+				}
+
 				eventsByRole[userRole.role].push({
-					...userRole.event,
+					...eventData,
+					_id: eventData._id || userRole.event._id, // Ensure _id is preserved
 					userRole: {
 						_id: userRole._id,
 						role: userRole.role,

@@ -7,14 +7,10 @@ import EventCards from "./EventCards";
 import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/auth";
 import { UserRoleType } from "@/lib/models/userrole.model";
 import {
-  Users,
   Mic,
   HandHeart,
   Ticket,
-  Calendar,
-  Settings,
-  Eye,
-  UserCheck
+  Settings
 } from "lucide-react";
 
 interface RoleBasedEventSectionsProps {
@@ -93,7 +89,7 @@ const RoleBasedEventSections = ({
     }
   ];
 
-  // Filter out empty sections for cleaner display
+  // Only show sections that have events
   const sectionsToShow = roleConfigs.filter(config => config.events.length > 0);
 
   // If no role-based events, show a welcome message
@@ -106,19 +102,13 @@ const RoleBasedEventSections = ({
           </div>
         </div>
         <div className="p-8 text-center">
-          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <div className="w-16 h-16 text-gray-400 mx-auto mb-4">
+            <Settings className="w-full h-full" />
+          </div>
           <h4 className="text-xl font-semibold text-gray-900 mb-2">No Role Assignments Yet</h4>
           <p className="text-gray-600 mb-6">
             You'll see events here when organizers assign you roles like volunteer, speaker, or when you register for events.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button asChild>
-              <Link href="/explore">Explore Events</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/create">Create Event</Link>
-            </Button>
-          </div>
         </div>
       </div>
     );

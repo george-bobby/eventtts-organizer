@@ -5,19 +5,19 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Bell, CheckSquare, Target } from 'lucide-react';
+import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Bell, CheckSquare, Target, Mic } from 'lucide-react';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
 import DeleteEventButton from '@/components/shared/DeleteEventButton';
 import { headers } from 'next/headers';
 import { getEventAuthContext, getRoleDisplayName, getRoleBadgeColor } from '@/lib/utils/auth';
 
 interface EventManagePageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default async function EventManagePage({ params }: EventManagePageProps) {
-  await headers();
-  const { id } = await params;
+  headers();
+  const { id } = params;
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
@@ -42,7 +42,19 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
   const { event, userRole, permissions, isOrganizer } = eventAuthContext;
 
   // Define all management options with their required permissions
-  const allManagementOptions = [
+  type ManagementOption = {
+    title: string;
+    description: string;
+    icon: any;
+    href: string;
+    color: string;
+    iconColor: string;
+    requiredPermission?: string;
+    organizerOnly?: boolean;
+    roles?: string[];
+  };
+
+  const allManagementOptions: ManagementOption[] = [
     {
       title: 'Edit Event',
       description: 'Update event details, description, and settings',
@@ -151,10 +163,10 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       color: 'bg-purple-500 hover:bg-purple-600',
       iconColor: 'text-purple-600',
       requiredPermission: 'canManageEvent'
-    },
+    }
   ];
 
-  // Filter management options based on user permissions
+  // Filter management options based on user permissions and role
   const managementOptions = allManagementOptions.filter(option => {
     // Organizer has access to everything
     if (isOrganizer) return true;
@@ -162,9 +174,15 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
     // If option is organizer-only, deny access
     if (option.organizerOnly) return false;
 
+    // Check role-specific restrictions
+    if (option.roles && !option.roles.includes(userRole as string)) {
+      return false;
+    }
+
     // Check if user has the required permission
     if (option.requiredPermission && permissions) {
-      return permissions[option.requiredPermission as keyof typeof permissions] === true;
+      const perms = permissions as Record<string, boolean>;
+      return perms[option.requiredPermission] === true;
     }
 
     return false;
@@ -191,7 +209,16 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
 
           <div className="text-white">
             <div className="flex items-center gap-4 mb-4">
-              <h1 className="text-4xl font-bold">Event Management Dashboard</h1>
+              <h1 className="text-4xl font-bold">
+                {isOrganizer
+                  ? 'Event Management Dashboard'
+                  : userRole === 'volunteer'
+                    ? 'Volunteer Dashboard'
+                    : userRole === 'speaker'
+                      ? 'Speaker Dashboard'
+                      : 'Event Dashboard'
+                }
+              </h1>
               {userRole && (
                 <Badge className={`${getRoleBadgeColor(userRole)} border-white/30`}>
                   {getRoleDisplayName(userRole)}

@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import EventCards from "@/components/shared/EventCards";
 import EventCreatorDashboard from "@/components/shared/EventCreatorDashboard";
 import RoleBasedEventSections from "@/components/shared/RoleBasedEventSections";
-import { getEventsByUserId, getUserEventData } from "@/lib/actions/event.action";
-import { getOrdersByUserId } from "@/lib/actions/order.action";
-import { IOrder } from "@/types";
+import { getUserEventData } from "@/lib/actions/event.action";
 import { getUserByClerkId } from "@/lib/actions/user.action";
 
 // ✅ This is the definitive fix for the headers/searchParams error
@@ -45,8 +41,7 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
       participant: []
     };
 
-    // Legacy ticket data for backward compatibility
-    const myTickets = eventsByRole.participant.filter((event: any) => event.orderInfo) || [];
+
 
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -64,55 +59,6 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
             currentUserId={clerkId}
             mongoUser={mongoUser}
           />
-
-          {/* Legacy Events Organized Section - Only show if user has organized events but no role-based events */}
-          {myOrganizedEvents.length > 0 && Object.values(eventsByRole).every((events: any) => events.length === 0) && (
-            <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-white">Events Organized</h3>
-                  <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
-                    <Link href="/create">Create New Event</Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="p-8">
-                <EventCards
-                  events={myOrganizedEvents}
-                  currentUserId={clerkId}
-                  emptyTitle="No events have been created yet"
-                  emptyStateSubtext="Go create some now!"
-                  page="profile"
-                  user={mongoUser}
-                />
-              </div>
-            </section>
-          )}
-
-          {/* Legacy My Tickets Section - Only show if user has tickets but no role-based events */}
-          {myTickets.length > 0 && Object.values(eventsByRole).every((events: any) => events.length === 0) && (
-            <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-red-500 to-red-600 px-8 py-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-white">My Tickets</h3>
-                  <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
-                    <Link href="/explore">Explore More Events</Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="p-8">
-                <EventCards
-                  events={myTickets}
-                  currentUserId={clerkId}
-                  emptyTitle="No event tickets purchased yet"
-                  emptyStateSubtext="No worries - plenty of exciting events to explore!"
-                  user={mongoUser}
-                  page="profile"
-                  isBookedEvent={true}
-                />
-              </div>
-            </section>
-          )}
 
         </div>
       </div>

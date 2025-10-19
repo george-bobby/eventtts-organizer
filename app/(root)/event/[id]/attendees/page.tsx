@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs';
 import { redirect } from 'next/navigation';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
+import { getUserHighestRole } from '@/lib/actions/userrole.action';
+import { hasEventPermission } from '@/lib/utils/auth';
 import AttendeeManagement from '@/components/shared/AttendeeManagement';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -32,8 +34,16 @@ export default async function AttendeePage({ params }: AttendeePageProps) {
     redirect('/sign-in');
   }
 
-  // Check if the current user is the organizer of this event
-  if (String(event.organizer._id) !== String(mongoUser._id)) {
+  // Check if user has permission to view attendees (organizer, volunteer, or speaker)
+  const isOrganizer = String(event.organizer._id) === String(mongoUser._id);
+  const userRole = await getUserHighestRole(mongoUser._id.toString(), eventId);
+  const canViewAttendees = await hasEventPermission(
+    mongoUser._id.toString(),
+    eventId,
+    'canViewAttendees'
+  );
+
+  if (!isOrganizer && !canViewAttendees) {
     redirect(`/event/${eventId}`);
   }
 

@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Download, Send, Award, Loader2, Users, FileText, Mail } from 'lucide-react';
+import { Download, Send, Award, Loader2, Users, FileText, Mail, Eye, Wand2 } from 'lucide-react';
+import CertificatePreview from './CertificatePreview';
+import CertificateGenerator from './CertificateGenerator';
 
 interface CertificateManagementProps {
   eventId: string;
@@ -60,6 +62,10 @@ export default function CertificateManagement({
   });
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [isDistributing, setIsDistributing] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState<Record<string, boolean>>({});
+  const [previewTemplates, setPreviewTemplates] = useState<Record<string, { templateId: string; colorId: string }>>({});
+  const [showGenerator, setShowGenerator] = useState<Record<string, boolean>>({});
+  const [generatedHtml, setGeneratedHtml] = useState<Record<string, string>>({});
 
   const handleGenerateAndDownload = async (role: string) => {
     try {
@@ -148,6 +154,46 @@ export default function CertificateManagement({
     return stakeholders.filter(s => s.role === role).length;
   };
 
+  // Handle preview toggle
+  const togglePreview = (role: string) => {
+    setShowPreview(prev => ({ ...prev, [role]: !prev[role] }));
+  };
+
+  // Handle template selection from preview
+  const handleTemplateSelect = (role: string, templateId: string, colorId: string) => {
+    setPreviewTemplates(prev => ({ ...prev, [role]: { templateId, colorId } }));
+    // Update the selected template for the role
+    setSelectedTemplates(prev => ({ ...prev, [role]: `${templateId}-${colorId}` }));
+  };
+
+  // Handle generator toggle
+  const toggleGenerator = (role: string) => {
+    setShowGenerator(prev => ({ ...prev, [role]: !prev[role] }));
+  };
+
+  // Generate sample certificate HTML for testing
+  const generateSampleHtml = async (role: string) => {
+    try {
+      const response = await fetch('/api/certificates/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: previewTemplates[role]?.templateId || 'classic',
+          colorId: previewTemplates[role]?.colorId || 'blue',
+          useSampleData: true,
+          certificateData: { role },
+        }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setGeneratedHtml(prev => ({ ...prev, [role]: result.data.html }));
+      }
+    } catch (error) {
+      console.error('Error generating sample HTML:', error);
+    }
+  };
+
   const CertificateSection = ({ role, title, icon }: { role: string; title: string; icon: React.ReactNode }) => (
     <Card>
       <CardHeader>
@@ -197,6 +243,59 @@ export default function CertificateManagement({
             ) : null;
           })()}
         </div>
+
+        {/* Preview Button */}
+        <Button
+          variant="outline"
+          onClick={() => togglePreview(role)}
+          className="w-full"
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          {showPreview[role] ? 'Hide Preview' : 'Preview Certificate'}
+        </Button>
+
+        {/* Certificate Preview Component */}
+        {showPreview[role] && (
+          <div className="mt-4">
+            <CertificatePreview
+              eventId={eventId}
+              role={role}
+              onTemplateSelect={(templateId, colorId) => handleTemplateSelect(role, templateId, colorId)}
+              initialTemplate={previewTemplates[role]?.templateId}
+              initialColor={previewTemplates[role]?.colorId}
+            />
+          </div>
+        )}
+
+        {/* Advanced Generator Button */}
+        <Button
+          variant="outline"
+          onClick={() => {
+            toggleGenerator(role);
+            if (!showGenerator[role]) {
+              generateSampleHtml(role);
+            }
+          }}
+          className="w-full"
+        >
+          <Wand2 className="h-4 w-4 mr-2" />
+          {showGenerator[role] ? 'Hide Advanced Generator' : 'Advanced Certificate Generator'}
+        </Button>
+
+        {/* Certificate Generator Component */}
+        {showGenerator[role] && generatedHtml[role] && (
+          <div className="mt-4">
+            <CertificateGenerator
+              htmlContent={generatedHtml[role]}
+              filename={`${role}-certificate`}
+              certificateData={{
+                recipientName: 'Sample User',
+                eventName: 'Sample Event',
+                role: role,
+              }}
+            />
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2">

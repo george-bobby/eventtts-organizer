@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
+import { getUserHighestRole } from '@/lib/actions/userrole.action';
+import { hasEventPermission } from '@/lib/utils/auth';
 import EventGalleryManagement from '@/components/shared/EventGalleryManagement';
 import { headers } from 'next/headers';
 
@@ -31,8 +33,16 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
     redirect('/');
   }
 
-  // Check if user is the organizer
-  if (String(event.organizer._id) !== String(user._id)) {
+  // Check if user has permission to access gallery (organizer, volunteer, or speaker)
+  const isOrganizer = String(event.organizer._id) === String(user._id);
+  const userRole = await getUserHighestRole(user._id.toString(), id);
+  const canManageGallery = await hasEventPermission(
+    user._id.toString(),
+    id,
+    'canManageGallery'
+  );
+
+  if (!isOrganizer && !canManageGallery && !['volunteer', 'speaker'].includes(userRole as string)) {
     redirect(`/event/${id}`);
   }
 

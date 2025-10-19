@@ -27,13 +27,13 @@ const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:gap-10">
-      {events.map((event) => {
+      {events.map((event, index) => {
         // Check if this event is liked by the current user
         const likedEvent = user?.likedEvents ? user.likedEvents.includes(event._id) : false;
 
         return (
           <EventCard
-            key={event._id?.toString()}
+            key={event._id?.toString() || `event-${index}`}
             event={event}
             currentUserId={currentUserId}
             user={user}
