@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
-import { headers } from 'next/headers';
 import { z } from 'zod';
 import {
 	getEventTasks,
@@ -71,9 +70,6 @@ const deleteRequestSchema = z.object({
 // GET - Retrieve tasks for an event
 export async function GET(request: NextRequest) {
 	try {
-		// Await headers() before accessing request.url for Next.js 15 compatibility
-		await headers();
-
 		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -221,9 +217,6 @@ export async function PATCH(request: NextRequest) {
 // DELETE - Delete all tasks for an event
 export async function DELETE(request: NextRequest) {
 	try {
-		// Await headers() before accessing request.url for Next.js 15 compatibility
-		await headers();
-
 		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

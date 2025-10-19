@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
-import { headers } from 'next/headers';
 import {
 	createEventUpdate,
 	getEventUpdates,
@@ -13,8 +12,6 @@ import { getUserByClerkId } from '@/lib/actions/user.action';
  */
 export async function GET(request: NextRequest) {
 	try {
-		// Await headers() before accessing request.url for Next.js 15 compatibility
-		await headers();
 		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

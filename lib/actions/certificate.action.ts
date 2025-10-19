@@ -12,6 +12,7 @@ import { getUserRoles } from './userrole.action';
 import { getEventById } from './event.action';
 import { getUserByClerkId } from './user.action';
 import { Resend } from 'resend';
+import { generateCertificatePDF } from '../utils/server-pdf-generator';
 
 import {
 	generateCertificateHTML as generateNewCertificateHTML,
@@ -352,6 +353,12 @@ export async function distributeCertificatesViaEmail(
 		// Send emails with certificates
 		for (const certificate of result.certificates) {
 			try {
+				// Generate PDF from HTML
+				const pdfResult = await generateCertificatePDF(
+					certificate.html,
+					certificate.filename
+				);
+
 				const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white; margin-bottom: 30px;">
@@ -379,7 +386,7 @@ export async function distributeCertificatesViaEmail(
                 </p>
               </div>
               <p style="color: #666; line-height: 1.6;">
-                Your certificate is attached to this email as an HTML file. You can open it in any web browser and print it for your records.
+                Your certificate is attached to this email as a PDF file. You can download it and print it for your records.
               </p>
             </div>
 
@@ -399,9 +406,9 @@ export async function distributeCertificatesViaEmail(
 					html: emailHtml,
 					attachments: [
 						{
-							filename: certificate.filename,
-							content: Buffer.from(certificate.html).toString('base64'),
-							contentType: 'text/html',
+							filename: pdfResult.filename,
+							content: pdfResult.buffer.toString('base64'),
+							contentType: 'application/pdf',
 						},
 					],
 				});
