@@ -12,11 +12,12 @@ import { headers } from 'next/headers';
 import { getEventAuthContext, getRoleDisplayName, getRoleBadgeColor } from '@/lib/utils/auth';
 
 interface EventManagePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default async function EventManagePage({ params }: EventManagePageProps) {
-  headers();
+export default async function EventManagePage(props: EventManagePageProps) {
+  const params = await props.params;
+  await headers();
   const { id } = params;
   const { userId: clerkId } = await auth();
 
