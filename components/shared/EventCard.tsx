@@ -4,11 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { dateConverter, timeFormatConverter } from "@/lib/utils";
 import Link from "next/link";
 import LikeCartButton from "./LikeCartButton";
-import DeleteEventButton from "./DeleteEventButton";
 import CancelTicketButton from "./CancelTicketButton";
 import { Button } from "@/components/ui/button";
 import { EventWithSubEvents } from "@/lib/actions/event.action";
-import { Settings, AlertTriangle, Ticket, MessageSquare } from "lucide-react";
+import { Settings, AlertTriangle, Ticket, MessageSquare, Users, CheckCircle, FileWarning } from "lucide-react";
 import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/auth";
 
 interface Props {
@@ -37,6 +36,11 @@ interface Props {
 const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBookedEvent = false }: Props) => {
   // Check if current user is the organizer of this event
   const isOrganizer = user && event.organizer && String(event.organizer._id) === String(user._id);
+
+  // Check user role for this event
+  const userRole = event.userRole?.role;
+  const isSpeaker = userRole === 'speaker';
+  const isVolunteer = userRole === 'volunteer';
 
   // Safety check for event ID
   if (!event._id) {
@@ -89,7 +93,7 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
         />
       )}
 
-      {/* Small hover buttons for all pages - Manage button for organizers */}
+      {/* Small hover buttons for organizers - Manage Event and View Issues */}
       {isOrganizer && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
           <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
@@ -98,13 +102,89 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
               Manage Event
             </Link>
           </Button>
-          {/* Delete button below manage event button for non-dashboard pages */}
-          {page !== "dashboard" && <DeleteEventButton eventId={String(event._id)} />}
+          <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg">
+            <Link href={`/event/${event._id}/issues`} className="flex items-center gap-1">
+              <FileWarning className="w-3 h-3" />
+              View Issues
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {/* Small hover buttons for speakers - View Attendees and Report Issue/Submit Feedback */}
+      {isSpeaker && currentUserId && !isOrganizer && (
+        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
+            <Link href={`/event/${event._id}/attendees`} className="flex items-center gap-1">
+              <Users className="w-3 h-3" />
+              View Attendees
+            </Link>
+          </Button>
+          {/* Check if event is over to show appropriate button */}
+          {(() => {
+            const now = new Date();
+            const endDate = new Date(event.endDate);
+            const [hours, minutes] = event.endTime.split(':').map(Number);
+            endDate.setHours(hours, minutes, 0, 0);
+            const isEventOver = now > endDate;
+
+            return isEventOver ? (
+              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg">
+                <Link href={`/event/${event._id}/submit/feedback`} className="flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3" />
+                  Submit Feedback
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
+                <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Report Issue
+                </Link>
+              </Button>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Small hover buttons for volunteers - Verify Ticket and Report Issue/Submit Feedback */}
+      {isVolunteer && currentUserId && !isOrganizer && (
+        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
+            <Link href={`/event/${event._id}/verify-ticket`} className="flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              Verify Ticket
+            </Link>
+          </Button>
+          {/* Check if event is over to show appropriate button */}
+          {(() => {
+            const now = new Date();
+            const endDate = new Date(event.endDate);
+            const [hours, minutes] = event.endTime.split(':').map(Number);
+            endDate.setHours(hours, minutes, 0, 0);
+            const isEventOver = now > endDate;
+
+            return isEventOver ? (
+              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg">
+                <Link href={`/event/${event._id}/submit/feedback`} className="flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3" />
+                  Submit Feedback
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
+                <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Report Issue
+                </Link>
+              </Button>
+            );
+          })()}
         </div>
       )}
 
       {/* Small hover buttons for booked events - View Ticket and Report Issue/Submit Feedback */}
-      {isBookedEvent && currentUserId && !isOrganizer && (
+      {isBookedEvent && currentUserId && !isOrganizer && !isSpeaker && !isVolunteer && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
           <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
             <Link href={`/event/${event._id}/ticket`} className="flex items-center gap-1">

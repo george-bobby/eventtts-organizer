@@ -88,8 +88,8 @@ export const generateClassicTemplate = (
         }
         
         .certificate {
-          width: 800px;
-          height: 600px;
+          width: 1000px;
+          height: 700px;
           background: white;
           border: 8px solid ${colors.primary};
           border-radius: 20px;
@@ -283,8 +283,8 @@ export const generateModernTemplate = (
         }
         
         .certificate {
-          width: 800px;
-          height: 600px;
+          width: 1000px;
+          height: 700px;
           background: white;
           border-radius: 30px;
           padding: 50px;
@@ -466,8 +466,8 @@ export const generateVintageTemplate = (
         }
 
         .certificate {
-          width: 800px;
-          height: 600px;
+          width: 1000px;
+          height: 700px;
           background: white;
           border: 12px solid ${colors.primary};
           border-image: linear-gradient(45deg, ${colors.primary}, ${colors.secondary}, ${colors.accent}, ${colors.primary}) 1;

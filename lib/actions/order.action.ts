@@ -12,6 +12,7 @@ import Category from '../models/category.model';
 import Tag from '../models/tag.model';
 import { createTicket } from './ticket.action';
 import { sendTicketConfirmationEmail } from '../email/resend';
+import { hasEventPermission } from '../utils/auth';
 
 interface EventReference {
 	_id: string;
@@ -473,14 +474,24 @@ export async function getEventAttendees({
 	try {
 		await connectToDatabase();
 
-		// First verify that the user is the organizer of this event
+		// Verify that the user has permission to view attendees
 		const event = await Event.findById(eventId);
 		if (!event) {
 			throw new Error('Event not found');
 		}
 
-		if (event.organizer.toString() !== organizerId) {
-			throw new Error('Unauthorized: You are not the organizer of this event');
+		// Check if user is organizer or has canViewAttendees permission
+		const isOrganizer = event.organizer.toString() === organizerId;
+		const canViewAttendees = await hasEventPermission(
+			organizerId,
+			eventId,
+			'canViewAttendees'
+		);
+
+		if (!isOrganizer && !canViewAttendees) {
+			throw new Error(
+				'Unauthorized: You do not have permission to view attendees for this event'
+			);
 		}
 
 		const skipAmount = (page - 1) * limit;
@@ -598,7 +609,7 @@ export async function exportEventAttendeesToExcel({
 	try {
 		await connectToDatabase();
 
-		// First verify that the user is the organizer of this event
+		// Verify that the user has permission to view attendees
 		const event = await Event.findById(eventId)
 			.populate('category', 'name')
 			.populate('organizer', 'firstName lastName email');
@@ -607,8 +618,18 @@ export async function exportEventAttendeesToExcel({
 			throw new Error('Event not found');
 		}
 
-		if (event.organizer._id.toString() !== organizerId) {
-			throw new Error('Unauthorized: You are not the organizer of this event');
+		// Check if user is organizer or has canViewAttendees permission
+		const isOrganizer = event.organizer._id.toString() === organizerId;
+		const canViewAttendees = await hasEventPermission(
+			organizerId,
+			eventId,
+			'canViewAttendees'
+		);
+
+		if (!isOrganizer && !canViewAttendees) {
+			throw new Error(
+				'Unauthorized: You do not have permission to view attendees for this event'
+			);
 		}
 
 		// Get all attendees (no pagination for export)

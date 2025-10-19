@@ -14,6 +14,12 @@ import {
 	generateCorporateTemplate,
 } from './certificate-html-templates-2';
 
+import {
+	generateAcademicTemplate,
+	generateArtisticTemplate,
+	generateTechTemplate,
+} from './certificate-html-templates-3';
+
 // Template definitions with metadata
 export interface CertificateTemplate {
 	id: string;
@@ -70,6 +76,33 @@ export const CERTIFICATE_TEMPLATES_NEW: CertificateTemplate[] = [
 		generator: generateCorporateTemplate,
 		preview:
 			'bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-300',
+	},
+	{
+		id: 'academic',
+		name: 'Academic Excellence',
+		description: 'Formal academic style with institutional elements',
+		style: 'academic',
+		generator: generateAcademicTemplate,
+		preview:
+			'bg-gradient-to-br from-indigo-50 to-indigo-100 border-2 border-indigo-300',
+	},
+	{
+		id: 'artistic',
+		name: 'Creative Artistic',
+		description: 'Artistic design with creative fonts and decorative elements',
+		style: 'artistic',
+		generator: generateArtisticTemplate,
+		preview:
+			'bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-300',
+	},
+	{
+		id: 'tech',
+		name: 'Tech Innovation',
+		description: 'Modern tech-inspired design with digital elements',
+		style: 'tech',
+		generator: generateTechTemplate,
+		preview:
+			'bg-gradient-to-br from-cyan-50 to-cyan-100 border-2 border-cyan-300',
 	},
 ];
 
@@ -151,14 +184,24 @@ export const getColorSchemeById = (
 export const getSampleCertificateData = (
 	role: string = 'participant'
 ): CertificateData => {
+	const certificateTypes: Record<string, string> = {
+		participant: 'Participation',
+		volunteer: 'Volunteer Service',
+		speaker: 'Speaker Recognition',
+		organizer: 'Event Organization',
+	};
+
 	return {
 		recipientName: 'John Doe',
 		eventName: 'Sample Event 2024',
 		organizerName: 'Event Organizer',
-		certificateType: 'Participation',
+		certificateType: certificateTypes[role] || 'Participation',
 		eventDate: 'December 15, 2024',
 		role: role,
-		certificateId: 'CERT-2024-001',
+		certificateId: `CERT-${Date.now()}-${Math.random()
+			.toString(36)
+			.substr(2, 9)
+			.toUpperCase()}`,
 	};
 };
 

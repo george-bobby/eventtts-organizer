@@ -3,10 +3,10 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { getCertificateTemplates } from '@/lib/actions/certificate.action';
+
 import { getEventStakeholders } from '@/lib/actions/stakeholder.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
-import CertificateManagement from '@/components/shared/CertificateManagement';
+import SimpleCertificateManagement from '@/components/shared/SimpleCertificateManagement';
 import { headers } from 'next/headers';
 
 interface CertificatesPageProps {
@@ -28,11 +28,8 @@ export default async function CertificatesPage({ params }: CertificatesPageProps
     // Get user for default template creation
     const user = await getUserByClerkId(userId);
 
-    // Fetch certificate templates and stakeholders in parallel
-    const [templates, stakeholders] = await Promise.all([
-      getCertificateTemplates(id, user?._id),
-      getEventStakeholders(id),
-    ]);
+    // Fetch stakeholders
+    const stakeholders = await getEventStakeholders(id);
 
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -61,9 +58,8 @@ export default async function CertificatesPage({ params }: CertificatesPageProps
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <CertificateManagement
+          <SimpleCertificateManagement
             eventId={id}
-            templates={templates}
             stakeholders={stakeholders}
           />
         </div>

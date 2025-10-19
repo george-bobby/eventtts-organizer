@@ -1,9 +1,15 @@
 // Additional Certificate Templates (Templates 4 & 5)
-import { CertificateData, CertificateColors } from './certificate-html-templates';
+import {
+	CertificateData,
+	CertificateColors,
+} from './certificate-html-templates';
 
 // Template 4: Creative Geometric Certificate
-export const generateGeometricTemplate = (data: CertificateData, colors: CertificateColors): string => {
-  return `
+export const generateGeometricTemplate = (
+	data: CertificateData,
+	colors: CertificateColors
+): string => {
+	return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -20,7 +26,9 @@ export const generateGeometricTemplate = (data: CertificateData, colors: Certifi
         
         body {
           font-family: 'Montserrat', sans-serif;
-          background: linear-gradient(135deg, ${colors.background} 0%, ${colors.primary}15 100%);
+          background: linear-gradient(135deg, ${colors.background} 0%, ${
+		colors.primary
+	}15 100%);
           padding: 40px;
           min-height: 100vh;
           display: flex;
@@ -29,8 +37,8 @@ export const generateGeometricTemplate = (data: CertificateData, colors: Certifi
         }
         
         .certificate {
-          width: 800px;
-          height: 600px;
+          width: 1000px;
+          height: 700px;
           background: white;
           border-radius: 25px;
           padding: 50px;
@@ -74,7 +82,9 @@ export const generateGeometricTemplate = (data: CertificateData, colors: Certifi
           transform: translateX(-50%);
           width: 100px;
           height: 4px;
-          background: linear-gradient(90deg, ${colors.primary}, ${colors.accent});
+          background: linear-gradient(90deg, ${colors.primary}, ${
+		colors.accent
+	});
           border-radius: 2px;
         }
         
@@ -154,7 +164,9 @@ export const generateGeometricTemplate = (data: CertificateData, colors: Certifi
         
         .role-badge {
           display: inline-block;
-          background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
+          background: linear-gradient(135deg, ${colors.primary}, ${
+		colors.secondary
+	});
           color: white;
           padding: 8px 20px;
           border-radius: 25px;
@@ -166,7 +178,9 @@ export const generateGeometricTemplate = (data: CertificateData, colors: Certifi
         }
         
         .event-info {
-          background: linear-gradient(135deg, ${colors.primary}08, ${colors.secondary}08);
+          background: linear-gradient(135deg, ${colors.primary}08, ${
+		colors.secondary
+	}08);
           border-left: 4px solid ${colors.accent};
           padding: 20px;
           margin: 30px 0;
@@ -255,7 +269,11 @@ export const generateGeometricTemplate = (data: CertificateData, colors: Certifi
             </div>
           </div>
           
-          ${data.certificateId ? `<div class="verification-code">ID: ${data.certificateId}</div>` : ''}
+          ${
+						data.certificateId
+							? `<div class="verification-code">ID: ${data.certificateId}</div>`
+							: ''
+					}
         </div>
       </div>
     </body>
@@ -264,8 +282,11 @@ export const generateGeometricTemplate = (data: CertificateData, colors: Certifi
 };
 
 // Template 5: Professional Corporate Certificate
-export const generateCorporateTemplate = (data: CertificateData, colors: CertificateColors): string => {
-  return `
+export const generateCorporateTemplate = (
+	data: CertificateData,
+	colors: CertificateColors
+): string => {
+	return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -291,8 +312,8 @@ export const generateCorporateTemplate = (data: CertificateData, colors: Certifi
         }
         
         .certificate {
-          width: 800px;
-          height: 600px;
+          width: 1000px;
+          height: 700px;
           background: white;
           border: 1px solid ${colors.primary}30;
           padding: 60px;
@@ -307,7 +328,9 @@ export const generateCorporateTemplate = (data: CertificateData, colors: Certifi
           left: 0;
           right: 0;
           height: 8px;
-          background: linear-gradient(90deg, ${colors.primary}, ${colors.secondary}, ${colors.accent});
+          background: linear-gradient(90deg, ${colors.primary}, ${
+		colors.secondary
+	}, ${colors.accent});
         }
         
         .logo-section {
@@ -317,7 +340,9 @@ export const generateCorporateTemplate = (data: CertificateData, colors: Certifi
         .logo-placeholder {
           width: 60px;
           height: 60px;
-          background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
+          background: linear-gradient(135deg, ${colors.primary}, ${
+		colors.secondary
+	});
           border-radius: 50%;
           margin: 0 auto 15px;
           display: flex;
@@ -478,7 +503,9 @@ export const generateCorporateTemplate = (data: CertificateData, colors: Certifi
           <div class="recipient">${data.recipientName}</div>
           
           <div class="completion-text">
-            has successfully completed their role as <span class="role-highlight">${data.role}</span> in the following event:
+            has successfully completed their role as <span class="role-highlight">${
+							data.role
+						}</span> in the following event:
           </div>
           
           <div class="event-details-box">
@@ -503,7 +530,11 @@ export const generateCorporateTemplate = (data: CertificateData, colors: Certifi
           </div>
         </div>
         
-        ${data.certificateId ? `<div class="certificate-number">Certificate No: ${data.certificateId}</div>` : ''}
+        ${
+					data.certificateId
+						? `<div class="certificate-number">Certificate No: ${data.certificateId}</div>`
+						: ''
+				}
       </div>
     </body>
     </html>

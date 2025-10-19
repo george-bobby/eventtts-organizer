@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
+import { getUserHighestRole } from '@/lib/actions/userrole.action';
+import { hasEventPermission } from '@/lib/utils/auth';
 import IssueManagement from '@/components/shared/IssueManagement';
 
 interface EventIssuesPageProps {
@@ -29,8 +31,16 @@ export default async function EventIssuesPage({ params }: EventIssuesPageProps) 
     redirect('/');
   }
 
-  // Check if user is the organizer
-  if (String(event.organizer._id) !== String(user._id)) {
+  // Check if user has permission to view issues (organizer, volunteer, or speaker)
+  const isOrganizer = String(event.organizer._id) === String(user._id);
+  const userRole = await getUserHighestRole(user._id.toString(), id);
+  const canViewAttendees = await hasEventPermission(
+    user._id.toString(),
+    id,
+    'canViewAttendees'
+  );
+
+  if (!isOrganizer && !canViewAttendees) {
     redirect(`/event/${id}`);
   }
 
@@ -64,7 +74,7 @@ export default async function EventIssuesPage({ params }: EventIssuesPageProps) 
         <IssueManagement
           eventId={id}
           eventTitle={event.title}
-          organizerId={user._id}
+          organizerId={user._id.toString()}
         />
       </div>
     </div>
