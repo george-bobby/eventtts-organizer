@@ -8,7 +8,7 @@ A comprehensive, AI-powered event management platform designed for organizations
 
 ### 📅 **Event Management**
 
-- **Create & Manage Events**: Comprehensive event creation with detailed information, tags, categories, and sub-events
+- **Organize & Manage Events**: Comprehensive event creation with detailed information, tags, categories, and sub-events
 - **Campus Integration**: Built-in campus location mapping and navigation
 - **Event Discovery**: AI-powered recommendation system for personalized event suggestions
 - **Interactive Event Dashboard**: Real-time analytics and management tools for organizers

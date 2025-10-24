@@ -26,7 +26,7 @@ export default function EventsHero() {
 
             {/* Main Heading */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Create & Manage
+              Organize & Manage
               <span className="block bg-gradient-to-r from-red-400 via-red-400 to-red-400 bg-clip-text text-transparent">
                 Your Events
               </span>
