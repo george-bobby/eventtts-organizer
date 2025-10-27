@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
 
 		try {
 			await resend.emails.send({
-				from: process.env.RESEND_FROM_EMAIL || 'noreply@yourdomain.com',
+				from: process.env.RESEND_FROM_EMAIL || 'noreply@resend.dev',
 				to: [email],
 				subject: emailSubject,
 				html: emailHtml,

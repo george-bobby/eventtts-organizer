@@ -66,7 +66,7 @@ export interface TicketConfirmationEmailData {
 export async function sendEmail(emailData: EmailData) {
 	try {
 		const { data, error } = await resend.emails.send({
-			from: emailData.from || 'Eventtts Platform <noreply@resend.dev>',
+			from: emailData.from || 'Eventtts Platform <support@eventtts.live>',
 			to: emailData.to,
 			subject: emailData.subject,
 			html: emailData.html,
@@ -98,7 +98,7 @@ export async function sendEmailWithAttachment(
 ) {
 	try {
 		const { data, error } = await resend.emails.send({
-			from: emailData.from || 'Eventtts Platform <noreply@resend.dev>',
+			from: emailData.from || 'Eventtts Platform <support@eventtts.live>',
 			to: emailData.to,
 			subject: emailData.subject,
 			html: emailData.html,
@@ -288,7 +288,7 @@ export async function sendFeedbackEmail(data: FeedbackEmailData) {
 		to: [data.attendeeEmail],
 		subject: `Share your feedback: ${data.eventTitle}`,
 		html: emailHtml,
-		from: 'Eventtts Platform <noreply@resend.dev>',
+		from: 'Eventtts Platform <support@eventtts.live>',
 	};
 
 	return await sendEmail(emailData);
@@ -656,7 +656,7 @@ export async function sendCertificateEmail(data: CertificateEmailData) {
 		to: [data.participantEmail],
 		subject: `Your Certificate: ${data.eventTitle}`,
 		html: emailHtml,
-		from: 'Eventtts Platform <noreply@resend.dev>',
+		from: 'Eventtts Platform <support@eventtts.live>',
 	};
 
 	return await sendEmail(emailData);
@@ -672,7 +672,7 @@ export async function sendThankYouEmail(data: ThankYouEmailData) {
 		to: [data.participantEmail],
 		subject: `Thank you for attending ${data.eventTitle}!`,
 		html: emailHtml,
-		from: 'Eventtts Platform <noreply@resend.dev>',
+		from: 'Eventtts Platform <support@eventtts.live>',
 	};
 
 	return await sendEmail(emailData);
@@ -908,7 +908,7 @@ export async function sendTicketConfirmationEmail(
 		to: [data.attendeeEmail],
 		subject: `🎉 Your Ticket for ${data.eventTitle} - Entry Code Inside`,
 		html: emailHtml,
-		from: 'Eventtts Platform <noreply@resend.dev>',
+		from: 'Eventtts Platform <support@eventtts.live>',
 	};
 
 	return await sendEmail(emailData);
