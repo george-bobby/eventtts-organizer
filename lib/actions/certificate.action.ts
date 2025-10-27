@@ -185,7 +185,7 @@ export async function generateCertificateHTML(
         <div class="certificate">
           <div class="decorative-elements"></div>
           <div class="content">
-            <div class="logo">🎉 EventTTS</div>
+            <div class="logo">🎉 Eventtts</div>
             <h1 class="certificate-title">Certificate of ${certificateData.certificateType}</h1>
             <p class="certificate-subtitle">This is to certify that</p>
             <div class="recipient-name">${certificateData.recipientName}</div>
@@ -393,7 +393,7 @@ export async function distributeCertificatesViaEmail(
             <div style="text-align: center; padding: 20px; background: #e9ecef; border-radius: 8px;">
               <p style="margin: 0; color: #666; font-size: 14px;">
                 Thank you for your participation!<br>
-                <strong>EventTTS Team</strong>
+                <strong>Eventtts Team</strong>
               </p>
             </div>
           </div>

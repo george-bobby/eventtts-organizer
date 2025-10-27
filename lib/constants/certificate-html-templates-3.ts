@@ -186,7 +186,7 @@ export const generateAcademicTemplate = (
     <body>
       <div class="certificate" id="certificate">
         <div class="academic-header">
-          <div class="institution-name">EventTTS Certificate Authority</div>
+          <div class="institution-name">Eventtts Certificate Authority</div>
         </div>
         
         <div class="certificate-title">Certificate</div>

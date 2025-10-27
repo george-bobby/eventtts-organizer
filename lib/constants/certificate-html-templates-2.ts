@@ -489,7 +489,7 @@ export const generateCorporateTemplate = (
         
         <div class="logo-section">
           <div class="logo-placeholder">E</div>
-          <div class="organization">EventTTS Platform</div>
+          <div class="organization">Eventtts Platform</div>
         </div>
         
         <div class="title">Certificate</div>
