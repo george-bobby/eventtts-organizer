@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
+import ClarityTracking from "@/components/shared/ClarityTracking";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
       {/* ✅ FIX: Add suppressHydrationWarning to the html tag */}
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
+          <ClarityTracking />
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
