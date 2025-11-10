@@ -158,7 +158,7 @@ const Footer = () => {
           <div className="container mx-auto px-6 py-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-6">
-                <Link href="https://sap-hackathon-beta.vercel.app/" className="group">
+                <Link href="https://eventtts.live/" className="group">
                   <p className="font-bold text-white flex items-center gap-2">
                     <Heart className="w-4 h-4 text-red-400" />
                     © 2025 Eventtts
