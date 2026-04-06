@@ -4,6 +4,7 @@ import ReportForm from "@/components/shared/ReportForm";
 import { getEventById } from "@/lib/actions/event.action";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -16,6 +17,10 @@ type ReportPageProps = {
 const ReportPage = async ({ params }: ReportPageProps) => {
   const { id } = await params;
   const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
 
   const event = await getEventById(id);
 
