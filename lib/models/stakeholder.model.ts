@@ -2,7 +2,6 @@ import { Schema, model, models, Document } from 'mongoose';
 
 // Interface for stakeholder
 export interface IStakeholder extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	name: string;
 	email: string;
@@ -31,7 +30,6 @@ export interface IStakeholder extends Document {
 
 // Interface for bulk import tracking
 export interface IStakeholderImport extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	fileName: string;
 	fileUrl: string;

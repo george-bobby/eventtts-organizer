@@ -233,7 +233,7 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
           </h2>
 
           {tickets.map((ticket: ITicket, index: number) => (
-            <Card key={ticket._id} className="overflow-hidden shadow-lg border-2 border-red-100 hover:border-red-300 transition-all">
+            <Card key={String(ticket._id)} className="overflow-hidden shadow-lg border-2 border-red-100 hover:border-red-300 transition-all">
               <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50">
                 <div className="flex justify-between items-start">
                   <div>

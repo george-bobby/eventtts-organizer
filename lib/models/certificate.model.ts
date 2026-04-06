@@ -17,7 +17,6 @@ export interface ICertificateField {
 
 // Interface for certificate template
 export interface ICertificateTemplate extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	name: string;
 	description?: string;
@@ -33,7 +32,6 @@ export interface ICertificateTemplate extends Document {
 
 // Interface for generated certificate
 export interface ICertificate extends Document {
-	_id: string;
 	template: Schema.Types.ObjectId;
 	event: Schema.Types.ObjectId;
 	stakeholder: Schema.Types.ObjectId;

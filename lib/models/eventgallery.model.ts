@@ -2,7 +2,6 @@ import { Schema, model, models, Document } from 'mongoose';
 
 // Simplified gallery image interface - no folders, just images with tags
 export interface IEventGalleryImage extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	fileName: string;
 	originalName: string;

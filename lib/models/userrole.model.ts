@@ -20,7 +20,6 @@ export type PermissionType =
 
 // Interface for user role
 export interface IUserRole extends Document {
-	_id: string;
 	user: Schema.Types.ObjectId;
 	event: Schema.Types.ObjectId;
 	role: UserRoleType;

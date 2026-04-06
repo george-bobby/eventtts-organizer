@@ -3,7 +3,6 @@
 import { Document, Schema, model, models } from "mongoose";
 
 export interface IReport extends Document {
-  _id: string;
   preparedBy: string;
   eventPurpose: string;
   keyHighlights: string;

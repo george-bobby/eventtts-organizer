@@ -19,7 +19,6 @@ export interface IFeedbackAnswer {
 
 // Feedback Template Interface
 export interface IFeedbackTemplate extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	customQuestions: ICustomQuestion[];
 	isActive: boolean;
@@ -29,7 +28,6 @@ export interface IFeedbackTemplate extends Document {
 
 // Feedback Response Interface
 export interface IFeedbackResponse extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	user?: Schema.Types.ObjectId; // Optional for anonymous feedback
 	isAnonymous: boolean;

@@ -9,7 +9,6 @@ export interface ISubtask {
 
 // Interface for Task
 export interface ITask extends Document {
-  _id: string;
   id: string; // Custom ID for frontend compatibility
   content: string;
   column: 'planning' | 'developing' | 'reviewing' | 'finished';

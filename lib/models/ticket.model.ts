@@ -2,7 +2,6 @@ import { Schema, model, models, Document } from 'mongoose';
 
 // Interface for Ticket
 export interface ITicket extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	user: Schema.Types.ObjectId;
 	order?: Schema.Types.ObjectId;

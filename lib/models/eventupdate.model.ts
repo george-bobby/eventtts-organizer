@@ -2,7 +2,6 @@ import { Schema, model, models, Document } from 'mongoose';
 
 // Interface for Event Update (simplified)
 export interface IEventUpdate extends Document {
-	_id: string;
 	event: Schema.Types.ObjectId;
 	title: string;
 	content: string;
