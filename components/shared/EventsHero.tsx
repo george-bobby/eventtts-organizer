@@ -26,7 +26,7 @@ function CrossfadeImage({
           src={src}
           alt=""
           aria-hidden={i !== activeIndex}
-          className="absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+          className="absolute inset-0 h-full w-full object-cover transition-\\[opacity,transform\\] duration-\\[900ms\\] ease-\\[cubic-bezier(0.4,0,0.2,1)\\]"
           style={{
             opacity: i === activeIndex ? 1 : 0,
             transform: i === activeIndex ? "scale(1)" : "scale(1.04)",
@@ -184,8 +184,8 @@ export default function EventsHero() {
                   type="button"
                   onClick={() => setActiveImage(i)}
                   className={`h-1.5 rounded-full transition-all duration-500 ease-out ${i === activeImage
-                      ? "w-4 bg-foreground"
-                      : "w-1.5 bg-foreground/30"
+                    ? "w-4 bg-foreground"
+                    : "w-1.5 bg-foreground/30"
                     }`}
                   aria-label={`Show image ${i + 1}`}
                 />
