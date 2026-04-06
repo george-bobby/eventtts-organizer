@@ -8,7 +8,7 @@ import { UserButton, Show } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import ClientOnly from "./ClientOnly";
 import { Menu, X } from "lucide-react";
-import Image from "next/image";
+import { BrandLogo } from "@/components/shared/BrandLogo";
 
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -37,17 +37,7 @@ const Header = () => {
                     className={`flex items-center justify-between transition-all duration-500 px-6 lg:px-8 ${isScrolled ? "h-14" : "h-20"
                         }`}
                 >
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <Image
-                            src="/images/logo-full.png"
-                            alt="Eventtts Logo"
-                            width={130}
-                            height={40}
-                            className={`transition-all duration-500 object-contain dark:invert ${isScrolled ? "h-6 w-auto" : "h-8 w-auto"}`}
-                            priority
-                        />
-                    </Link>
+                    <BrandLogo size={isScrolled ? "compact" : "default"} />
 
                     {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center gap-8">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
-import Image from "next/image";
+import { BrandLogo } from "@/components/shared/BrandLogo";
 
 const platformLinks = [
   { name: "Explore", href: "/explore" },
@@ -24,15 +24,9 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-10">
             {/* Brand */}
             <div className="lg:col-span-5">
-              <Link href="/" className="inline-flex items-center gap-2 mb-6">
-                <Image
-                  src="/images/logo-full.png"
-                  alt="Eventtts Logo"
-                  width={150}
-                  height={45}
-                  className="h-8 w-auto object-contain brightness-0 invert"
-                />
-              </Link>
+              <div className="mb-6">
+                <BrandLogo variant="footer" size="default" />
+              </div>
 
               <p className="text-white/50 leading-relaxed max-w-sm text-sm">
                 Connecting people through amazing event experiences. Discover,

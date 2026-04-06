@@ -5,9 +5,6 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
 	title: "Eventtts - Event Management Made Easy",
 	description: "Eventtts is a platform for event management.",
-	icons: {
-		icon: "/images/favicon.ico",
-	},
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
