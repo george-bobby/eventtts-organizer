@@ -47,7 +47,7 @@ interface RoboflowResponse {
 }
 
 // Configuration
-const ROBOFLOW_API_KEY = process.env.ROBOFLOW_API_KEY || 'MBFBifupwZPFdYcEHX1u';
+const ROBOFLOW_API_KEY = process.env.ROBOFLOW_API_KEY;
 const MODEL_ID = 'c-tracker-awsa5/1';
 const ROBOFLOW_URL = `https://serverless.roboflow.com/${MODEL_ID}`;
 

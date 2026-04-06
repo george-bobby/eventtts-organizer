@@ -23,7 +23,7 @@ export default function ClarityTracking() {
             t.src = "https://www.clarity.ms/tag/" + i;
             y = l.getElementsByTagName(r)[0];
             y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "tzahvy8afv");
+        })(window, document, "clarity", "script", process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID);
     }, []);
 
     return null;
