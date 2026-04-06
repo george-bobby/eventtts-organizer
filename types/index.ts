@@ -113,7 +113,7 @@ export type CheckoutOrderParams = {
 };
 
 export type CreateOrderParams = {
-	stripeId: string;
+	paymentId: string;
 	eventId: string;
 	buyerId: string;
 	totalAmount: string;
@@ -134,7 +134,7 @@ export type GetOrdersByUserParams = {
 // ====== ORDER TYPES
 export interface IOrder {
 	_id: string;
-	stripeId: string;
+	paymentId: string;
 	totalTickets: number;
 	totalAmount: number;
 	user: string;
@@ -203,7 +203,7 @@ export interface IAttendee {
 	totalTickets: number;
 	totalAmount: number;
 	paymentStatus: 'completed' | 'pending' | 'failed';
-	stripeId: string;
+	paymentId: string;
 	verifiedTickets?: number; // Number of verified tickets
 	totalVerified?: boolean; // Whether all tickets are verified
 }

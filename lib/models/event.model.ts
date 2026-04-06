@@ -17,6 +17,7 @@ export interface IEvent extends Document {
 	totalCapacity: number;
 	isFree: boolean;
 	price: number;
+	dodoProductId?: string; // Dodo Payments product id for paid checkouts
 	category: Types.ObjectId;
 	tags: Types.ObjectId[];
 	organizer: Types.ObjectId;
@@ -53,6 +54,7 @@ const eventSchema = new Schema<IEvent>(
 		totalCapacity: { type: Number, default: -1 }, // -1 means unlimited capacity
 		isFree: { type: Boolean, default: false },
 		price: { type: Number, default: 0 },
+		dodoProductId: { type: String },
 		category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
 		tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }],
 		organizer: { type: Schema.Types.ObjectId, ref: 'User', required: true },

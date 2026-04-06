@@ -1,6 +1,6 @@
 'use server';
 
-import Stripe from 'stripe';
+import DodoPayments from 'dodopayments';
 import { ObjectId } from 'mongodb';
 import Order from '../models/order.model';
 import User from '../models/user.model';
@@ -42,11 +42,10 @@ export async function checkoutOrder(order: OrderProps) {
 	const eventTitle =
 		typeof order.event === 'string' ? 'Event' : order.event.title;
 
-	// For free events, directly create the order without Stripe
 	if (order.totalAmount === 0 || isFree) {
 		try {
 			const newOrder = await createOrder({
-				stripeId: 'free-event-' + Date.now(),
+				paymentId: 'free-event-' + Date.now(),
 				totalTickets: order.totalTickets,
 				totalAmount: 0,
 				user: order.user, // order.user is already the user ID string
@@ -69,114 +68,76 @@ export async function checkoutOrder(order: OrderProps) {
 		}
 	}
 
-	// For paid events, use Stripe checkout
-	const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
+	// For paid events, create a Dodo Payments Checkout Session via our Next.js adapter route
 	try {
-		// Ensure totalTickets is a valid integer >= 1
-		const validTicketQuantity = Math.max(
-			1,
-			Math.floor(Number(order.totalTickets) || 1)
-		);
+		const validTicketQuantity = Math.max(1, Math.floor(Number(order.totalTickets) || 1));
 
-		// Prepare line items for Stripe
-		const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-			{
-				price_data: {
-					currency: 'inr',
-					unit_amount: Math.round(order.totalAmount * 100), // Convert to smallest currency unit (paise)
-					product_data: {
-						name: eventTitle,
-						description: `Tickets for ${eventTitle}`,
-					},
+		// Load event doc to ensure we have dodoProductId and can persist if we create it
+		const eventDoc = await Event.findById(eventId).select('title price dodoProductId');
+		if (!eventDoc) {
+			throw new Error('Event not found for checkout');
+		}
+
+		// Lazily create a Dodo product for this event if missing
+		let productId = (eventDoc as any).dodoProductId as string | undefined;
+		if (!productId) {
+			const client = new DodoPayments({
+				bearerToken: process.env.DODO_PAYMENTS_API_KEY as string,
+				environment: (process.env.DODO_PAYMENTS_ENVIRONMENT as 'test_mode' | 'live_mode') || 'live_mode',
+			});
+
+			const amountMinor = Math.round(((eventDoc.price ?? order.totalAmount) || 0) * 100);
+			const product = await (client as any).products.create({
+				name: eventDoc.title ?? eventTitle,
+				description: `Tickets for ${eventDoc.title ?? eventTitle}`,
+				price: {
+					type: 'one_time_price',
+					price: amountMinor,
+					currency: 'INR',
+					discount: 0,
+					purchasing_power_parity: false,
 				},
-				quantity: validTicketQuantity,
-			},
-		];
+				tax_category: 'digital_products',
+			});
+			productId = (product?.product_id ?? product?.id) as string;
+			(eventDoc as any).dodoProductId = productId;
+			await eventDoc.save();
+		}
 
-		// Prepare metadata
+		// Metadata to recover context in webhook
 		const metadata: Record<string, string> = {
-			totalTickets: validTicketQuantity.toString(),
-			userId: order.user.toString(), // order.user is already the user ID string
-			eventId: eventId.toString(),
+			totalTickets: String(validTicketQuantity),
+			userId: String(order.user),
+			eventId: String(eventId),
 		};
-
-		// Add subEventId to metadata if it exists
-		if (
-			typeof order.event !== 'string' &&
-			'subEventId' in order.event &&
-			order.event.subEventId
-		) {
+		if (typeof order.event !== 'string' && 'subEventId' in order.event && order.event.subEventId) {
 			metadata.subEventId = order.event.subEventId;
 		}
 
-		// Create Stripe checkout session with Indian regulation compliance
-		const sessionParams: Stripe.Checkout.SessionCreateParams = {
-			payment_method_types: ['card'],
-			line_items: lineItems,
-			mode: 'payment',
-			success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/event/${eventId}/ticket?session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/event/${eventId}?canceled=true`,
-			metadata,
-			// Required for Indian regulations - collect customer name and address
-			billing_address_collection: 'required',
-			shipping_address_collection: {
-				allowed_countries: [
-					'US',
-					'CA',
-					'GB',
-					'AU',
-					'DE',
-					'FR',
-					'IT',
-					'ES',
-					'NL',
-					'BE',
-					'AT',
-					'CH',
-					'SE',
-					'NO',
-					'DK',
-					'FI',
-					'IE',
-					'PT',
-					'GR',
-					'PL',
-					'CZ',
-					'HU',
-					'RO',
-					'BG',
-					'HR',
-					'JP',
-					'SG',
-					'HK',
-					'MY',
-					'TH',
-					'ID',
-					'PH',
-					'KR',
-					'NZ',
-					'MX',
-					'BR',
-					'ZA',
-					'AE',
-					'SA',
-					'IL',
-					'TR',
-					'EG',
-				],
-			},
-			customer_creation: 'always',
-			phone_number_collection: {
-				enabled: true,
-			},
-		};
+		// Call our Next.js adapter Checkout route to create a session, expect { checkout_url }
+		const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL!;
+		const response = await fetch(`${baseUrl}/checkout`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				product_cart: [{ product_id: productId, quantity: validTicketQuantity }],
+				metadata,
+			}),
+		});
 
-		const session = await stripe.checkout.sessions.create(sessionParams);
+		if (!response.ok) {
+			const text = await response.text().catch(() => '');
+			throw new Error(`Dodo checkout session failed (${response.status}): ${text}`);
+		}
+		const data = (await response.json()) as Record<string, unknown>;
+		const checkoutUrl = (data as any).checkout_url as string | undefined;
+		if (!checkoutUrl) {
+			throw new Error('Missing checkout_url in Dodo checkout response');
+		}
 
-		return { url: session.url };
+		return { url: checkoutUrl };
 	} catch (error) {
-		console.error('Error creating Stripe session:', error);
+		console.error('Error creating Dodo checkout session:', error);
 		throw error;
 	}
 }
@@ -187,7 +148,7 @@ interface OrderEvent {
 }
 
 export interface createOrderParams {
-	stripeId: string;
+	paymentId: string;
 	totalTickets: number;
 	totalAmount: number;
 	user: string;
@@ -269,7 +230,7 @@ export async function createOrder(order: createOrderParams) {
 
 		// Create the order with all necessary fields
 		const orderData = {
-			stripeId: order.stripeId,
+			paymentId: order.paymentId,
 			totalTickets: order.totalTickets,
 			totalAmount: order.totalAmount,
 			event: event._id,
@@ -361,6 +322,18 @@ export async function createOrder(order: createOrderParams) {
 	} catch (error) {
 		console.log(error);
 		throw error;
+	}
+}
+
+export async function getOrderByPaymentId(paymentId: string) {
+	try {
+		await connectToDatabase();
+		const order = await Order.findOne({ paymentId }).populate('event', '_id title');
+		if (!order) return null;
+		return JSON.parse(JSON.stringify(order));
+	} catch (error) {
+		console.error('Error fetching order by paymentId:', error);
+		return null;
 	}
 }
 
@@ -574,10 +547,10 @@ export async function getEventAttendees({
 				registrationDate: order.createdAt,
 				totalTickets: order.totalTickets,
 				totalAmount: order.totalAmount,
-				paymentStatus: order.stripeId.startsWith('free-event')
+				paymentStatus: order.paymentId.startsWith('free-event')
 					? 'completed'
 					: 'completed', // For now, all orders are completed
-				stripeId: order.stripeId,
+				paymentId: order.paymentId,
 				verifiedTickets: verification.verifiedTickets,
 				totalVerified:
 					verification.verifiedTickets === verification.totalTickets &&
@@ -699,10 +672,10 @@ export async function exportEventAttendeesToExcel({
 						: 'Not Verified',
 				'Amount Paid':
 					order.totalAmount === 0 ? 'Free' : `₹${order.totalAmount}`,
-				'Payment Status': order.stripeId.startsWith('free-event')
+				'Payment Status': order.paymentId.startsWith('free-event')
 					? 'Free Event'
 					: 'Paid',
-				'Transaction ID': order.stripeId,
+				'Transaction ID': order.paymentId,
 			};
 		});
 

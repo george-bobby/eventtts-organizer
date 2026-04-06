@@ -26,7 +26,7 @@ interface Props {
       totalTickets: number;
       totalAmount: number;
       createdAt: Date;
-      stripeId: string;
+      paymentId: string;
     };
     userRole?: {
       role: string;

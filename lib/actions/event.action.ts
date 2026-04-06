@@ -982,7 +982,7 @@ export async function getEventsByUserRoles(userId: string) {
 					totalTickets: order.totalTickets,
 					totalAmount: order.totalAmount,
 					createdAt: order.createdAt,
-					stripeId: order.stripeId,
+					paymentId: order.paymentId,
 				},
 			}));
 

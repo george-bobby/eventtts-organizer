@@ -138,7 +138,7 @@ export async function getTickets(params: GetTicketsParams) {
 		const tickets = await Ticket.find(query)
 			.populate('event', 'title startDate endDate location photo')
 			.populate('user', 'firstName lastName email')
-			.populate('order', 'stripeId totalTickets totalAmount')
+			.populate('order', 'paymentId totalTickets totalAmount')
 			.sort({ createdAt: -1 });
 
 		return JSON.parse(JSON.stringify(tickets));
