@@ -33,7 +33,8 @@ const DeleteEventButton = ({ eventId }: DeleteEventButtonProps) => {
       if (result?.success) {
         toast({
           title: "Event deleted successfully!",
-          description: "The event and all related data have been permanently removed.",
+          description:
+            "The event and all related data have been permanently removed.",
         });
 
         setIsOpen(false);
@@ -43,11 +44,13 @@ const DeleteEventButton = ({ eventId }: DeleteEventButtonProps) => {
         throw new Error("Delete operation failed");
       }
     } catch (error: any) {
-      console.error('Delete event error:', error);
+      console.error("Delete event error:", error);
       toast({
         variant: "destructive",
         title: "Failed to delete event",
-        description: error.message || "An unexpected error occurred while deleting the event.",
+        description:
+          error.message ||
+          "An unexpected error occurred while deleting the event.",
       });
     } finally {
       setIsDeleting(false);
@@ -71,7 +74,9 @@ const DeleteEventButton = ({ eventId }: DeleteEventButtonProps) => {
           <DialogTitle>Are you absolutely sure?</DialogTitle>
           <DialogDescription className="flex flex-col gap-4 max-sm:items-center">
             <div className="space-y-2 text-sm text-gray-600">
-              <p><strong>⚠️ This action cannot be undone.</strong></p>
+              <p>
+                <strong>⚠️ This action cannot be undone.</strong>
+              </p>
               <p>This will permanently delete:</p>
               <ul className="list-disc list-inside space-y-1 pl-2">
                 <li>Event details and registration data</li>
@@ -83,7 +88,8 @@ const DeleteEventButton = ({ eventId }: DeleteEventButtonProps) => {
                 <li>QR codes and verification data</li>
               </ul>
               <p className="text-red-600 font-medium">
-                📋 Make sure to refund tickets to all customers before deletion to avoid legal issues.
+                📋 Make sure to refund tickets to all customers before deletion
+                to avoid legal issues.
               </p>
             </div>
             <div className="flex gap-2 mt-4">

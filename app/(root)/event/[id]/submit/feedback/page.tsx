@@ -1,8 +1,8 @@
-import React from 'react';
-import { notFound } from 'next/navigation';
-import { getEventById } from '@/lib/actions/event.action';
-import { getFeedbackTemplate } from '@/lib/actions/feedback.action';
-import FeedbackFormClient from './FeedbackFormClient';
+import React from "react";
+import { notFound } from "next/navigation";
+import { getEventById } from "@/lib/actions/event.action";
+import { getFeedbackTemplate } from "@/lib/actions/feedback.action";
+import FeedbackFormClient from "./FeedbackFormClient";
 
 interface FeedbackPageProps {
   params: Promise<{ id: string }>;
@@ -15,7 +15,7 @@ export default async function FeedbackPage({ params }: FeedbackPageProps) {
     // Fetch event and feedback template
     const [event, template] = await Promise.all([
       getEventById(id),
-      getFeedbackTemplate(id)
+      getFeedbackTemplate(id),
     ]);
 
     if (!event) {
@@ -25,13 +25,13 @@ export default async function FeedbackPage({ params }: FeedbackPageProps) {
     // Check if feedback is enabled for this event
     if (!event.feedbackEnabled) {
       return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen bg-background py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl font-bold text-foreground mb-4">
                 Feedback Not Available
               </h1>
-              <p className="text-gray-600 mb-8">
+              <p className="text-muted-foreground mb-8">
                 Feedback collection is not enabled for this event.
               </p>
               <a
@@ -49,23 +49,24 @@ export default async function FeedbackPage({ params }: FeedbackPageProps) {
     // Check if event has ended (feedback should only be available after event ends)
     const eventEndDate = new Date(event.endDate);
     const now = new Date();
-    
+
     if (now < eventEndDate) {
       return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen bg-background py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl font-bold text-foreground mb-4">
                 Feedback Not Yet Available
               </h1>
-              <p className="text-gray-600 mb-8">
-                Feedback collection will be available after the event ends on{' '}
-                {eventEndDate.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}.
+              <p className="text-muted-foreground mb-8">
+                Feedback collection will be available after the event ends on{" "}
+                {eventEndDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+                .
               </p>
               <a
                 href={`/event/${id}`}
@@ -94,24 +95,23 @@ export default async function FeedbackPage({ params }: FeedbackPageProps) {
     */
 
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-background py-8">
         <FeedbackFormClient
           eventId={id}
           eventTitle={event.title}
-          eventDate={new Date(event.startDate).toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+          eventDate={new Date(event.startDate).toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
           })}
           isOnline={event.isOnline}
           customQuestions={template.customQuestions || []}
         />
       </div>
     );
-
   } catch (error) {
-    console.error('Error loading feedback page:', error);
+    console.error("Error loading feedback page:", error);
     notFound();
   }
 }

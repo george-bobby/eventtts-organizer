@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css'; // Important!
-import 'leaflet-routing-machine';
-import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
-import { campusLocations } from '@/lib/campus-data';
+import { useEffect, useRef, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css"; // Important!
+import "leaflet-routing-machine";
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import { campusLocations } from "@/lib/campus-data";
 
 interface NavigationMapProps {
   startLocation: string;
@@ -25,9 +25,9 @@ const fixLeafletIcon = () => {
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
     iconRetinaUrl:
-      'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   });
 };
 
@@ -45,7 +45,9 @@ function RoutingMachine({
   useEffect(() => {
     if (!map) return;
 
-    const startPoint = campusLocations.find((loc) => loc.name === startLocation);
+    const startPoint = campusLocations.find(
+      (loc) => loc.name === startLocation,
+    );
     const endPoint = campusLocations.find((loc) => loc.name === endLocation);
 
     if (!startPoint || !endPoint) return;
@@ -64,10 +66,10 @@ function RoutingMachine({
       showAlternatives: false,
       fitSelectedRoutes: true,
       lineOptions: {
-  styles: [{ color: '#6366f1', weight: 6 }],
-  extendToWaypoints: true,       // required by typings
-  missingRouteTolerance: 0,      // required by typings
-},
+        styles: [{ color: "#6366f1", weight: 6 }],
+        extendToWaypoints: true, // required by typings
+        missingRouteTolerance: 0, // required by typings
+      },
 
       // @ts-ignore - suppress marker creation
       createMarker: () => null,
@@ -123,7 +125,7 @@ export default function NavigationMap({
     <MapContainer
       center={[centerLat, centerLng]}
       zoom={16}
-      style={{ height: '100%', width: '100%' }}
+      style={{ height: "100%", width: "100%" }}
       scrollWheelZoom={false}
     >
       <TileLayer
@@ -146,10 +148,7 @@ export default function NavigationMap({
       </Marker>
 
       {/* Routing machine */}
-      <RoutingMachine
-        startLocation={startLocation}
-        endLocation={endLocation}
-      />
+      <RoutingMachine startLocation={startLocation} endLocation={endLocation} />
     </MapContainer>
   );
 }

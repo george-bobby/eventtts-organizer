@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Search,
   Download,
@@ -16,11 +16,11 @@ import {
   DollarSign,
   Loader2,
   CheckCircle,
-  XCircle
-} from 'lucide-react';
-import { IAttendee } from '@/types';
-import { getEventAttendees } from '@/lib/actions/order.action';
-import { toast } from 'sonner';
+  XCircle,
+} from "lucide-react";
+import { IAttendee } from "@/types";
+import { getEventAttendees } from "@/lib/actions/order.action";
+import { toast } from "sonner";
 
 interface AttendeeManagementProps {
   eventId: string;
@@ -31,17 +31,17 @@ interface AttendeeManagementProps {
 export default function AttendeeManagement({
   eventId,
   organizerId,
-  eventTitle
+  eventTitle,
 }: AttendeeManagementProps) {
   const [attendees, setAttendees] = useState<IAttendee[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [totalAttendees, setTotalAttendees] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchAttendees = async (page = 1, search = '') => {
+  const fetchAttendees = async (page = 1, search = "") => {
     try {
       setLoading(true);
       const result = await getEventAttendees({
@@ -49,7 +49,7 @@ export default function AttendeeManagement({
         organizerId,
         searchString: search,
         page,
-        limit: 20
+        limit: 20,
       });
 
       setAttendees(result.data);
@@ -57,7 +57,7 @@ export default function AttendeeManagement({
       setTotalPages(result.totalPages);
       setCurrentPage(page);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to fetch attendees');
+      toast.error(error.message || "Failed to fetch attendees");
     } finally {
       setLoading(false);
     }
@@ -76,28 +76,28 @@ export default function AttendeeManagement({
     try {
       setExporting(true);
 
-      const response = await fetch('/api/attendees/export', {
-        method: 'POST',
+      const response = await fetch("/api/attendees/export", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ eventId }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to export attendees');
+        throw new Error("Failed to export attendees");
       }
 
       // Get the filename from the response headers
-      const contentDisposition = response.headers.get('content-disposition');
+      const contentDisposition = response.headers.get("content-disposition");
       const filename = contentDisposition
-        ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+        ? contentDisposition.split("filename=")[1].replace(/"/g, "")
         : `${eventTitle}_attendees.xlsx`;
 
       // Create blob and download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
@@ -105,16 +105,22 @@ export default function AttendeeManagement({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success('Attendees exported successfully!');
+      toast.success("Attendees exported successfully!");
     } catch (error: any) {
-      toast.error(error.message || 'Failed to export attendees');
+      toast.error(error.message || "Failed to export attendees");
     } finally {
       setExporting(false);
     }
   };
 
-  const totalRevenue = attendees.reduce((sum, attendee) => sum + attendee.totalAmount, 0);
-  const totalTickets = attendees.reduce((sum, attendee) => sum + attendee.totalTickets, 0);
+  const totalRevenue = attendees.reduce(
+    (sum, attendee) => sum + attendee.totalAmount,
+    0,
+  );
+  const totalTickets = attendees.reduce(
+    (sum, attendee) => sum + attendee.totalTickets,
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -142,7 +148,9 @@ export default function AttendeeManagement({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Attendees</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Attendees
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -167,7 +175,9 @@ export default function AttendeeManagement({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalRevenue === 0 ? 'Free Event' : `₹${totalRevenue.toLocaleString()}`}
+              {totalRevenue === 0
+                ? "Free Event"
+                : `₹${totalRevenue.toLocaleString()}`}
             </div>
           </CardContent>
         </Card>
@@ -197,17 +207,23 @@ export default function AttendeeManagement({
             </div>
           ) : attendees.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm ? 'No attendees found matching your search.' : 'No attendees registered yet.'}
+              {searchTerm
+                ? "No attendees found matching your search."
+                : "No attendees registered yet."}
             </div>
           ) : (
             <div className="space-y-4">
               {attendees.map((attendee) => (
-                <div key={attendee._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                <div
+                  key={attendee._id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                >
                   <div className="flex items-center space-x-4">
                     <Avatar>
                       <AvatarImage src={attendee.photo} />
                       <AvatarFallback>
-                        {attendee.firstName?.[0] || 'U'}{attendee.lastName?.[0] || 'N'}
+                        {attendee.firstName?.[0] || "U"}
+                        {attendee.lastName?.[0] || "N"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
@@ -220,17 +236,29 @@ export default function AttendeeManagement({
                       </div>
                       <div className="flex items-center text-sm text-gray-600 mt-1">
                         <Calendar className="w-3 h-3 mr-1" />
-                        Registered: {new Date(attendee.registrationDate).toLocaleDateString()}
+                        Registered:{" "}
+                        {new Date(
+                          attendee.registrationDate,
+                        ).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="outline">
-                        {attendee.totalTickets} ticket{attendee.totalTickets !== 1 ? 's' : ''}
+                        {attendee.totalTickets} ticket
+                        {attendee.totalTickets !== 1 ? "s" : ""}
                       </Badge>
-                      <Badge variant={attendee.paymentStatus === 'completed' ? 'default' : 'secondary'}>
-                        {attendee.totalAmount === 0 ? 'Free' : `₹${attendee.totalAmount}`}
+                      <Badge
+                        variant={
+                          attendee.paymentStatus === "completed"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {attendee.totalAmount === 0
+                          ? "Free"
+                          : `₹${attendee.totalAmount}`}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 mb-1">
@@ -239,9 +267,11 @@ export default function AttendeeManagement({
                           <CheckCircle className="w-3 h-3" />
                           All Verified
                         </Badge>
-                      ) : attendee.verifiedTickets && attendee.verifiedTickets > 0 ? (
+                      ) : attendee.verifiedTickets &&
+                        attendee.verifiedTickets > 0 ? (
                         <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                          Partial ({attendee.verifiedTickets}/{attendee.totalTickets})
+                          Partial ({attendee.verifiedTickets}/
+                          {attendee.totalTickets})
                         </Badge>
                       ) : (
                         <Badge className="bg-gray-100 text-gray-800 border-gray-200 flex items-center gap-1">
@@ -251,7 +281,9 @@ export default function AttendeeManagement({
                       )}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {attendee.paymentStatus === 'completed' ? 'Confirmed' : 'Pending'}
+                      {attendee.paymentStatus === "completed"
+                        ? "Confirmed"
+                        : "Pending"}
                     </div>
                   </div>
                 </div>

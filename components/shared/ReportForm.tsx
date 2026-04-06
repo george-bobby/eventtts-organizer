@@ -6,7 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileUploader } from "./FileUploader";
@@ -17,9 +24,22 @@ import { useToast } from "@/hooks/use-toast";
 
 import { getEventStatistics } from "@/lib/actions/order.action";
 import jsPDF from "jspdf";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, MapPin, Users, DollarSign, Clock, Tag } from "lucide-react";
+import {
+  CalendarDays,
+  MapPin,
+  Users,
+  DollarSign,
+  Clock,
+  Tag,
+} from "lucide-react";
 
 const formSchema = z.object({
   preparedBy: z.string().min(2, "This field is required."),
@@ -31,7 +51,9 @@ const formSchema = z.object({
   eventGoals: z.string().min(10, "Please describe the event goals."),
   agenda: z.string().min(10, "Please provide the agenda details."),
   partners: z.string().optional(),
-  budgetAllocation: z.string().min(1, "Please provide budget allocation details."),
+  budgetAllocation: z
+    .string()
+    .min(1, "Please provide budget allocation details."),
   vips: z.string().optional(),
   keySessions: z.string().optional(),
   budget: z.string().min(1, "Enter the budget."),
@@ -75,7 +97,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       budget: "",
       sponsorship: "",
       actualExpenditure: "",
-      photos: ""
+      photos: "",
     },
   });
 
@@ -103,20 +125,20 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       }
 
       // Generate JSON report first
-      const response = await fetch('/api/reports', {
-        method: 'POST',
+      const response = await fetch("/api/reports", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId,
           report: { ...values, photos: uploadedImageUrl || "" },
-          format: 'json'
+          format: "json",
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate report');
+        throw new Error("Failed to generate report");
       }
 
       const result = await response.json();
@@ -135,8 +157,11 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       doc.text(pdfData.title, 105, y, { align: "center" });
       y += 15;
 
-      pdfData.sections.forEach(section => {
-        if (y > 270) { doc.addPage(); y = 20; }
+      pdfData.sections.forEach((section) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
         doc.text(section.heading, 15, y);
@@ -144,23 +169,32 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
 
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
-        section.content.forEach(line => {
-          if (y > 280) { doc.addPage(); y = 20; }
+        section.content.forEach((line) => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
           const splitLines = doc.splitTextToSize(line, 180);
           doc.text(splitLines, 15, y);
-          y += (splitLines.length * 5) + 3;
+          y += splitLines.length * 5 + 3;
         });
         y += 5;
       });
 
       // Generate a blob URL to display in the iframe
-      const pdfBlobUrl = doc.output('datauristring');
+      const pdfBlobUrl = doc.output("datauristring");
       setPdfUrl(pdfBlobUrl);
 
-      toast({ title: "Report Ready!", description: "Your AI-powered report is now visible below." });
-
+      toast({
+        title: "Report Ready!",
+        description: "Your AI-powered report is now visible below.",
+      });
     } catch (error) {
-      toast({ title: "An Error Occurred", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "An Error Occurred",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -177,25 +211,25 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
         uploadedImageUrl = uploadedImages[0].url;
       }
 
-      const response = await fetch('/api/reports', {
-        method: 'POST',
+      const response = await fetch("/api/reports", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId,
           report: { ...values, photos: uploadedImageUrl || "" },
-          format: 'pdf'
+          format: "pdf",
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate PDF');
+        throw new Error("Failed to generate PDF");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `${event.title}-report.pdf`;
       document.body.appendChild(a);
@@ -203,9 +237,16 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast({ title: "PDF Downloaded!", description: "Your report has been downloaded as PDF." });
+      toast({
+        title: "PDF Downloaded!",
+        description: "Your report has been downloaded as PDF.",
+      });
     } catch (error) {
-      toast({ title: "Download Failed", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "Download Failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -220,25 +261,25 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
         uploadedImageUrl = uploadedImages[0].url;
       }
 
-      const response = await fetch('/api/reports', {
-        method: 'POST',
+      const response = await fetch("/api/reports", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId,
           report: { ...values, photos: uploadedImageUrl || "" },
-          format: 'word'
+          format: "word",
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate Word document');
+        throw new Error("Failed to generate Word document");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `${event.title}-report.docx`;
       document.body.appendChild(a);
@@ -246,17 +287,24 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast({ title: "Word Document Downloaded!", description: "Your report has been downloaded as Word document." });
+      toast({
+        title: "Word Document Downloaded!",
+        description: "Your report has been downloaded as Word document.",
+      });
     } catch (error) {
-      toast({ title: "Download Failed", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "Download Failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
   const downloadPdf = () => {
     if (!pdfUrl) return;
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = pdfUrl;
-    link.download = `${event.title.replace(/\s+/g, '_')}_AI_report.pdf`;
+    link.download = `${event.title.replace(/\s+/g, "_")}_AI_report.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -280,7 +328,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 Category
               </div>
               <Badge variant="secondary" className="text-sm">
-                {(event.category as any)?.name || 'N/A'}
+                {(event.category as any)?.name || "N/A"}
               </Badge>
             </div>
 
@@ -290,7 +338,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 Location
               </div>
               <p className="text-sm font-medium">
-                {event.isOnline ? 'Online Event' : event.location || 'N/A'}
+                {event.isOnline ? "Online Event" : event.location || "N/A"}
               </p>
             </div>
 
@@ -300,7 +348,8 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 Duration
               </div>
               <p className="text-sm font-medium">
-                {new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}
+                {new Date(event.startDate).toLocaleDateString()} -{" "}
+                {new Date(event.endDate).toLocaleDateString()}
               </p>
             </div>
 
@@ -310,7 +359,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 Capacity
               </div>
               <p className="text-sm font-medium">
-                {event.totalCapacity === -1 ? 'Unlimited capacity' : `${event.totalCapacity} total seats`}
+                {event.totalCapacity === -1
+                  ? "Unlimited capacity"
+                  : `${event.totalCapacity} total seats`}
               </p>
             </div>
 
@@ -320,7 +371,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 Pricing
               </div>
               <p className="text-sm font-medium">
-                {event.isFree ? 'Free Event' : `₹${event.price}`}
+                {event.isFree ? "Free Event" : `₹${event.price}`}
               </p>
             </div>
 
@@ -339,9 +390,14 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
 
           {eventStats && (
             <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">Revenue Summary</h4>
+              <h4 className="font-semibold text-green-800 mb-2">
+                Revenue Summary
+              </h4>
               <p className="text-green-700">
-                Total Revenue: <span className="font-bold">₹{eventStats.totalRevenue.toLocaleString('en-IN')}</span>
+                Total Revenue:{" "}
+                <span className="font-bold">
+                  ₹{eventStats.totalRevenue.toLocaleString("en-IN")}
+                </span>
               </p>
             </div>
           )}
@@ -352,7 +408,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       {pdfUrl ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">🎉 Your AI Report is Ready!</CardTitle>
+            <CardTitle className="text-center">
+              🎉 Your AI Report is Ready!
+            </CardTitle>
             <CardDescription className="text-center">
               Your comprehensive event report has been generated successfully
             </CardDescription>
@@ -360,9 +418,19 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
           <CardContent>
             <div className="flex flex-col items-center gap-6">
               <div className="w-full h-[700px] border-2 border-primary/20 rounded-lg overflow-hidden shadow-lg">
-                <iframe src={pdfUrl} width="100%" height="100%" title="PDF Report" className="rounded-lg" />
+                <iframe
+                  src={pdfUrl}
+                  width="100%"
+                  height="100%"
+                  title="PDF Report"
+                  className="rounded-lg"
+                />
               </div>
-              <Button onClick={downloadPdf} size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg font-semibold">
+              <Button
+                onClick={downloadPdf}
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg font-semibold"
+              >
                 📥 Download PDF Report
               </Button>
             </div>
@@ -375,19 +443,25 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
               ✨ Generate AI-Powered Report
             </CardTitle>
             <CardDescription>
-              Fill in the key details below. Most event information is automatically included from your event data.
+              Fill in the key details below. Most event information is
+              automatically included from your event data.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 {/* Report Author */}
                 <FormField
                   control={form.control}
                   name="preparedBy"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Report Prepared By *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Report Prepared By *
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Your name or organization"
@@ -406,7 +480,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="eventPurpose"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Event Purpose *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Event Purpose *
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="What was the main purpose or reason for organizing this event?"
@@ -425,7 +501,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="objective"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Event Objective *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Event Objective *
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="What specific objectives were you trying to achieve with this event?"
@@ -444,7 +522,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="targetAudience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Target Audience *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Target Audience *
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Who was the intended audience for this event?"
@@ -463,7 +543,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="eventGoals"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Event Goals *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Event Goals *
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="What were the specific goals you set for this event?"
@@ -482,7 +564,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="agenda"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Event Agenda *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Event Agenda *
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Provide a brief overview of the event agenda or schedule..."
@@ -501,7 +585,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="keyHighlights"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Key Highlights *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Key Highlights *
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Describe the most memorable moments, achievements, or standout features of your event..."
@@ -520,7 +606,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="majorOutcomes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Major Outcomes & Results *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Major Outcomes & Results *
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="What were the main results, learnings, or impacts of the event? Include any feedback received..."
@@ -540,7 +628,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                     name="budget"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold">Planned Budget (₹) *</FormLabel>
+                        <FormLabel className="text-base font-semibold">
+                          Planned Budget (₹) *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -559,7 +649,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                     name="actualExpenditure"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold">Actual Expenditure (₹) *</FormLabel>
+                        <FormLabel className="text-base font-semibold">
+                          Actual Expenditure (₹) *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -578,7 +670,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                     name="sponsorship"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold">Sponsorship/Funding (₹)</FormLabel>
+                        <FormLabel className="text-base font-semibold">
+                          Sponsorship/Funding (₹)
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -595,7 +689,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
 
                 {/* Optional Fields Section */}
                 <div className="space-y-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-800">Additional Details (Optional)</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Additional Details (Optional)
+                  </h3>
 
                   {/* Partners */}
                   <FormField
@@ -603,7 +699,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                     name="partners"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold">Partners & Collaborators</FormLabel>
+                        <FormLabel className="text-base font-semibold">
+                          Partners & Collaborators
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="List any partners, sponsors, or collaborating organizations..."
@@ -622,7 +720,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                     name="budgetAllocation"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold">Budget Allocation Details *</FormLabel>
+                        <FormLabel className="text-base font-semibold">
+                          Budget Allocation Details *
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Provide details on how the budget was allocated across different categories..."
@@ -641,7 +741,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                     name="vips"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold">VIPs & Special Guests</FormLabel>
+                        <FormLabel className="text-base font-semibold">
+                          VIPs & Special Guests
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="List important attendees, keynote speakers, or VIP guests..."
@@ -660,7 +762,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                     name="keySessions"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold">Key Sessions & Activities</FormLabel>
+                        <FormLabel className="text-base font-semibold">
+                          Key Sessions & Activities
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Highlight the most important sessions, workshops, or activities..."
@@ -680,7 +784,9 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                   name="photos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Event Photos</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        Event Photos
+                      </FormLabel>
                       <FormControl>
                         <div className="border-2 border-dashed border-primary/20 rounded-lg p-6">
                           <FileUploader
@@ -709,9 +815,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                         Generating AI Report...
                       </>
                     ) : (
-                      <>
-                        Generate Report
-                      </>
+                      <>Generate Report</>
                     )}
                   </Button>
 

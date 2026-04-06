@@ -87,7 +87,7 @@ const CheckoutDialog = ({ event, user, children }: CheckoutDialogProps) => {
         ? await getEventById(
           typeof currentEvent.parentEvent === "string"
             ? currentEvent.parentEvent
-            : (currentEvent.parentEvent as any)._id
+            : (currentEvent.parentEvent as any)._id,
         )
         : currentEvent;
 
@@ -99,7 +99,8 @@ const CheckoutDialog = ({ event, user, children }: CheckoutDialogProps) => {
           : targetEvent.totalCapacity || 0;
 
       // Fix: Don't block unlimited capacity events (-1)
-      if (availableTickets !== -1 && availableTickets <= 0) throw new Error("No tickets available");
+      if (availableTickets !== -1 && availableTickets <= 0)
+        throw new Error("No tickets available");
 
       const amount = targetEvent.isFree
         ? 0
@@ -156,7 +157,7 @@ const CheckoutDialog = ({ event, user, children }: CheckoutDialogProps) => {
                   value={totalTickets}
                   onChange={(e) =>
                     setTotalTickets(
-                      Math.max(1, Math.min(maxTickets, Number(e.target.value)))
+                      Math.max(1, Math.min(maxTickets, Number(e.target.value))),
                     )
                   }
                   className="w-24 text-center"
@@ -186,13 +187,19 @@ interface LikeCartButtonProps {
   option?: string;
 }
 
-const LikeCartButton = ({ event, user, likedEvent, option }: LikeCartButtonProps) => {
+const LikeCartButton = ({
+  event,
+  user,
+  likedEvent,
+  option,
+}: LikeCartButtonProps) => {
   const { toast } = useToast();
   const [isLiked, setIsLiked] = useState(likedEvent);
 
   const isEventPast = new Date(event.startDate) < new Date();
   // Handle unlimited capacity (-1) and regular capacity
-  const areTicketsAvailable = (event.ticketsLeft === -1 || event.ticketsLeft > 0) && !event.soldOut;
+  const areTicketsAvailable =
+    (event.ticketsLeft === -1 || event.ticketsLeft > 0) && !event.soldOut;
   const isCartDisabled = isEventPast || !areTicketsAvailable;
 
   useEffect(() => {
@@ -280,23 +287,33 @@ const LikeCartButton = ({ event, user, likedEvent, option }: LikeCartButtonProps
   }
 
   return (
-    <div className="absolute top-2 right-2 flex flex-col items-center gap-2">
-      <div
-        className="border bg-white/80 backdrop-blur-sm rounded-full p-1 h-8 w-8 flex justify-center items-center hover:scale-110 transition-transform cursor-pointer"
-        onClick={handleLike}
+    <div className="absolute top-3 right-3 flex flex-col items-center gap-3 z-20">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleLike();
+        }}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-background/95 shadow-md backdrop-blur-md border border-border transition-all hover:scale-110 hover:bg-background group"
+        aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
       >
         {isLiked ? (
-          <FaHeart className="text-primary" />
+          <FaHeart className="h-5 w-5 text-red-500" />
         ) : (
-          <FaRegHeart className="text-primary" />
+          <FaRegHeart className="h-5 w-5 text-muted-foreground group-hover:text-red-500 transition-colors" />
         )}
-      </div>
+      </button>
 
       {!isCartDisabled && (
         <CheckoutDialog event={event} user={user}>
-          <div className="border bg-white/80 backdrop-blur-sm rounded-full p-1 h-8 w-8 flex justify-center items-center hover:scale-110 transition-transform cursor-pointer">
-            <MdOutlineShoppingCart className="text-primary" />
-          </div>
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-background/95 shadow-md backdrop-blur-md border border-border transition-all hover:scale-110 hover:bg-background group"
+            aria-label="Book event tickets"
+          >
+            <MdOutlineShoppingCart className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </button>
         </CheckoutDialog>
       )}
     </div>

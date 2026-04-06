@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useCallback } from "react";
 import {
@@ -8,9 +8,21 @@ import {
   boundingBox,
   centerText,
 } from "@yudiel/react-qr-scanner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Camera, Scan, AlertCircle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,11 +44,13 @@ export function QRScanner({
   description = "Position the QR code within the camera view to scan",
   isLoading = false,
 }: QRScannerProps) {
-  const [deviceId, setDeviceId] = useState<string>('default');
+  const [deviceId, setDeviceId] = useState<string>("default");
   const [tracker, setTracker] = useState<string>("centerText");
   const [pause, setPause] = useState(false);
-  const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
-  const [lastScannedData, setLastScannedData] = useState<string>('');
+  const [scanStatus, setScanStatus] = useState<
+    "idle" | "scanning" | "success" | "error"
+  >("idle");
+  const [lastScannedData, setLastScannedData] = useState<string>("");
 
   const devices = useDevices();
 
@@ -55,37 +69,44 @@ export function QRScanner({
     }
   }
 
-  const handleScan = useCallback(async (data: string) => {
-    if (pause || isLoading || data === lastScannedData) return;
+  const handleScan = useCallback(
+    async (data: string) => {
+      if (pause || isLoading || data === lastScannedData) return;
 
-    setPause(true);
-    setScanStatus('scanning');
-    setLastScannedData(data);
+      setPause(true);
+      setScanStatus("scanning");
+      setLastScannedData(data);
 
-    try {
-      await onScan(data);
-      setScanStatus('success');
-      // Resume scanning after 2 seconds
-      setTimeout(() => {
-        setPause(false);
-        setScanStatus('idle');
-      }, 2000);
-    } catch (error) {
-      setScanStatus('error');
-      onError?.(error instanceof Error ? error.message : 'Scan failed');
-      // Resume scanning after 3 seconds
-      setTimeout(() => {
-        setPause(false);
-        setScanStatus('idle');
-      }, 3000);
-    }
-  }, [onScan, onError, pause, isLoading, lastScannedData]);
+      try {
+        await onScan(data);
+        setScanStatus("success");
+        // Resume scanning after 2 seconds
+        setTimeout(() => {
+          setPause(false);
+          setScanStatus("idle");
+        }, 2000);
+      } catch (error) {
+        setScanStatus("error");
+        onError?.(error instanceof Error ? error.message : "Scan failed");
+        // Resume scanning after 3 seconds
+        setTimeout(() => {
+          setPause(false);
+          setScanStatus("idle");
+        }, 3000);
+      }
+    },
+    [onScan, onError, pause, isLoading, lastScannedData],
+  );
 
-  const handleScanError = useCallback((error: unknown) => {
-    console.error('QR Scanner error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown scanner error';
-    onError?.(errorMessage);
-  }, [onError]);
+  const handleScanError = useCallback(
+    (error: unknown) => {
+      console.error("QR Scanner error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown scanner error";
+      onError?.(errorMessage);
+    },
+    [onError],
+  );
 
   return (
     <Card className={cn("w-full max-w-md mx-auto", className)}>
@@ -106,7 +127,10 @@ export function QRScanner({
             <SelectContent>
               <SelectItem value="default">Default Camera</SelectItem>
               {devices.map((device, index) => (
-                <SelectItem key={index} value={device.deviceId || `device-${index}`}>
+                <SelectItem
+                  key={index}
+                  value={device.deviceId || `device-${index}`}
+                >
                   {device.label || `Camera ${index + 1}`}
                 </SelectItem>
               ))}
@@ -127,18 +151,26 @@ export function QRScanner({
         </div>
 
         {/* Status Badge */}
-        {scanStatus !== 'idle' && (
+        {scanStatus !== "idle" && (
           <div className="flex justify-center">
             <Badge
-              variant={scanStatus === 'success' ? 'default' : scanStatus === 'error' ? 'destructive' : 'secondary'}
+              variant={
+                scanStatus === "success"
+                  ? "default"
+                  : scanStatus === "error"
+                    ? "destructive"
+                    : "secondary"
+              }
               className="flex items-center gap-1"
             >
-              {scanStatus === 'scanning' && <Camera className="w-3 h-3 animate-pulse" />}
-              {scanStatus === 'success' && <CheckCircle className="w-3 h-3" />}
-              {scanStatus === 'error' && <AlertCircle className="w-3 h-3" />}
-              {scanStatus === 'scanning' && 'Processing...'}
-              {scanStatus === 'success' && 'Success!'}
-              {scanStatus === 'error' && 'Error'}
+              {scanStatus === "scanning" && (
+                <Camera className="w-3 h-3 animate-pulse" />
+              )}
+              {scanStatus === "success" && <CheckCircle className="w-3 h-3" />}
+              {scanStatus === "error" && <AlertCircle className="w-3 h-3" />}
+              {scanStatus === "scanning" && "Processing..."}
+              {scanStatus === "success" && "Success!"}
+              {scanStatus === "error" && "Error"}
             </Badge>
           </div>
         )}
@@ -156,7 +188,10 @@ export function QRScanner({
               "data_matrix",
             ]}
             constraints={{
-              deviceId: deviceId === 'default' || deviceId.startsWith('device-') ? undefined : deviceId,
+              deviceId:
+                deviceId === "default" || deviceId.startsWith("device-")
+                  ? undefined
+                  : deviceId,
             }}
             onScan={(detectedCodes) => {
               if (detectedCodes.length > 0) {
@@ -169,8 +204,8 @@ export function QRScanner({
                 height: "300px",
                 width: "100%",
                 borderRadius: "8px",
-                overflow: "hidden"
-              }
+                overflow: "hidden",
+              },
             }}
             components={{
               onOff: true,
@@ -185,7 +220,7 @@ export function QRScanner({
           />
 
           {/* Loading overlay */}
-          {(isLoading || scanStatus === 'scanning') && (
+          {(isLoading || scanStatus === "scanning") && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
               <div className="text-white text-center">
                 <Camera className="w-8 h-8 mx-auto mb-2 animate-pulse" />
@@ -199,7 +234,9 @@ export function QRScanner({
         <div className="text-center text-sm text-gray-600">
           <p>Point your camera at a QR code to scan it</p>
           {devices.length === 0 && (
-            <p className="text-red-500 mt-1">No cameras detected. Please check your camera permissions.</p>
+            <p className="text-red-500 mt-1">
+              No cameras detected. Please check your camera permissions.
+            </p>
           )}
         </div>
       </CardContent>

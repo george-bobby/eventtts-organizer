@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,18 +13,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, Heart, MessageCircle, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { ICustomQuestion, IFeedbackAnswer } from '@/types';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Star, Heart, MessageCircle, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ICustomQuestion, IFeedbackAnswer } from "@/types";
 
 // Star Rating Component
-const StarRating = ({ value, onChange, label }: { value: number; onChange: (value: number) => void; label: string }) => {
+const StarRating = ({
+  value,
+  onChange,
+  label,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  label: string;
+}) => {
   const [hoverValue, setHoverValue] = useState(0);
 
   return (
@@ -35,10 +49,11 @@ const StarRating = ({ value, onChange, label }: { value: number; onChange: (valu
           <button
             key={star}
             type="button"
-            className={`p-1 transition-colors ${star <= (hoverValue || value)
-                ? 'text-yellow-400'
-                : 'text-gray-300 hover:text-yellow-200'
-              }`}
+            className={`p-1 transition-colors ${
+              star <= (hoverValue || value)
+                ? "text-yellow-400"
+                : "text-gray-300 hover:text-yellow-200"
+            }`}
             onMouseEnter={() => setHoverValue(star)}
             onMouseLeave={() => setHoverValue(0)}
             onClick={() => onChange(star)}
@@ -48,18 +63,24 @@ const StarRating = ({ value, onChange, label }: { value: number; onChange: (valu
         ))}
       </div>
       <p className="text-xs text-gray-500">
-        {value === 1 && 'Poor'}
-        {value === 2 && 'Fair'}
-        {value === 3 && 'Good'}
-        {value === 4 && 'Very Good'}
-        {value === 5 && 'Excellent'}
+        {value === 1 && "Poor"}
+        {value === 2 && "Fair"}
+        {value === 3 && "Good"}
+        {value === 4 && "Very Good"}
+        {value === 5 && "Excellent"}
       </p>
     </div>
   );
 };
 
 // NPS Rating Component (1-10)
-const NPSRating = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+const NPSRating = ({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) => {
   return (
     <div className="space-y-3">
       <div className="flex justify-between text-xs text-gray-500">
@@ -71,10 +92,11 @@ const NPSRating = ({ value, onChange }: { value: number; onChange: (value: numbe
           <button
             key={score}
             type="button"
-            className={`p-2 text-sm font-medium rounded transition-colors ${score === value
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`}
+            className={`p-2 text-sm font-medium rounded transition-colors ${
+              score === value
+                ? "bg-primary text-primary-foreground"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+            }`}
             onClick={() => onChange(score)}
           >
             {score}
@@ -116,7 +138,7 @@ export default function FeedbackForm({
   isOnline,
   customQuestions,
   onSubmit,
-  isSubmitting
+  isSubmitting,
 }: FeedbackFormProps) {
   const { toast } = useToast();
   const [customAnswers, setCustomAnswers] = useState<IFeedbackAnswer[]>([]);
@@ -130,21 +152,24 @@ export default function FeedbackForm({
       organizationRating: 0,
       venueRating: isOnline ? undefined : 0,
       recommendationScore: 0,
-      likedMost: '',
-      improvements: '',
-      additionalComments: '',
+      likedMost: "",
+      improvements: "",
+      additionalComments: "",
       isAnonymous: false,
     },
   });
 
-  const handleCustomAnswer = (questionId: string, questionText: string, questionType: string, answer: any) => {
-    setCustomAnswers(prev => {
-      const existing = prev.find(a => a.questionId === questionId);
+  const handleCustomAnswer = (
+    questionId: string,
+    questionText: string,
+    questionType: string,
+    answer: any,
+  ) => {
+    setCustomAnswers((prev) => {
+      const existing = prev.find((a) => a.questionId === questionId);
       if (existing) {
-        return prev.map(a =>
-          a.questionId === questionId
-            ? { ...a, answer }
-            : a
+        return prev.map((a) =>
+          a.questionId === questionId ? { ...a, answer } : a,
         );
       }
       return [...prev, { questionId, questionText, questionType, answer }];
@@ -155,7 +180,7 @@ export default function FeedbackForm({
     try {
       await onSubmit({
         ...values,
-        customAnswers
+        customAnswers,
       });
       setIsSubmitted(true);
       toast({
@@ -177,9 +202,12 @@ export default function FeedbackForm({
         <Card className="text-center">
           <CardContent className="pt-6">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-green-700 mb-2">Thank You!</h2>
+            <h2 className="text-2xl font-bold text-green-700 mb-2">
+              Thank You!
+            </h2>
             <p className="text-gray-600 mb-4">
-              Your feedback has been submitted successfully. We appreciate you taking the time to help us improve.
+              Your feedback has been submitted successfully. We appreciate you
+              taking the time to help us improve.
             </p>
             <Button onClick={() => window.close()} variant="outline">
               Close
@@ -194,13 +222,16 @@ export default function FeedbackForm({
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Share Your Feedback</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Share Your Feedback
+        </h1>
         <div className="space-y-1">
           <h2 className="text-xl text-gray-700">{eventTitle}</h2>
           <p className="text-gray-500">{eventDate}</p>
         </div>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Your feedback helps us create better events. This should take less than 3 minutes to complete.
+          Your feedback helps us create better events. This should take less
+          than 3 minutes to complete.
         </p>
       </div>
 
@@ -299,10 +330,7 @@ export default function FeedbackForm({
                 name="recommendationScore"
                 render={({ field }) => (
                   <FormItem>
-                    <NPSRating
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                    <NPSRating value={field.value} onChange={field.onChange} />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -327,7 +355,9 @@ export default function FeedbackForm({
                 name="likedMost"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>What did you like most about the event?</FormLabel>
+                    <FormLabel>
+                      What did you like most about the event?
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Tell us what stood out to you..."
@@ -345,7 +375,9 @@ export default function FeedbackForm({
                 name="improvements"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>What could we improve for future events?</FormLabel>
+                    <FormLabel>
+                      What could we improve for future events?
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Share your suggestions..."
@@ -392,33 +424,71 @@ export default function FeedbackForm({
                   <div key={question.id} className="space-y-2">
                     <label className="text-sm font-medium">
                       {question.question}
-                      {question.required && <span className="text-red-500 ml-1">*</span>}
+                      {question.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
                     </label>
 
-                    {question.type === 'rating' && (
+                    {question.type === "rating" && (
                       <StarRating
-                        value={customAnswers.find(a => a.questionId === question.id)?.answer as number || 0}
-                        onChange={(value) => handleCustomAnswer(question.id, question.question, question.type, value)}
+                        value={
+                          (customAnswers.find(
+                            (a) => a.questionId === question.id,
+                          )?.answer as number) || 0
+                        }
+                        onChange={(value) =>
+                          handleCustomAnswer(
+                            question.id,
+                            question.question,
+                            question.type,
+                            value,
+                          )
+                        }
                         label=""
                       />
                     )}
 
-                    {question.type === 'text' && (
+                    {question.type === "text" && (
                       <Textarea
                         placeholder="Your answer..."
-                        value={customAnswers.find(a => a.questionId === question.id)?.answer as string || ''}
-                        onChange={(e) => handleCustomAnswer(question.id, question.question, question.type, e.target.value)}
+                        value={
+                          (customAnswers.find(
+                            (a) => a.questionId === question.id,
+                          )?.answer as string) || ""
+                        }
+                        onChange={(e) =>
+                          handleCustomAnswer(
+                            question.id,
+                            question.question,
+                            question.type,
+                            e.target.value,
+                          )
+                        }
                         className="min-h-[60px]"
                       />
                     )}
 
-                    {question.type === 'yesNo' && (
+                    {question.type === "yesNo" && (
                       <RadioGroup
-                        value={customAnswers.find(a => a.questionId === question.id)?.answer as string || ''}
-                        onValueChange={(value) => handleCustomAnswer(question.id, question.question, question.type, value)}
+                        value={
+                          (customAnswers.find(
+                            (a) => a.questionId === question.id,
+                          )?.answer as string) || ""
+                        }
+                        onValueChange={(value) =>
+                          handleCustomAnswer(
+                            question.id,
+                            question.question,
+                            question.type,
+                            value,
+                          )
+                        }
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="yes" id={`${question.id}-yes`} />
+                          <RadioGroupItem
+                            value="yes"
+                            id={`${question.id}-yes`}
+                          />
                           <label htmlFor={`${question.id}-yes`}>Yes</label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -428,15 +498,34 @@ export default function FeedbackForm({
                       </RadioGroup>
                     )}
 
-                    {question.type === 'multipleChoice' && question.options && (
+                    {question.type === "multipleChoice" && question.options && (
                       <RadioGroup
-                        value={customAnswers.find(a => a.questionId === question.id)?.answer as string || ''}
-                        onValueChange={(value) => handleCustomAnswer(question.id, question.question, question.type, value)}
+                        value={
+                          (customAnswers.find(
+                            (a) => a.questionId === question.id,
+                          )?.answer as string) || ""
+                        }
+                        onValueChange={(value) =>
+                          handleCustomAnswer(
+                            question.id,
+                            question.question,
+                            question.type,
+                            value,
+                          )
+                        }
                       >
                         {question.options.map((option, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <RadioGroupItem value={option} id={`${question.id}-${index}`} />
-                            <label htmlFor={`${question.id}-${index}`}>{option}</label>
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2"
+                          >
+                            <RadioGroupItem
+                              value={option}
+                              id={`${question.id}-${index}`}
+                            />
+                            <label htmlFor={`${question.id}-${index}`}>
+                              {option}
+                            </label>
                           </div>
                         ))}
                       </RadioGroup>
@@ -462,9 +551,7 @@ export default function FeedbackForm({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Submit feedback anonymously
-                      </FormLabel>
+                      <FormLabel>Submit feedback anonymously</FormLabel>
                       <FormDescription>
                         Your name won't be associated with this feedback
                       </FormDescription>
@@ -483,7 +570,7 @@ export default function FeedbackForm({
               disabled={isSubmitting}
               className="px-8 py-3"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+              {isSubmitting ? "Submitting..." : "Submit Feedback"}
             </Button>
           </div>
         </form>

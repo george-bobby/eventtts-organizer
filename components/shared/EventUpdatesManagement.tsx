@@ -1,25 +1,62 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, Send, Edit, Trash2, Eye, Calendar, Users, Mail, MessageSquare, RefreshCw, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Plus,
+  Send,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  Users,
+  Mail,
+  MessageSquare,
+  RefreshCw,
+  BarChart3,
+} from "lucide-react";
 
 interface EventUpdate {
   _id: string;
   title: string;
   content: string;
-  type: 'announcement' | 'schedule_change' | 'location_change' | 'cancellation' | 'reminder' | 'general';
-  status: 'draft' | 'published' | 'sent';
+  type:
+    | "announcement"
+    | "schedule_change"
+    | "location_change"
+    | "cancellation"
+    | "reminder"
+    | "general";
+  status: "draft" | "published" | "sent";
   publishedAt?: string;
   createdBy: {
     firstName: string;
@@ -58,7 +95,9 @@ export default function EventUpdatesManagement({
   const [updates, setUpdates] = useState<EventUpdate[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedUpdate, setSelectedUpdate] = useState<EventUpdate | null>(null);
+  const [selectedUpdate, setSelectedUpdate] = useState<EventUpdate | null>(
+    null,
+  );
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -69,10 +108,10 @@ export default function EventUpdatesManagement({
         const data = await response.json();
         setUpdates(data.data || []);
       } else {
-        throw new Error('Failed to fetch updates');
+        throw new Error("Failed to fetch updates");
       }
     } catch (error) {
-      console.error('Error fetching updates:', error);
+      console.error("Error fetching updates:", error);
       toast({
         title: "Error",
         description: "Failed to load event updates",
@@ -86,7 +125,7 @@ export default function EventUpdatesManagement({
   const publishUpdate = async (updateId: string) => {
     try {
       const response = await fetch(`/api/event-updates/${updateId}/publish`, {
-        method: 'POST',
+        method: "POST",
       });
 
       if (response.ok) {
@@ -97,24 +136,25 @@ export default function EventUpdatesManagement({
         fetchUpdates();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to publish update');
+        throw new Error(errorData.message || "Failed to publish update");
       }
     } catch (error) {
-      console.error('Error publishing update:', error);
+      console.error("Error publishing update:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to publish update",
+        description:
+          error instanceof Error ? error.message : "Failed to publish update",
         variant: "destructive",
       });
     }
   };
 
   const deleteUpdate = async (updateId: string) => {
-    if (!confirm('Are you sure you want to delete this update?')) return;
+    if (!confirm("Are you sure you want to delete this update?")) return;
 
     try {
       const response = await fetch(`/api/event-updates/${updateId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (response.ok) {
@@ -125,13 +165,14 @@ export default function EventUpdatesManagement({
         fetchUpdates();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete update');
+        throw new Error(errorData.message || "Failed to delete update");
       }
     } catch (error) {
-      console.error('Error deleting update:', error);
+      console.error("Error deleting update:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete update",
+        description:
+          error instanceof Error ? error.message : "Failed to delete update",
         variant: "destructive",
       });
     }
@@ -139,45 +180,45 @@ export default function EventUpdatesManagement({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
-      case 'published':
-        return 'bg-green-100 text-green-800';
-      case 'scheduled':
-        return 'bg-blue-100 text-blue-800';
-      case 'sent':
-        return 'bg-purple-100 text-purple-800';
+      case "draft":
+        return "bg-gray-100 text-gray-800";
+      case "published":
+        return "bg-green-100 text-green-800";
+      case "scheduled":
+        return "bg-blue-100 text-blue-800";
+      case "sent":
+        return "bg-purple-100 text-purple-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'low':
-        return 'bg-gray-100 text-gray-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'high':
-        return 'bg-orange-100 text-orange-800';
-      case 'urgent':
-        return 'bg-red-100 text-red-800';
+      case "low":
+        return "bg-gray-100 text-gray-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "high":
+        return "bg-orange-100 text-orange-800";
+      case "urgent":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'announcement':
+      case "announcement":
         return <MessageSquare className="h-4 w-4" />;
-      case 'schedule_change':
+      case "schedule_change":
         return <Calendar className="h-4 w-4" />;
-      case 'location_change':
+      case "location_change":
         return <Users className="h-4 w-4" />;
-      case 'cancellation':
+      case "cancellation":
         return <Trash2 className="h-4 w-4" />;
-      case 'reminder':
+      case "reminder":
         return <RefreshCw className="h-4 w-4" />;
       default:
         return <Mail className="h-4 w-4" />;
@@ -188,9 +229,9 @@ export default function EventUpdatesManagement({
     fetchUpdates();
   }, [eventId]);
 
-  const draftUpdates = updates.filter(u => u.status === 'draft');
-  const publishedUpdates = updates.filter(u => u.status === 'published');
-  const sentUpdates = updates.filter(u => u.status === 'sent');
+  const draftUpdates = updates.filter((u) => u.status === "draft");
+  const publishedUpdates = updates.filter((u) => u.status === "published");
+  const sentUpdates = updates.filter((u) => u.status === "sent");
 
   if (loading) {
     return (
@@ -206,14 +247,19 @@ export default function EventUpdatesManagement({
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Event Updates</h2>
-          <p className="text-gray-600">Send notifications and updates to attendees of {eventTitle}</p>
+          <p className="text-gray-600">
+            Send notifications and updates to attendees of {eventTitle}
+          </p>
         </div>
         <div className="flex gap-3">
           <Button onClick={fetchUpdates} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -245,7 +291,9 @@ export default function EventUpdatesManagement({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Updates</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Updates
+                </p>
                 <p className="text-2xl font-bold">{updates.length}</p>
               </div>
               <MessageSquare className="h-8 w-8 text-gray-400" />
@@ -258,7 +306,9 @@ export default function EventUpdatesManagement({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Published</p>
-                <p className="text-2xl font-bold text-green-600">{publishedUpdates.length}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {publishedUpdates.length}
+                </p>
               </div>
               <Send className="h-8 w-8 text-green-400" />
             </div>
@@ -270,22 +320,26 @@ export default function EventUpdatesManagement({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Drafts</p>
-                <p className="text-2xl font-bold text-gray-600">{draftUpdates.length}</p>
+                <p className="text-2xl font-bold text-gray-600">
+                  {draftUpdates.length}
+                </p>
               </div>
               <Edit className="h-8 w-8 text-gray-400" />
             </div>
           </CardContent>
         </Card>
-
-
       </div>
 
       {/* Updates List */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">All ({updates.length})</TabsTrigger>
-          <TabsTrigger value="draft">Drafts ({draftUpdates.length})</TabsTrigger>
-          <TabsTrigger value="published">Published ({publishedUpdates.length})</TabsTrigger>
+          <TabsTrigger value="draft">
+            Drafts ({draftUpdates.length})
+          </TabsTrigger>
+          <TabsTrigger value="published">
+            Published ({publishedUpdates.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -323,8 +377,6 @@ export default function EventUpdatesManagement({
             getTypeIcon={getTypeIcon}
           />
         </TabsContent>
-
-
       </Tabs>
     </div>
   );
@@ -347,7 +399,7 @@ function UpdatesList({
   onDelete,
   getStatusColor,
   getPriorityColor,
-  getTypeIcon
+  getTypeIcon,
 }: UpdatesListProps) {
   if (updates.length === 0) {
     return (
@@ -387,9 +439,14 @@ function UpdatesList({
           <CardContent className="pt-0">
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                <p>Created: {new Date(update.createdAt).toLocaleDateString()}</p>
+                <p>
+                  Created: {new Date(update.createdAt).toLocaleDateString()}
+                </p>
                 {update.publishedAt && (
-                  <p>Published: {new Date(update.publishedAt).toLocaleDateString()}</p>
+                  <p>
+                    Published:{" "}
+                    {new Date(update.publishedAt).toLocaleDateString()}
+                  </p>
                 )}
               </div>
 
@@ -403,11 +460,8 @@ function UpdatesList({
                   Edit
                 </Button>
 
-                {update.status === 'draft' && (
-                  <Button
-                    size="sm"
-                    onClick={() => onPublish(update._id)}
-                  >
+                {update.status === "draft" && (
+                  <Button size="sm" onClick={() => onPublish(update._id)}>
                     <Send className="h-3 w-3 mr-1" />
                     Publish
                   </Button>
@@ -437,9 +491,9 @@ interface CreateUpdateFormProps {
 
 function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    type: 'general',
+    title: "",
+    content: "",
+    type: "general",
     sendToAll: true,
     sendEmail: true,
   });
@@ -451,10 +505,10 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/event-updates', {
-        method: 'POST',
+      const response = await fetch("/api/event-updates", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId,
@@ -476,13 +530,14 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
         onSuccess();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create update');
+        throw new Error(errorData.message || "Failed to create update");
       }
     } catch (error) {
-      console.error('Error creating update:', error);
+      console.error("Error creating update:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create update",
+        description:
+          error instanceof Error ? error.message : "Failed to create update",
         variant: "destructive",
       });
     } finally {
@@ -498,7 +553,9 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
           <Input
             id="title"
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
             placeholder="Enter update title"
             required
           />
@@ -506,7 +563,10 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
 
         <div className="space-y-2">
           <Label htmlFor="type">Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+          <Select
+            value={formData.type}
+            onValueChange={(value) => setFormData({ ...formData, type: value })}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -527,7 +587,9 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
         <Textarea
           id="content"
           value={formData.content}
-          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, content: e.target.value })
+          }
           placeholder="Enter update content"
           rows={4}
           required
@@ -540,13 +602,15 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
           <Switch
             id="sendEmail"
             checked={formData.sendEmail}
-            onCheckedChange={(checked) => setFormData({ ...formData, sendEmail: checked })}
+            onCheckedChange={(checked) =>
+              setFormData({ ...formData, sendEmail: checked })
+            }
           />
-          <Label htmlFor="sendEmail">Send email notifications to participants</Label>
+          <Label htmlFor="sendEmail">
+            Send email notifications to participants
+          </Label>
         </div>
       </div>
-
-
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onSuccess}>

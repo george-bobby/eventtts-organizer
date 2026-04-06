@@ -1,32 +1,32 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Share, MessageCircle, Send, Mail, Copy, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/dropdown-menu";
+import { Share, MessageCircle, Send, Mail, Copy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SocialShareDropdownProps {
   shareUrl: string;
   title: string;
   description?: string;
-  size?: 'sm' | 'default' | 'lg';
-  variant?: 'default' | 'outline' | 'ghost';
+  size?: "sm" | "default" | "lg";
+  variant?: "default" | "outline" | "ghost";
   className?: string;
 }
 
 export default function SocialShareDropdown({
   shareUrl,
   title,
-  description = '',
-  size = 'sm',
-  variant = 'outline',
-  className = '',
+  description = "",
+  size = "sm",
+  variant = "outline",
+  className = "",
 }: SocialShareDropdownProps) {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -39,7 +39,7 @@ export default function SocialShareDropdown({
         title: "Link Copied",
         description: "Shareable link copied to clipboard",
       });
-      
+
       // Reset copied state after 2 seconds
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -52,21 +52,23 @@ export default function SocialShareDropdown({
   };
 
   const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(`${title}\n\n${description}\n\nView gallery: ${shareUrl}`);
+    const text = encodeURIComponent(
+      `${title}\n\n${description}\n\nView gallery: ${shareUrl}`,
+    );
     const whatsappUrl = `https://wa.me/?text=${text}`;
-    window.open(whatsappUrl, '_blank');
+    window.open(whatsappUrl, "_blank");
   };
 
   const handleTelegramShare = () => {
     const text = encodeURIComponent(`${title}\n\n${description}`);
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${text}`;
-    window.open(telegramUrl, '_blank');
+    window.open(telegramUrl, "_blank");
   };
 
   const handleEmailShare = () => {
     const subject = encodeURIComponent(`Check out this gallery: ${title}`);
     const body = encodeURIComponent(
-      `Hi,\n\nI wanted to share this photo gallery with you:\n\n${title}\n\n${description}\n\nView the gallery here: ${shareUrl}\n\nBest regards`
+      `Hi,\n\nI wanted to share this photo gallery with you:\n\n${title}\n\n${description}\n\nView the gallery here: ${shareUrl}\n\nBest regards`,
     );
     const emailUrl = `mailto:?subject=${subject}&body=${body}`;
     window.location.href = emailUrl;
@@ -81,11 +83,17 @@ export default function SocialShareDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={handleWhatsAppShare} className="cursor-pointer">
+        <DropdownMenuItem
+          onClick={handleWhatsAppShare}
+          className="cursor-pointer"
+        >
           <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
           WhatsApp
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleTelegramShare} className="cursor-pointer">
+        <DropdownMenuItem
+          onClick={handleTelegramShare}
+          className="cursor-pointer"
+        >
           <Send className="h-4 w-4 mr-2 text-blue-500" />
           Telegram
         </DropdownMenuItem>
@@ -99,7 +107,7 @@ export default function SocialShareDropdown({
           ) : (
             <Copy className="h-4 w-4 mr-2 text-gray-600" />
           )}
-          {copied ? 'Copied!' : 'Copy Link'}
+          {copied ? "Copied!" : "Copy Link"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

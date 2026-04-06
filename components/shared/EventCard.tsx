@@ -7,8 +7,16 @@ import LikeCartButton from "./LikeCartButton";
 import CancelTicketButton from "./CancelTicketButton";
 import { Button } from "@/components/ui/button";
 import { EventWithSubEvents } from "@/lib/actions/event.action";
-import { Settings, AlertTriangle, Ticket, MessageSquare, Users, CheckCircle, FileWarning } from "lucide-react";
-import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/auth";
+import {
+  Settings,
+  AlertTriangle,
+  Ticket,
+  MessageSquare,
+  Users,
+  CheckCircle,
+  FileWarning,
+} from "lucide-react";
+import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/roles";
 
 interface Props {
   event: EventWithSubEvents & {
@@ -33,25 +41,36 @@ interface Props {
   isBookedEvent?: boolean; // Whether this is a booked event (for tickets section)
 }
 
-const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBookedEvent = false }: Props) => {
+const EventCard = ({
+  event,
+  currentUserId,
+  page,
+  user,
+  likedEvent = false,
+  isBookedEvent = false,
+}: Props) => {
   // Check if current user is the organizer of this event
-  const isOrganizer = user && event.organizer && String(event.organizer._id) === String(user._id);
+  const isOrganizer =
+    user && event.organizer && String(event.organizer._id) === String(user._id);
 
   // Check user role for this event
   const userRole = event.userRole?.role;
-  const isSpeaker = userRole === 'speaker';
-  const isVolunteer = userRole === 'volunteer';
+  const isSpeaker = userRole === "speaker";
+  const isVolunteer = userRole === "volunteer";
 
   // Safety check for event ID
   if (!event._id) {
-    console.error('EventCard: event._id is undefined', event);
+    console.error("EventCard: event._id is undefined", event);
     return null; // Don't render the card if there's no valid ID
   }
 
   return (
     <div className="group border-0 h-96 w-full max-w-sm rounded-lg flex flex-col hover:shadow-lg shadow-md relative bg-white overflow-hidden">
       {/* Image Container */}
-      <Link href={`/event/${event._id}`} className="w-full h-1/2 relative overflow-hidden">
+      <Link
+        href={`/event/${event._id}`}
+        className="w-full h-1/2 relative overflow-hidden"
+      >
         {event.photo ? (
           <Image
             src={event.photo}
@@ -63,22 +82,24 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
           />
         ) : (
           <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-t-lg">
-            <span className="text-gray-500 font-medium">No image available</span>
+            <span className="text-gray-500 font-medium">
+              No image available
+            </span>
           </div>
         )}
 
-
-
         {/* Sold out badge */}
         {event.soldOut && (
-          <div className="absolute top-3 right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+          <div className="absolute bottom-2 left-2 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
             Sold Out
           </div>
         )}
 
         {/* Role badge - positioned at bottom right of image */}
         {event.userRole && (
-          <div className={`absolute bottom-2 right-2 ${getRoleBadgeColor(event.userRole.role as any)} text-xs px-2 py-1 rounded-full font-medium shadow-lg`}>
+          <div
+            className={`absolute bottom-2 right-2 ${getRoleBadgeColor(event.userRole.role as any)} text-xs px-2 py-1 rounded-full font-medium shadow-lg`}
+          >
             {getRoleDisplayName(event.userRole.role as any)}
           </div>
         )}
@@ -96,14 +117,28 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
       {/* Small hover buttons for organizers - Manage Event and View Issues */}
       {isOrganizer && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
-            <Link href={`/event/${event._id}/manage`} className="flex items-center gap-1">
+          <Button
+            asChild
+            size="sm"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg"
+          >
+            <Link
+              href={`/event/${event._id}/manage`}
+              className="flex items-center gap-1"
+            >
               <Settings className="w-3 h-3" />
               Manage Event
             </Link>
           </Button>
-          <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg">
-            <Link href={`/event/${event._id}/issues`} className="flex items-center gap-1">
+          <Button
+            asChild
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
+          >
+            <Link
+              href={`/event/${event._id}/issues`}
+              className="flex items-center gap-1"
+            >
               <FileWarning className="w-3 h-3" />
               View Issues
             </Link>
@@ -114,8 +149,15 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
       {/* Small hover buttons for speakers - View Attendees and Report Issue/Submit Feedback */}
       {isSpeaker && currentUserId && !isOrganizer && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
-            <Link href={`/event/${event._id}/attendees`} className="flex items-center gap-1">
+          <Button
+            asChild
+            size="sm"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg"
+          >
+            <Link
+              href={`/event/${event._id}/attendees`}
+              className="flex items-center gap-1"
+            >
               <Users className="w-3 h-3" />
               View Attendees
             </Link>
@@ -124,20 +166,34 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
           {(() => {
             const now = new Date();
             const endDate = new Date(event.endDate);
-            const [hours, minutes] = event.endTime.split(':').map(Number);
+            const [hours, minutes] = event.endTime.split(":").map(Number);
             endDate.setHours(hours, minutes, 0, 0);
             const isEventOver = now > endDate;
 
             return isEventOver ? (
-              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg">
-                <Link href={`/event/${event._id}/submit/feedback`} className="flex items-center gap-1">
+              <Button
+                asChild
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg"
+              >
+                <Link
+                  href={`/event/${event._id}/submit/feedback`}
+                  className="flex items-center gap-1"
+                >
                   <MessageSquare className="w-3 h-3" />
                   Submit Feedback
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
-                <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
+              <Button
+                asChild
+                size="sm"
+                className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg"
+              >
+                <Link
+                  href={`/event/${event._id}/submit/issue`}
+                  className="flex items-center gap-1"
+                >
                   <AlertTriangle className="w-3 h-3" />
                   Report Issue
                 </Link>
@@ -150,8 +206,15 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
       {/* Small hover buttons for volunteers - Verify Ticket and Report Issue/Submit Feedback */}
       {isVolunteer && currentUserId && !isOrganizer && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
-            <Link href={`/event/${event._id}/verify-ticket`} className="flex items-center gap-1">
+          <Button
+            asChild
+            size="sm"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg"
+          >
+            <Link
+              href={`/event/${event._id}/verify-ticket`}
+              className="flex items-center gap-1"
+            >
               <CheckCircle className="w-3 h-3" />
               Verify Ticket
             </Link>
@@ -160,20 +223,34 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
           {(() => {
             const now = new Date();
             const endDate = new Date(event.endDate);
-            const [hours, minutes] = event.endTime.split(':').map(Number);
+            const [hours, minutes] = event.endTime.split(":").map(Number);
             endDate.setHours(hours, minutes, 0, 0);
             const isEventOver = now > endDate;
 
             return isEventOver ? (
-              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg">
-                <Link href={`/event/${event._id}/submit/feedback`} className="flex items-center gap-1">
+              <Button
+                asChild
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg"
+              >
+                <Link
+                  href={`/event/${event._id}/submit/feedback`}
+                  className="flex items-center gap-1"
+                >
                   <MessageSquare className="w-3 h-3" />
                   Submit Feedback
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
-                <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
+              <Button
+                asChild
+                size="sm"
+                className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg"
+              >
+                <Link
+                  href={`/event/${event._id}/submit/issue`}
+                  className="flex items-center gap-1"
+                >
                   <AlertTriangle className="w-3 h-3" />
                   Report Issue
                 </Link>
@@ -184,51 +261,73 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
       )}
 
       {/* Small hover buttons for booked events - View Ticket and Report Issue/Submit Feedback */}
-      {isBookedEvent && currentUserId && !isOrganizer && !isSpeaker && !isVolunteer && (
-        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
-            <Link href={`/event/${event._id}/ticket`} className="flex items-center gap-1">
-              <Ticket className="w-3 h-3" />
-              View Ticket
-            </Link>
-          </Button>
-          {/* Check if event is over to show appropriate button */}
-          {(() => {
-            const now = new Date();
-            // Create a proper date object by combining endDate and endTime
-            const endDate = new Date(event.endDate);
-            const [hours, minutes] = event.endTime.split(':').map(Number);
-            endDate.setHours(hours, minutes, 0, 0);
-            const isEventOver = now > endDate;
+      {isBookedEvent &&
+        currentUserId &&
+        !isOrganizer &&
+        !isSpeaker &&
+        !isVolunteer && (
+          <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+            <Button
+              asChild
+              size="sm"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg"
+            >
+              <Link
+                href={`/event/${event._id}/ticket`}
+                className="flex items-center gap-1"
+              >
+                <Ticket className="w-3 h-3" />
+                View Ticket
+              </Link>
+            </Button>
+            {/* Check if event is over to show appropriate button */}
+            {(() => {
+              const now = new Date();
+              // Create a proper date object by combining endDate and endTime
+              const endDate = new Date(event.endDate);
+              const [hours, minutes] = event.endTime.split(":").map(Number);
+              endDate.setHours(hours, minutes, 0, 0);
+              const isEventOver = now > endDate;
 
-            return isEventOver ? (
-              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg">
-                <Link href={`/event/${event._id}/submit/feedback`} className="flex items-center gap-1">
-                  <MessageSquare className="w-3 h-3" />
-                  Submit Feedback
-                </Link>
-              </Button>
-            ) : (
-              // Show Cancel Ticket button if we have order information
-              event.orderId ? (
-                <CancelTicketButton
-                  orderId={event.orderId}
-                  eventTitle={event.title}
-                  totalTickets={event.orderInfo?.totalTickets || 1}
-                />
-              ) : (
-                <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
-                  <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    Report Issue
+              return isEventOver ? (
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg"
+                >
+                  <Link
+                    href={`/event/${event._id}/submit/feedback`}
+                    className="flex items-center gap-1"
+                  >
+                    <MessageSquare className="w-3 h-3" />
+                    Submit Feedback
                   </Link>
                 </Button>
-              )
-            );
-          })()
-          }
-        </div>
-      )}
+              ) : // Show Cancel Ticket button if we have order information
+                event.orderId ? (
+                  <CancelTicketButton
+                    orderId={event.orderId}
+                    eventTitle={event.title}
+                    totalTickets={event.orderInfo?.totalTickets || 1}
+                  />
+                ) : (
+                  <Button
+                    asChild
+                    size="sm"
+                    className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg"
+                  >
+                    <Link
+                      href={`/event/${event._id}/submit/issue`}
+                      className="flex items-center gap-1"
+                    >
+                      <AlertTriangle className="w-3 h-3" />
+                      Report Issue
+                    </Link>
+                  </Button>
+                );
+            })()}
+          </div>
+        )}
 
       <Link
         href={`/event/${event._id}`}
@@ -238,7 +337,9 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
           <Badge variant="default">
             {event.isFree ? "Free" : `₹ ${event.price}`}
           </Badge>
-          <Badge variant="secondary">{(event.category as any)?.name || 'Uncategorized'}</Badge>
+          <Badge variant="secondary">
+            {(event.category as any)?.name || "Uncategorized"}
+          </Badge>
           {event.subEvents && event.subEvents.length > 0 && (
             <Badge variant="outline">Main Event</Badge>
           )}
@@ -248,9 +349,13 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
           {/* Display tags */}
           {event.tags && event.tags.length > 0 && (
             <>
-              {event.tags.slice(0, 2).map((tag: any) => (
-                <Badge key={tag._id || tag.name} variant="outline" className="text-xs">
-                  {typeof tag === 'object' ? tag.name : tag}
+              {event.tags.slice(0, 2).map((tag: any, i: number) => (
+                <Badge
+                  key={tag._id ?? tag.name ?? i}
+                  variant="outline"
+                  className="text-xs"
+                >
+                  {typeof tag === "object" ? tag.name : tag}
                 </Badge>
               ))}
               {event.tags.length > 2 && (
@@ -266,7 +371,7 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
             <p className="text-sm">
               {new Date(event.endDate) > new Date(event.startDate)
                 ? `${dateConverter(
-                  event.startDate as unknown as string
+                  event.startDate as unknown as string,
                 )} - ${dateConverter(event.endDate as unknown as string)}`
                 : `${dateConverter(event.startDate as unknown as string)}`}
             </p>
@@ -286,26 +391,24 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
       <div className="flex justify-between items-center p-2 border-t relative">
         <Badge variant={"secondary"} className="w-fit">
           {event.organizer
-            ? `${(event.organizer as any)?.firstName || ''} ${(event.organizer as any)?.lastName || ''}`
+            ? `${(event.organizer as any)?.firstName || ""} ${(event.organizer as any)?.lastName || ""}`
             : "Organizer"}
         </Badge>
 
         <div className="flex items-center gap-2">
           {/* Show ticket info if available */}
-          {event.ticketsLeft !== undefined && event.ticketsLeft !== -1 && event.ticketsLeft > 0 && (
-            <span className="text-xs text-gray-500">
-              {event.ticketsLeft}{" "}
-              {event.ticketsLeft === 1 ? "ticket" : "tickets"} left
-            </span>
-          )}
+          {event.ticketsLeft !== undefined &&
+            event.ticketsLeft !== -1 &&
+            event.ticketsLeft > 0 && (
+              <span className="text-xs text-gray-500">
+                {event.ticketsLeft}{" "}
+                {event.ticketsLeft === 1 ? "ticket" : "tickets"} left
+              </span>
+            )}
           {event.ticketsLeft === -1 && (
-            <span className="text-xs text-gray-500">
-              Unlimited capacity
-            </span>
+            <span className="text-xs text-gray-500">Unlimited capacity</span>
           )}
         </div>
-
-
       </div>
     </div>
   );

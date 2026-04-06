@@ -1,34 +1,36 @@
-import React from 'react';
-import { auth } from '@clerk/nextjs';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { getEventById } from '@/lib/actions/event.action';
-import { getUserByClerkId } from '@/lib/actions/user.action';
-import EventUpdatesManagement from '@/components/shared/EventUpdatesManagement';
-import { headers } from 'next/headers';
+import React from "react";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { getEventById } from "@/lib/actions/event.action";
+import { getUserByClerkId } from "@/lib/actions/user.action";
+import EventUpdatesManagement from "@/components/shared/EventUpdatesManagement";
+import { headers } from "next/headers";
 
 interface EventUpdatesPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EventUpdatesPage({ params }: EventUpdatesPageProps) {
+export default async function EventUpdatesPage({
+  params,
+}: EventUpdatesPageProps) {
   await headers();
   const { id } = await params;
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
-    redirect('/sign-in');
+    redirect("/sign-in");
   }
 
   const [event, user] = await Promise.all([
     getEventById(id),
-    getUserByClerkId(clerkId)
+    getUserByClerkId(clerkId),
   ]);
 
   if (!event) {
-    redirect('/');
+    redirect("/");
   }
 
   // Check if user is the organizer
@@ -37,32 +39,43 @@ export default async function EventUpdatesPage({ params }: EventUpdatesPageProps
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-background min-h-screen pt-16">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-red-500 to-red-600 py-8">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
-              <Link href={`/event/${id}/manage`}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
-              <Link href={`/event/${id}`}>
-                View Event Page
-              </Link>
-            </Button>
-          </div>
-          <h1 className="text-3xl font-bold text-white">Event Updates</h1>
-          <p className="text-red-100 mt-2">
-            Send notifications and updates to attendees of {event.title}
-          </p>
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12 lg:py-20">
+        <div className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+          <span className="w-8 h-px bg-border" />
+          Notifications
         </div>
-      </section>
+        <h1 className="text-[clamp(2.5rem,5vw,5rem)] font-display tracking-tight leading-[0.9] text-foreground mb-4">
+          Event<br />
+          <span className="text-muted-foreground">Notifications.</span>
+        </h1>
+        <p className="text-xl text-muted-foreground mb-8">
+          Send notifications and updates to attendees of {event.title}
+        </p>
+        <div className="flex items-center gap-4">
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full border-foreground/20 text-foreground hover:bg-muted"
+          >
+            <Link href={`/event/${id}/manage`}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full border-foreground/20 text-foreground hover:bg-muted"
+          >
+            <Link href={`/event/${id}`}>View Event Page</Link>
+          </Button>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 pb-20">
         <EventUpdatesManagement
           eventId={id}
           eventTitle={event.title}

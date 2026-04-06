@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { bulkUpdateAttendance } from '@/lib/actions/stakeholder.action';
 
 /**

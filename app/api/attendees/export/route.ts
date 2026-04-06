@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { exportEventAttendeesToExcel } from '@/lib/actions/order.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { hasEventPermission } from '@/lib/utils/auth';

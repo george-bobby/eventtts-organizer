@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Camera, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { Camera, CheckCircle, XCircle, AlertCircle, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface DiagnosticResult {
   name: string;
-  status: 'pass' | 'fail' | 'warning' | 'info';
+  status: "pass" | "fail" | "warning" | "info";
   message: string;
 }
 
@@ -27,121 +27,145 @@ export default function CameraDiagnostics() {
     const results: DiagnosticResult[] = [];
 
     // Check 1: Browser Support
-    if (typeof navigator !== 'undefined' &&
+    if (
+      typeof navigator !== "undefined" &&
       navigator.mediaDevices &&
-      typeof navigator.mediaDevices.getUserMedia === 'function') {
+      typeof navigator.mediaDevices.getUserMedia === "function"
+    ) {
       results.push({
-        name: 'Browser Support',
-        status: 'pass',
-        message: 'Your browser supports camera access'
+        name: "Browser Support",
+        status: "pass",
+        message: "Your browser supports camera access",
       });
     } else {
       results.push({
-        name: 'Browser Support',
-        status: 'fail',
-        message: 'Your browser does not support camera access'
+        name: "Browser Support",
+        status: "fail",
+        message: "Your browser does not support camera access",
       });
     }
 
     // Check 2: Secure Context
-    const isHttps = window.location.protocol === 'https:';
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHttps = window.location.protocol === "https:";
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
 
     if (isHttps || isLocalhost) {
       results.push({
-        name: 'Secure Context',
-        status: 'pass',
-        message: `Running on ${isHttps ? 'HTTPS' : 'localhost'} - camera access allowed`
+        name: "Secure Context",
+        status: "pass",
+        message: `Running on ${isHttps ? "HTTPS" : "localhost"} - camera access allowed`,
       });
     } else {
       results.push({
-        name: 'Secure Context',
-        status: 'fail',
-        message: 'Camera access requires HTTPS or localhost'
+        name: "Secure Context",
+        status: "fail",
+        message: "Camera access requires HTTPS or localhost",
       });
     }
 
     // Check 3: Permissions API
-    if (typeof navigator !== 'undefined' && 'permissions' in navigator) {
+    if (typeof navigator !== "undefined" && "permissions" in navigator) {
       try {
-        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        const permission = await navigator.permissions.query({
+          name: "camera" as PermissionName,
+        });
         results.push({
-          name: 'Camera Permission',
-          status: permission.state === 'granted' ? 'pass' : permission.state === 'denied' ? 'fail' : 'warning',
-          message: `Permission state: ${permission.state}`
+          name: "Camera Permission",
+          status:
+            permission.state === "granted"
+              ? "pass"
+              : permission.state === "denied"
+                ? "fail"
+                : "warning",
+          message: `Permission state: ${permission.state}`,
         });
       } catch (error) {
         results.push({
-          name: 'Camera Permission',
-          status: 'info',
-          message: 'Permission status unknown - will be requested when camera is accessed'
+          name: "Camera Permission",
+          status: "info",
+          message:
+            "Permission status unknown - will be requested when camera is accessed",
         });
       }
     } else {
       results.push({
-        name: 'Camera Permission',
-        status: 'info',
-        message: 'Permissions API not supported - permission will be requested when camera is accessed'
+        name: "Camera Permission",
+        status: "info",
+        message:
+          "Permissions API not supported - permission will be requested when camera is accessed",
       });
     }
 
     // Check 4: Available Devices
     try {
-      if (navigator.mediaDevices && typeof navigator.mediaDevices.enumerateDevices === 'function') {
+      if (
+        navigator.mediaDevices &&
+        typeof navigator.mediaDevices.enumerateDevices === "function"
+      ) {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        const videoDevices = devices.filter(
+          (device) => device.kind === "videoinput",
+        );
 
         if (videoDevices.length > 0) {
           results.push({
-            name: 'Camera Devices',
-            status: 'pass',
-            message: `Found ${videoDevices.length} camera device(s)`
+            name: "Camera Devices",
+            status: "pass",
+            message: `Found ${videoDevices.length} camera device(s)`,
           });
         } else {
           results.push({
-            name: 'Camera Devices',
-            status: 'fail',
-            message: 'No camera devices found'
+            name: "Camera Devices",
+            status: "fail",
+            message: "No camera devices found",
           });
         }
       } else {
         results.push({
-          name: 'Camera Devices',
-          status: 'fail',
-          message: 'Device enumeration not supported'
+          name: "Camera Devices",
+          status: "fail",
+          message: "Device enumeration not supported",
         });
       }
     } catch (error) {
       results.push({
-        name: 'Camera Devices',
-        status: 'warning',
-        message: 'Could not enumerate devices - may require permission first'
+        name: "Camera Devices",
+        status: "warning",
+        message: "Could not enumerate devices - may require permission first",
       });
     }
 
     // Check 5: Test Camera Access
     try {
-      if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        stream.getTracks().forEach(track => track.stop()); // Clean up
+      if (
+        navigator.mediaDevices &&
+        typeof navigator.mediaDevices.getUserMedia === "function"
+      ) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        stream.getTracks().forEach((track) => track.stop()); // Clean up
 
         results.push({
-          name: 'Camera Access Test',
-          status: 'pass',
-          message: 'Successfully accessed camera'
+          name: "Camera Access Test",
+          status: "pass",
+          message: "Successfully accessed camera",
         });
       } else {
         results.push({
-          name: 'Camera Access Test',
-          status: 'fail',
-          message: 'getUserMedia not available'
+          name: "Camera Access Test",
+          status: "fail",
+          message: "getUserMedia not available",
         });
       }
     } catch (error: any) {
       results.push({
-        name: 'Camera Access Test',
-        status: 'fail',
-        message: `Camera access failed: ${error.name || 'Unknown error'}`
+        name: "Camera Access Test",
+        status: "fail",
+        message: `Camera access failed: ${error.name || "Unknown error"}`,
       });
     }
 
@@ -149,25 +173,25 @@ export default function CameraDiagnostics() {
     setIsRunning(false);
   };
 
-  const getStatusIcon = (status: DiagnosticResult['status']) => {
+  const getStatusIcon = (status: DiagnosticResult["status"]) => {
     switch (status) {
-      case 'pass':
+      case "pass":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'fail':
+      case "fail":
         return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'warning':
+      case "warning":
         return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'info':
+      case "info":
         return <Info className="h-4 w-4 text-blue-500" />;
     }
   };
 
-  const getStatusBadge = (status: DiagnosticResult['status']) => {
+  const getStatusBadge = (status: DiagnosticResult["status"]) => {
     const variants = {
-      pass: 'default',
-      fail: 'destructive',
-      warning: 'secondary',
-      info: 'outline'
+      pass: "default",
+      fail: "destructive",
+      warning: "secondary",
+      info: "outline",
     } as const;
 
     return (
@@ -189,22 +213,31 @@ export default function CameraDiagnostics() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button onClick={runDiagnostics} disabled={isRunning} className="w-full">
-          {isRunning ? 'Running Diagnostics...' : 'Run Camera Diagnostics'}
+        <Button
+          onClick={runDiagnostics}
+          disabled={isRunning}
+          className="w-full"
+        >
+          {isRunning ? "Running Diagnostics..." : "Run Camera Diagnostics"}
         </Button>
 
         {diagnostics.length > 0 && (
           <div className="space-y-3">
             <h3 className="font-semibold">Diagnostic Results:</h3>
             {diagnostics.map((result, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+              <div
+                key={index}
+                className="flex items-start gap-3 p-3 border rounded-lg"
+              >
                 {getStatusIcon(result.status)}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{result.name}</span>
                     {getStatusBadge(result.status)}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{result.message}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {result.message}
+                  </p>
                 </div>
               </div>
             ))}
@@ -215,10 +248,21 @@ export default function CameraDiagnostics() {
           <div className="mt-6 p-4 bg-muted rounded-lg">
             <h4 className="font-semibold mb-2">Troubleshooting Tips:</h4>
             <ul className="text-sm space-y-1 text-muted-foreground">
-              <li>• If permission is denied, check your browser settings and allow camera access</li>
-              <li>• If no devices found, ensure your camera is connected and not in use by other apps</li>
-              <li>• If running on HTTP, try accessing via HTTPS or localhost</li>
-              <li>• Try refreshing the page and allowing camera permission when prompted</li>
+              <li>
+                • If permission is denied, check your browser settings and allow
+                camera access
+              </li>
+              <li>
+                • If no devices found, ensure your camera is connected and not
+                in use by other apps
+              </li>
+              <li>
+                • If running on HTTP, try accessing via HTTPS or localhost
+              </li>
+              <li>
+                • Try refreshing the page and allowing camera permission when
+                prompted
+              </li>
               <li>• Check if your camera works in other applications</li>
             </ul>
           </div>

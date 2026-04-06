@@ -1,17 +1,12 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import EventCards from "./EventCards";
-import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/auth";
+import { getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/roles";
 import { UserRoleType } from "@/lib/models/userrole.model";
-import {
-  Mic,
-  HandHeart,
-  Ticket,
-  Settings
-} from "lucide-react";
+import { Mic, HandHeart, Ticket, Settings } from "lucide-react";
 
 interface RoleBasedEventSectionsProps {
   eventsByRole: {
@@ -27,87 +22,99 @@ interface RoleBasedEventSectionsProps {
 const RoleBasedEventSections = ({
   eventsByRole,
   currentUserId,
-  mongoUser
+  mongoUser,
 }: RoleBasedEventSectionsProps) => {
-
   const roleConfigs = [
     {
-      role: 'organizer' as UserRoleType,
-      title: 'Events I\'m Organizing',
-      description: 'Events where you have full management control',
+      role: "organizer" as UserRoleType,
+      title: "Events I'm Organizing",
+      description: "Events where you have full management control",
       icon: Settings,
-      gradient: 'from-red-500 to-red-600',
+      gradient: "from-red-500 to-red-600",
       events: eventsByRole.organizer,
-      emptyTitle: 'No events organized yet',
-      emptySubtext: 'Create your first event to get started!',
+      emptyTitle: "No events organized yet",
+      emptySubtext: "Create your first event to get started!",
       actionButton: {
-        text: 'Create New Event',
-        href: '/create'
-      }
+        text: "Create New Event",
+        href: "/create",
+      },
     },
     {
-      role: 'volunteer' as UserRoleType,
-      title: 'Events I\'m Volunteering For',
-      description: 'Events where you help with operations and attendee management',
+      role: "volunteer" as UserRoleType,
+      title: "Events I'm Volunteering For",
+      description:
+        "Events where you help with operations and attendee management",
       icon: HandHeart,
-      gradient: 'from-green-500 to-green-600',
+      gradient: "from-green-500 to-green-600",
       events: eventsByRole.volunteer,
-      emptyTitle: 'No volunteer assignments yet',
-      emptySubtext: 'You\'ll see events here when organizers assign you as a volunteer',
+      emptyTitle: "No volunteer assignments yet",
+      emptySubtext:
+        "You'll see events here when organizers assign you as a volunteer",
       actionButton: {
-        text: 'Explore Events',
-        href: '/explore'
-      }
+        text: "Explore Events",
+        href: "/explore",
+      },
     },
     {
-      role: 'speaker' as UserRoleType,
-      title: 'Events I\'m Speaking At',
-      description: 'Events where you\'re presenting or speaking',
+      role: "speaker" as UserRoleType,
+      title: "Events I'm Speaking At",
+      description: "Events where you're presenting or speaking",
       icon: Mic,
-      gradient: 'from-blue-500 to-blue-600',
+      gradient: "from-blue-500 to-blue-600",
       events: eventsByRole.speaker,
-      emptyTitle: 'No speaking engagements yet',
-      emptySubtext: 'You\'ll see events here when organizers assign you as a speaker',
+      emptyTitle: "No speaking engagements yet",
+      emptySubtext:
+        "You'll see events here when organizers assign you as a speaker",
       actionButton: {
-        text: 'Explore Events',
-        href: '/explore'
-      }
+        text: "Explore Events",
+        href: "/explore",
+      },
     },
     {
-      role: 'participant' as UserRoleType,
-      title: 'Events I\'m Attending',
-      description: 'Events you\'ve registered for or have tickets to',
+      role: "participant" as UserRoleType,
+      title: "Events I'm Attending",
+      description: "Events you've registered for or have tickets to",
       icon: Ticket,
-      gradient: 'from-purple-500 to-purple-600',
+      gradient: "from-purple-500 to-purple-600",
       events: eventsByRole.participant,
-      emptyTitle: 'No event tickets yet',
-      emptySubtext: 'Discover and register for exciting events!',
+      emptyTitle: "No event tickets yet",
+      emptySubtext: "Discover and register for exciting events!",
       actionButton: {
-        text: 'Explore Events',
-        href: '/explore'
-      }
-    }
+        text: "Explore Events",
+        href: "/explore",
+      },
+    },
   ];
 
   // Only show sections that have events
-  const sectionsToShow = roleConfigs.filter(config => config.events.length > 0);
+  const sectionsToShow = roleConfigs.filter(
+    (config) => config.events.length > 0,
+  );
 
   // If no role-based events, show a welcome message
   if (sectionsToShow.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-500 to-gray-600 px-8 py-6">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-muted/40 border-b border-border px-8 py-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-bold text-white">My Event Roles</h3>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-foreground rounded-xl flex items-center justify-center shadow-sm">
+                <Settings className="w-5 h-5 text-background" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground font-display">My Event Roles</h3>
+            </div>
           </div>
         </div>
         <div className="p-8 text-center">
-          <div className="w-16 h-16 text-gray-400 mx-auto mb-4">
+          <div className="w-16 h-16 text-muted-foreground mx-auto mb-4">
             <Settings className="w-full h-full" />
           </div>
-          <h4 className="text-xl font-semibold text-gray-900 mb-2">No Role Assignments Yet</h4>
-          <p className="text-gray-600 mb-6">
-            You'll see events here when organizers assign you roles like volunteer, speaker, or when you register for events.
+          <h4 className="text-xl font-semibold text-foreground mb-2">
+            No Role Assignments Yet
+          </h4>
+          <p className="text-muted-foreground mb-6">
+            You'll see events here when organizers assign you roles like
+            volunteer, speaker, or when you register for events.
           </p>
         </div>
       </div>
@@ -120,26 +127,38 @@ const RoleBasedEventSections = ({
         const IconComponent = config.icon;
 
         return (
-          <section key={config.role} className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className={`bg-gradient-to-r ${config.gradient} px-8 py-6`}>
+          <section
+            key={config.role}
+            className="bg-card rounded-xl border border-border overflow-hidden"
+          >
+            <div className="bg-muted/40 border-b border-border px-8 py-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <IconComponent className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-foreground rounded-xl flex items-center justify-center shadow-sm">
+                    <IconComponent className="w-5 h-5 text-background" />
+                  </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white">{config.title}</h3>
-                    <p className="text-white/80 text-sm mt-1">{config.description}</p>
+                    <h3 className="text-2xl font-bold text-foreground font-display">
+                      {config.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      {config.description}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge className="bg-white/20 text-white border-white/30">
-                    {config.events.length} {config.events.length === 1 ? 'Event' : 'Events'}
+                  <Badge className="bg-background text-foreground border-border">
+                    {config.events.length}{" "}
+                    {config.events.length === 1 ? "Event" : "Events"}
                   </Badge>
                   <Button
                     asChild
                     size="lg"
-                    className="bg-white text-gray-700 hover:bg-gray-100 font-semibold hidden sm:flex"
+                    className="bg-foreground text-background hover:bg-foreground/90 rounded-full font-semibold hidden sm:flex"
                   >
-                    <Link href={config.actionButton.href}>{config.actionButton.text}</Link>
+                    <Link href={config.actionButton.href}>
+                      {config.actionButton.text}
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -152,7 +171,7 @@ const RoleBasedEventSections = ({
                 emptyStateSubtext={config.emptySubtext}
                 page="profile"
                 user={mongoUser}
-                isBookedEvent={config.role === 'participant'}
+                isBookedEvent={config.role === "participant"}
               />
             </div>
           </section>

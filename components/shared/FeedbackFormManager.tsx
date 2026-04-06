@@ -1,15 +1,27 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
 import {
   Settings,
   Save,
@@ -21,10 +33,13 @@ import {
   MessageSquare,
   CheckCircle,
   XCircle,
-  Loader2
-} from 'lucide-react';
-import { DEFAULT_FEEDBACK_QUESTIONS, getDefaultQuestionsForEvent } from '@/lib/constants/feedback';
-import { ICustomQuestion } from '@/types';
+  Loader2,
+} from "lucide-react";
+import {
+  DEFAULT_FEEDBACK_QUESTIONS,
+  getDefaultQuestionsForEvent,
+} from "@/lib/constants/feedback";
+import { ICustomQuestion } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 interface FeedbackTemplate {
   _id: string;
@@ -53,7 +68,7 @@ interface FeedbackFormManagerProps {
 export default function FeedbackFormManager({
   eventId,
   eventTitle,
-  isOnline
+  isOnline,
 }: FeedbackFormManagerProps) {
   const [template, setTemplate] = useState<FeedbackTemplate | null>(null);
   const [customQuestions, setCustomQuestions] = useState<ICustomQuestion[]>([]);
@@ -61,12 +76,13 @@ export default function FeedbackFormManager({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<ICustomQuestion | null>(null);
+  const [editingQuestion, setEditingQuestion] =
+    useState<ICustomQuestion | null>(null);
   const [newQuestion, setNewQuestion] = useState<Partial<ICustomQuestion>>({
-    question: '',
-    type: 'text',
+    question: "",
+    type: "text",
     required: false,
-    options: []
+    options: [],
   });
   const { toast } = useToast();
 
@@ -80,7 +96,7 @@ export default function FeedbackFormManager({
     setLoading(true);
     try {
       const response = await fetch(`/api/feedback/template/${eventId}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         setTemplate(data.template);
@@ -93,7 +109,7 @@ export default function FeedbackFormManager({
         setFeedbackHours(2);
       }
     } catch (error) {
-      console.error('Error fetching template:', error);
+      console.error("Error fetching template:", error);
       toast({
         title: "Error",
         description: "Failed to load feedback template",
@@ -108,9 +124,9 @@ export default function FeedbackFormManager({
     setSaving(true);
     try {
       const response = await fetch(`/api/feedback/template/${eventId}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           customQuestions,
@@ -119,18 +135,18 @@ export default function FeedbackFormManager({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save feedback template');
+        throw new Error("Failed to save feedback template");
       }
 
       const data = await response.json();
       setTemplate(data.template);
-      
+
       toast({
         title: "Success",
         description: "Feedback form saved successfully",
       });
     } catch (error) {
-      console.error('Error saving template:', error);
+      console.error("Error saving template:", error);
       toast({
         title: "Error",
         description: "Failed to save feedback template",
@@ -156,15 +172,15 @@ export default function FeedbackFormManager({
       question: newQuestion.question!,
       type: newQuestion.type as any,
       required: newQuestion.required || false,
-      options: newQuestion.options || []
+      options: newQuestion.options || [],
     };
 
     setCustomQuestions([...customQuestions, question]);
     setNewQuestion({
-      question: '',
-      type: 'text',
+      question: "",
+      type: "text",
       required: false,
-      options: []
+      options: [],
     });
 
     toast({
@@ -174,7 +190,7 @@ export default function FeedbackFormManager({
   };
 
   const handleDeleteQuestion = (id: string) => {
-    setCustomQuestions(customQuestions.filter(q => q.id !== id));
+    setCustomQuestions(customQuestions.filter((q) => q.id !== id));
     toast({
       title: "Success",
       description: "Question deleted",
@@ -188,9 +204,11 @@ export default function FeedbackFormManager({
   const handleUpdateQuestion = () => {
     if (!editingQuestion) return;
 
-    setCustomQuestions(customQuestions.map(q => 
-      q.id === editingQuestion.id ? editingQuestion : q
-    ));
+    setCustomQuestions(
+      customQuestions.map((q) =>
+        q.id === editingQuestion.id ? editingQuestion : q,
+      ),
+    );
     setEditingQuestion(null);
 
     toast({
@@ -212,8 +230,12 @@ export default function FeedbackFormManager({
       {/* Header Actions */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Feedback Form Configuration</h2>
-          <p className="text-gray-600 mt-1">Customize your event feedback form</p>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Feedback Form Configuration
+          </h2>
+          <p className="text-gray-600 mt-1">
+            Customize your event feedback form
+          </p>
         </div>
         <div className="flex gap-3">
           <Dialog open={showPreview} onOpenChange={setShowPreview}>
@@ -233,37 +255,52 @@ export default function FeedbackFormManager({
               <div className="space-y-6 py-4">
                 {/* Default Questions Preview */}
                 <div>
-                  <h3 className="font-semibold text-lg mb-4">Default Questions</h3>
+                  <h3 className="font-semibold text-lg mb-4">
+                    Default Questions
+                  </h3>
                   {defaultQuestions.map((q, index) => (
                     <div key={q.id} className="mb-4 p-4 border rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="font-medium">{index + 1}. {q.question}</p>
-                          <p className="text-sm text-gray-500 mt-1">{q.description}</p>
+                          <p className="font-medium">
+                            {index + 1}. {q.question}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {q.description}
+                          </p>
                         </div>
                         {q.required && (
-                          <Badge variant="destructive" className="ml-2">Required</Badge>
+                          <Badge variant="destructive" className="ml-2">
+                            Required
+                          </Badge>
                         )}
                       </div>
                       <div className="mt-2">
-                        {q.type === 'rating' && (
+                        {q.type === "rating" && (
                           <div className="flex gap-1">
                             {[...Array(q.max)].map((_, i) => (
                               <Star key={i} className="w-6 h-6 text-gray-300" />
                             ))}
                           </div>
                         )}
-                        {q.type === 'nps' && (
+                        {q.type === "nps" && (
                           <div className="flex gap-1">
                             {[...Array(10)].map((_, i) => (
-                              <div key={i} className="w-8 h-8 border rounded flex items-center justify-center text-sm">
+                              <div
+                                key={i}
+                                className="w-8 h-8 border rounded flex items-center justify-center text-sm"
+                              >
                                 {i + 1}
                               </div>
                             ))}
                           </div>
                         )}
-                        {q.type === 'text' && (
-                          <Textarea placeholder={q.placeholder} disabled className="mt-2" />
+                        {q.type === "text" && (
+                          <Textarea
+                            placeholder={q.placeholder}
+                            disabled
+                            className="mt-2"
+                          />
                         )}
                       </div>
                     </div>
@@ -273,42 +310,62 @@ export default function FeedbackFormManager({
                 {/* Custom Questions Preview */}
                 {customQuestions.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-lg mb-4">Custom Questions</h3>
+                    <h3 className="font-semibold text-lg mb-4">
+                      Custom Questions
+                    </h3>
                     {customQuestions.map((q, index) => (
-                      <div key={q.id} className="mb-4 p-4 border rounded-lg bg-blue-50">
+                      <div
+                        key={q.id}
+                        className="mb-4 p-4 border rounded-lg bg-blue-50"
+                      >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="font-medium">{defaultQuestions.length + index + 1}. {q.question}</p>
+                            <p className="font-medium">
+                              {defaultQuestions.length + index + 1}.{" "}
+                              {q.question}
+                            </p>
                           </div>
                           {q.required && (
-                            <Badge variant="destructive" className="ml-2">Required</Badge>
+                            <Badge variant="destructive" className="ml-2">
+                              Required
+                            </Badge>
                           )}
                         </div>
                         <div className="mt-2">
-                          {q.type === 'rating' && (
+                          {q.type === "rating" && (
                             <div className="flex gap-1">
                               {[...Array(5)].map((_, i) => (
-                                <Star key={i} className="w-6 h-6 text-gray-300" />
+                                <Star
+                                  key={i}
+                                  className="w-6 h-6 text-gray-300"
+                                />
                               ))}
                             </div>
                           )}
-                          {q.type === 'text' && (
+                          {q.type === "text" && (
                             <Textarea disabled className="mt-2" />
                           )}
-                          {q.type === 'multipleChoice' && q.options && (
+                          {q.type === "multipleChoice" && q.options && (
                             <div className="space-y-2 mt-2">
                               {q.options.map((option, i) => (
-                                <div key={i} className="flex items-center gap-2">
+                                <div
+                                  key={i}
+                                  className="flex items-center gap-2"
+                                >
                                   <input type="radio" disabled />
                                   <span>{option}</span>
                                 </div>
                               ))}
                             </div>
                           )}
-                          {q.type === 'yesNo' && (
+                          {q.type === "yesNo" && (
                             <div className="flex gap-4 mt-2">
-                              <Button variant="outline" disabled>Yes</Button>
-                              <Button variant="outline" disabled>No</Button>
+                              <Button variant="outline" disabled>
+                                Yes
+                              </Button>
+                              <Button variant="outline" disabled>
+                                No
+                              </Button>
                             </div>
                           )}
                         </div>
@@ -320,7 +377,11 @@ export default function FeedbackFormManager({
             </DialogContent>
           </Dialog>
 
-          <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -381,9 +442,14 @@ export default function FeedbackFormManager({
         <CardContent>
           <div className="space-y-3">
             {defaultQuestions.map((q, index) => (
-              <div key={q.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+              <div
+                key={q.id}
+                className="flex items-center justify-between p-3 border rounded-lg bg-gray-50"
+              >
                 <div className="flex-1">
-                  <p className="font-medium text-sm">{index + 1}. {q.question}</p>
+                  <p className="font-medium text-sm">
+                    {index + 1}. {q.question}
+                  </p>
                   <p className="text-xs text-gray-500 mt-1">{q.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -409,14 +475,23 @@ export default function FeedbackFormManager({
           {customQuestions.length > 0 && (
             <div className="space-y-3 mb-6">
               {customQuestions.map((q, index) => (
-                <div key={q.id} className="flex items-center justify-between p-4 border rounded-lg bg-blue-50">
+                <div
+                  key={q.id}
+                  className="flex items-center justify-between p-4 border rounded-lg bg-blue-50"
+                >
                   <div className="flex-1">
-                    <p className="font-medium">{defaultQuestions.length + index + 1}. {q.question}</p>
+                    <p className="font-medium">
+                      {defaultQuestions.length + index + 1}. {q.question}
+                    </p>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="outline">{q.type}</Badge>
-                      {q.required && <Badge variant="destructive">Required</Badge>}
+                      {q.required && (
+                        <Badge variant="destructive">Required</Badge>
+                      )}
                       {q.options && q.options.length > 0 && (
-                        <Badge variant="secondary">{q.options.length} options</Badge>
+                        <Badge variant="secondary">
+                          {q.options.length} options
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -449,7 +524,9 @@ export default function FeedbackFormManager({
                 <Label>Question Text *</Label>
                 <Input
                   value={newQuestion.question}
-                  onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+                  onChange={(e) =>
+                    setNewQuestion({ ...newQuestion, question: e.target.value })
+                  }
                   placeholder="Enter your question"
                   className="mt-2"
                 />
@@ -460,7 +537,9 @@ export default function FeedbackFormManager({
                   <Label>Question Type *</Label>
                   <Select
                     value={newQuestion.type}
-                    onValueChange={(value) => setNewQuestion({ ...newQuestion, type: value as any })}
+                    onValueChange={(value) =>
+                      setNewQuestion({ ...newQuestion, type: value as any })
+                    }
                   >
                     <SelectTrigger className="mt-2">
                       <SelectValue />
@@ -468,7 +547,9 @@ export default function FeedbackFormManager({
                     <SelectContent>
                       <SelectItem value="text">Text</SelectItem>
                       <SelectItem value="rating">Rating (1-5 stars)</SelectItem>
-                      <SelectItem value="multipleChoice">Multiple Choice</SelectItem>
+                      <SelectItem value="multipleChoice">
+                        Multiple Choice
+                      </SelectItem>
                       <SelectItem value="yesNo">Yes/No</SelectItem>
                     </SelectContent>
                   </Select>
@@ -478,22 +559,29 @@ export default function FeedbackFormManager({
                   <div className="flex items-center space-x-2">
                     <Switch
                       checked={newQuestion.required}
-                      onCheckedChange={(checked) => setNewQuestion({ ...newQuestion, required: checked })}
+                      onCheckedChange={(checked) =>
+                        setNewQuestion({ ...newQuestion, required: checked })
+                      }
                     />
                     <Label>Required</Label>
                   </div>
                 </div>
               </div>
 
-              {newQuestion.type === 'multipleChoice' && (
+              {newQuestion.type === "multipleChoice" && (
                 <div>
                   <Label>Options (comma-separated)</Label>
                   <Input
-                    value={newQuestion.options?.join(', ')}
-                    onChange={(e) => setNewQuestion({ 
-                      ...newQuestion, 
-                      options: e.target.value.split(',').map(o => o.trim()).filter(o => o) 
-                    })}
+                    value={newQuestion.options?.join(", ")}
+                    onChange={(e) =>
+                      setNewQuestion({
+                        ...newQuestion,
+                        options: e.target.value
+                          .split(",")
+                          .map((o) => o.trim())
+                          .filter((o) => o),
+                      })
+                    }
                     placeholder="Option 1, Option 2, Option 3"
                     className="mt-2"
                   />
@@ -511,7 +599,10 @@ export default function FeedbackFormManager({
 
       {/* Edit Question Dialog */}
       {editingQuestion && (
-        <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
+        <Dialog
+          open={!!editingQuestion}
+          onOpenChange={() => setEditingQuestion(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Question</DialogTitle>
@@ -521,7 +612,12 @@ export default function FeedbackFormManager({
                 <Label>Question Text</Label>
                 <Input
                   value={editingQuestion.question}
-                  onChange={(e) => setEditingQuestion({ ...editingQuestion, question: e.target.value })}
+                  onChange={(e) =>
+                    setEditingQuestion({
+                      ...editingQuestion,
+                      question: e.target.value,
+                    })
+                  }
                   className="mt-2"
                 />
               </div>
@@ -530,7 +626,12 @@ export default function FeedbackFormManager({
                 <Label>Question Type</Label>
                 <Select
                   value={editingQuestion.type}
-                  onValueChange={(value) => setEditingQuestion({ ...editingQuestion, type: value as any })}
+                  onValueChange={(value) =>
+                    setEditingQuestion({
+                      ...editingQuestion,
+                      type: value as any,
+                    })
+                  }
                 >
                   <SelectTrigger className="mt-2">
                     <SelectValue />
@@ -538,7 +639,9 @@ export default function FeedbackFormManager({
                   <SelectContent>
                     <SelectItem value="text">Text</SelectItem>
                     <SelectItem value="rating">Rating (1-5 stars)</SelectItem>
-                    <SelectItem value="multipleChoice">Multiple Choice</SelectItem>
+                    <SelectItem value="multipleChoice">
+                      Multiple Choice
+                    </SelectItem>
                     <SelectItem value="yesNo">Yes/No</SelectItem>
                   </SelectContent>
                 </Select>
@@ -547,32 +650,43 @@ export default function FeedbackFormManager({
               <div className="flex items-center space-x-2">
                 <Switch
                   checked={editingQuestion.required}
-                  onCheckedChange={(checked) => setEditingQuestion({ ...editingQuestion, required: checked })}
+                  onCheckedChange={(checked) =>
+                    setEditingQuestion({
+                      ...editingQuestion,
+                      required: checked,
+                    })
+                  }
                 />
                 <Label>Required</Label>
               </div>
 
-              {editingQuestion.type === 'multipleChoice' && (
+              {editingQuestion.type === "multipleChoice" && (
                 <div>
                   <Label>Options (comma-separated)</Label>
                   <Input
-                    value={editingQuestion.options?.join(', ')}
-                    onChange={(e) => setEditingQuestion({ 
-                      ...editingQuestion, 
-                      options: e.target.value.split(',').map(o => o.trim()).filter(o => o) 
-                    })}
+                    value={editingQuestion.options?.join(", ")}
+                    onChange={(e) =>
+                      setEditingQuestion({
+                        ...editingQuestion,
+                        options: e.target.value
+                          .split(",")
+                          .map((o) => o.trim())
+                          .filter((o) => o),
+                      })
+                    }
                     className="mt-2"
                   />
                 </div>
               )}
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setEditingQuestion(null)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingQuestion(null)}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleUpdateQuestion}>
-                  Update Question
-                </Button>
+                <Button onClick={handleUpdateQuestion}>Update Question</Button>
               </div>
             </div>
           </DialogContent>
@@ -581,4 +695,3 @@ export default function FeedbackFormManager({
     </div>
   );
 }
-

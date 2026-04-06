@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { getUserByClerkId } from '../actions/user.action';
 import { hasEventPermission, canAccessEventManagement } from '../utils/auth';
 import { IUserRole, PermissionType } from '../models/userrole.model';

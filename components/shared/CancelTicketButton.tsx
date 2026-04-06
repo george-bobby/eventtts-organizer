@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { X, Loader2 } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { X, Loader2 } from "lucide-react";
 
 interface CancelTicketButtonProps {
   orderId: string;
@@ -20,19 +20,23 @@ interface CancelTicketButtonProps {
   totalTickets: number;
 }
 
-const CancelTicketButton = ({ orderId, eventTitle, totalTickets }: CancelTicketButtonProps) => {
+const CancelTicketButton = ({
+  orderId,
+  eventTitle,
+  totalTickets,
+}: CancelTicketButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleCancelTickets = async () => {
     setIsLoading(true);
-    
+
     try {
-      const response = await fetch('/api/tickets/cancel', {
-        method: 'POST',
+      const response = await fetch("/api/tickets/cancel", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           orderId,
@@ -42,25 +46,28 @@ const CancelTicketButton = ({ orderId, eventTitle, totalTickets }: CancelTicketB
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to cancel tickets');
+        throw new Error(data.error || "Failed to cancel tickets");
       }
 
       toast({
-        title: 'Tickets Cancelled Successfully',
+        title: "Tickets Cancelled Successfully",
         description: data.message,
-        variant: 'default',
+        variant: "default",
       });
 
       setIsOpen(false);
-      
+
       // Refresh the page to update the UI
       window.location.reload();
     } catch (error) {
-      console.error('Error cancelling tickets:', error);
+      console.error("Error cancelling tickets:", error);
       toast({
-        title: 'Failed to Cancel Tickets',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Failed to Cancel Tickets",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -70,27 +77,30 @@ const CancelTicketButton = ({ orderId, eventTitle, totalTickets }: CancelTicketB
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-1 shadow-lg"
         >
           <X className="w-3 h-3" />
-          Cancel Ticket{totalTickets > 1 ? 's' : ''}
+          Cancel Ticket{totalTickets > 1 ? "s" : ""}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Cancel Ticket{totalTickets > 1 ? 's' : ''}?</DialogTitle>
+          <DialogTitle>Cancel Ticket{totalTickets > 1 ? "s" : ""}?</DialogTitle>
           <DialogDescription className="space-y-2">
             <p>
-              Are you sure you want to cancel your {totalTickets} ticket{totalTickets > 1 ? 's' : ''} for{' '}
+              Are you sure you want to cancel your {totalTickets} ticket
+              {totalTickets > 1 ? "s" : ""} for{" "}
               <span className="font-semibold">{eventTitle}</span>?
             </p>
             <p className="text-sm text-gray-600">
-              This action cannot be undone. The event capacity will be updated to allow other attendees to book.
+              This action cannot be undone. The event capacity will be updated
+              to allow other attendees to book.
             </p>
             <p className="text-sm text-orange-600 font-medium">
-              Note: You can only cancel tickets up to 1 hour before the event starts.
+              Note: You can only cancel tickets up to 1 hour before the event
+              starts.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -116,7 +126,7 @@ const CancelTicketButton = ({ orderId, eventTitle, totalTickets }: CancelTicketB
             ) : (
               <>
                 <X className="w-4 h-4" />
-                Cancel Ticket{totalTickets > 1 ? 's' : ''}
+                Cancel Ticket{totalTickets > 1 ? "s" : ""}
               </>
             )}
           </Button>

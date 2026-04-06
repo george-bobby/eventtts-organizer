@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, X, RotateCcw, Zap, ZapOff, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Camera, X, RotateCcw, Zap, ZapOff, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import CameraDiagnostics from '@/components/shared/CameraDiagnostics';
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import CameraDiagnostics from "@/components/shared/CameraDiagnostics";
 
 interface CameraCaptureProps {
   isOpen: boolean;
@@ -19,18 +19,24 @@ interface CameraCaptureProps {
   onCapture: (imageDataUrl: string) => void;
 }
 
-export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCaptureProps) {
+export default function CameraCapture({
+  isOpen,
+  onClose,
+  onCapture,
+}: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const cameraStateRef = useRef<'idle' | 'starting' | 'running'>('idle');
+  const cameraStateRef = useRef<"idle" | "starting" | "running">("idle");
 
   const [isLoading, setIsLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [facingMode, setFacingMode] = useState<"user" | "environment">(
+    "environment",
+  );
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [currentDeviceId, setCurrentDeviceId] = useState<string>('');
+  const [currentDeviceId, setCurrentDeviceId] = useState<string>("");
   const [isStartingCamera, setIsStartingCamera] = useState(false);
 
   const { toast } = useToast();
@@ -39,14 +45,17 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
   const getDevices = useCallback(async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      const videoDevices = devices.filter(
+        (device) => device.kind === "videoinput",
+      );
       setDevices(videoDevices);
 
       // Set default device (prefer back camera on mobile)
-      const backCamera = videoDevices.find(device =>
-        device.label.toLowerCase().includes('back') ||
-        device.label.toLowerCase().includes('rear') ||
-        device.label.toLowerCase().includes('environment')
+      const backCamera = videoDevices.find(
+        (device) =>
+          device.label.toLowerCase().includes("back") ||
+          device.label.toLowerCase().includes("rear") ||
+          device.label.toLowerCase().includes("environment"),
       );
 
       if (backCamera) {
@@ -55,26 +64,29 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
         setCurrentDeviceId(videoDevices[0].deviceId);
       }
     } catch (error) {
-      console.error('Error getting devices:', error);
+      console.error("Error getting devices:", error);
     }
   }, []);
 
   // Start camera stream
   const startCamera = useCallback(async () => {
     // Prevent multiple simultaneous camera starts
-    if (cameraStateRef.current === 'starting' || cameraStateRef.current === 'running') {
-      console.log('Camera start already in progress or running, skipping...');
+    if (
+      cameraStateRef.current === "starting" ||
+      cameraStateRef.current === "running"
+    ) {
+      console.log("Camera start already in progress or running, skipping...");
       return;
     }
 
     try {
-      cameraStateRef.current = 'starting';
+      cameraStateRef.current = "starting";
       setIsStartingCamera(true);
       setIsLoading(true);
 
       // Stop existing stream
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
       const constraints: MediaStreamConstraints = {
@@ -82,12 +94,12 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
           facingMode: facingMode,
           width: { ideal: 1920, max: 1920 },
           height: { ideal: 1080, max: 1080 },
-          ...(currentDeviceId && { deviceId: { exact: currentDeviceId } })
+          ...(currentDeviceId && { deviceId: { exact: currentDeviceId } }),
         },
-        audio: false
+        audio: false,
       };
 
-      console.log('Requesting camera with constraints:', constraints);
+      console.log("Requesting camera with constraints:", constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
@@ -97,7 +109,7 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
         videoRef.current.srcObject = null;
 
         // Small delay to ensure previous stream is fully stopped
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         videoRef.current.srcObject = stream;
 
@@ -108,47 +120,52 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
             await playPromise;
           }
         } catch (error) {
-          console.warn('Video play interrupted:', error);
+          console.warn("Video play interrupted:", error);
           // Don't throw error, just log it as this is often due to rapid state changes
         }
       }
 
       setHasPermission(true);
-      cameraStateRef.current = 'running';
-      console.log('Camera started successfully');
+      cameraStateRef.current = "running";
+      console.log("Camera started successfully");
     } catch (error: any) {
-      console.error('Error accessing camera:', error);
+      console.error("Error accessing camera:", error);
       setHasPermission(false);
-      cameraStateRef.current = 'idle';
+      cameraStateRef.current = "idle";
 
-      let errorMessage = 'Please allow camera access to take photos.';
-      let errorTitle = 'Camera Access Error';
+      let errorMessage = "Please allow camera access to take photos.";
+      let errorTitle = "Camera Access Error";
 
       // Provide specific error messages based on error type
-      if (error.name === 'NotAllowedError') {
-        errorTitle = 'Camera Permission Denied';
-        errorMessage = 'Please allow camera access in your browser settings and try again.';
-      } else if (error.name === 'NotFoundError') {
-        errorTitle = 'No Camera Found';
-        errorMessage = 'No camera device was found. Please connect a camera and try again.';
-      } else if (error.name === 'NotSupportedError') {
-        errorTitle = 'Camera Not Supported';
-        errorMessage = 'Your browser or device does not support camera access.';
-      } else if (error.name === 'NotReadableError') {
-        errorTitle = 'Camera In Use';
-        errorMessage = 'Camera is already in use by another application. Please close other apps using the camera.';
-      } else if (error.name === 'OverconstrainedError') {
-        errorTitle = 'Camera Constraints Error';
-        errorMessage = 'Camera settings are not supported. Trying with basic settings...';
+      if (error.name === "NotAllowedError") {
+        errorTitle = "Camera Permission Denied";
+        errorMessage =
+          "Please allow camera access in your browser settings and try again.";
+      } else if (error.name === "NotFoundError") {
+        errorTitle = "No Camera Found";
+        errorMessage =
+          "No camera device was found. Please connect a camera and try again.";
+      } else if (error.name === "NotSupportedError") {
+        errorTitle = "Camera Not Supported";
+        errorMessage = "Your browser or device does not support camera access.";
+      } else if (error.name === "NotReadableError") {
+        errorTitle = "Camera In Use";
+        errorMessage =
+          "Camera is already in use by another application. Please close other apps using the camera.";
+      } else if (error.name === "OverconstrainedError") {
+        errorTitle = "Camera Constraints Error";
+        errorMessage =
+          "Camera settings are not supported. Trying with basic settings...";
 
         // Try with basic constraints
         try {
           const basicConstraints: MediaStreamConstraints = {
             video: true,
-            audio: false
+            audio: false,
           };
-          console.log('Retrying with basic constraints:', basicConstraints);
-          const stream = await navigator.mediaDevices.getUserMedia(basicConstraints);
+          console.log("Retrying with basic constraints:", basicConstraints);
+          const stream =
+            await navigator.mediaDevices.getUserMedia(basicConstraints);
           streamRef.current = stream;
 
           if (videoRef.current) {
@@ -157,7 +174,7 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
             videoRef.current.srcObject = null;
 
             // Small delay to ensure previous stream is fully stopped
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             videoRef.current.srcObject = stream;
 
@@ -168,7 +185,7 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
                 await playPromise;
               }
             } catch (error) {
-              console.warn('Video play interrupted:', error);
+              console.warn("Video play interrupted:", error);
               // Don't throw error, just log it as this is often due to rapid state changes
             }
           }
@@ -177,14 +194,14 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
           setIsLoading(false);
           return;
         } catch (basicError) {
-          console.error('Basic camera access also failed:', basicError);
+          console.error("Basic camera access also failed:", basicError);
         }
       }
 
       toast({
         title: errorTitle,
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -194,10 +211,10 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
 
   // Stop camera stream
   const stopCamera = useCallback(() => {
-    cameraStateRef.current = 'idle';
+    cameraStateRef.current = "idle";
 
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
     if (videoRef.current) {
@@ -215,7 +232,7 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext("2d");
 
     if (!context) return;
 
@@ -227,7 +244,7 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Convert to data URL
-    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8);
 
     // Call the onCapture callback
     onCapture(imageDataUrl);
@@ -236,20 +253,22 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
     handleClose();
 
     toast({
-      title: 'Photo Captured!',
-      description: 'Your photo has been captured successfully.',
+      title: "Photo Captured!",
+      description: "Your photo has been captured successfully.",
     });
   }, [onCapture, toast]);
 
   // Switch camera (front/back)
   const switchCamera = useCallback(() => {
     if (devices.length > 1) {
-      const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
+      const currentIndex = devices.findIndex(
+        (device) => device.deviceId === currentDeviceId,
+      );
       const nextIndex = (currentIndex + 1) % devices.length;
       setCurrentDeviceId(devices[nextIndex].deviceId);
     } else {
       // Fallback to facing mode toggle
-      setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+      setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
     }
   }, [devices, currentDeviceId]);
 
@@ -271,7 +290,7 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
             await startCamera();
           }
         } catch (error) {
-          console.error('Failed to initialize camera:', error);
+          console.error("Failed to initialize camera:", error);
         }
       };
 
@@ -288,7 +307,7 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
 
   // Restart camera when device changes
   useEffect(() => {
-    if (isOpen && currentDeviceId && cameraStateRef.current === 'idle') {
+    if (isOpen && currentDeviceId && cameraStateRef.current === "idle") {
       // Add a small delay to prevent rapid restarts
       const timeoutId = setTimeout(() => {
         startCamera();
@@ -336,9 +355,14 @@ export default function CameraCapture({ isOpen, onClose, onCapture }: CameraCapt
                   <Camera className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <h3 className="font-semibold mb-2">Camera Access Required</h3>
                   <p className="text-sm opacity-80 mb-4">
-                    Please allow camera access in your browser settings to take photos.
+                    Please allow camera access in your browser settings to take
+                    photos.
                   </p>
-                  <Button variant="outline" onClick={startCamera} className="text-black">
+                  <Button
+                    variant="outline"
+                    onClick={startCamera}
+                    className="text-black"
+                  >
                     Try Again
                   </Button>
                 </div>

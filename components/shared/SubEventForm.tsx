@@ -50,7 +50,10 @@ const SubEventForm = ({ index }: Props) => {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea placeholder="Enter sub-event description" {...field} />
+                <Textarea
+                  placeholder="Enter sub-event description"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

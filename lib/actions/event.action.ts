@@ -62,6 +62,14 @@ export async function createEvent(eventData: any) {
 		await connectToDatabase();
 
 		let data = { ...eventData };
+
+		const photoUrl =
+			typeof data.photo === 'string' ? data.photo.trim() : '';
+		const imageUrl =
+			typeof data.imageUrl === 'string' ? data.imageUrl.trim() : '';
+		if (!photoUrl && !imageUrl) {
+			throw new Error('Event image is required.');
+		}
 		// Handle capacity: if no capacity is set or 0, make it unlimited (-1)
 		if (!data.totalCapacity || data.totalCapacity === 0) {
 			data.totalCapacity = -1; // Unlimited capacity

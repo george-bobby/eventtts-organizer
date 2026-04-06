@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,20 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { UserPlus, Loader2 } from 'lucide-react';
-import { UserRoleType } from '@/lib/models/userrole.model';
-import { getRoleDisplayName } from '@/lib/utils/auth';
-import RoleBadge from './RoleBadge';
+} from "@/components/ui/select";
+import { UserPlus, Loader2 } from "lucide-react";
+import { UserRoleType } from "@/lib/models/userrole.model";
+import { getRoleDisplayName } from "@/lib/utils/roles";
+import RoleBadge from "./RoleBadge";
 
 interface RoleAssignmentDialogProps {
   eventId: string;
@@ -37,23 +37,28 @@ const RoleAssignmentDialog: React.FC<RoleAssignmentDialogProps> = ({
   userId,
   currentRole,
   onRoleAssigned,
-  trigger
+  trigger,
 }) => {
-  const [selectedRole, setSelectedRole] = useState<UserRoleType | ''>('');
+  const [selectedRole, setSelectedRole] = useState<UserRoleType | "">("");
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const roles: UserRoleType[] = ['organizer', 'volunteer', 'speaker', 'participant'];
+  const roles: UserRoleType[] = [
+    "organizer",
+    "volunteer",
+    "speaker",
+    "participant",
+  ];
 
   const handleAssignRole = async () => {
     if (!selectedRole) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/user-roles', {
-        method: 'POST',
+      const response = await fetch("/api/user-roles", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
@@ -65,13 +70,13 @@ const RoleAssignmentDialog: React.FC<RoleAssignmentDialogProps> = ({
       if (response.ok) {
         onRoleAssigned?.(selectedRole);
         setIsOpen(false);
-        setSelectedRole('');
+        setSelectedRole("");
       } else {
         const error = await response.json();
-        console.error('Failed to assign role:', error);
+        console.error("Failed to assign role:", error);
       }
     } catch (error) {
-      console.error('Error assigning role:', error);
+      console.error("Error assigning role:", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,10 +84,13 @@ const RoleAssignmentDialog: React.FC<RoleAssignmentDialogProps> = ({
 
   const getRoleDescription = (role: UserRoleType) => {
     const descriptions = {
-      organizer: 'Full access to manage all aspects of the event',
-      volunteer: 'Can verify tickets, check-in participants, and view attendee lists',
-      speaker: 'Can view event details, participant info, and manage presentation materials',
-      participant: 'Can view own tickets, report issues, and read-only event access'
+      organizer: "Full access to manage all aspects of the event",
+      volunteer:
+        "Can verify tickets, check-in participants, and view attendee lists",
+      speaker:
+        "Can view event details, participant info, and manage presentation materials",
+      participant:
+        "Can view own tickets, report issues, and read-only event access",
     };
     return descriptions[role];
   };
@@ -101,14 +109,17 @@ const RoleAssignmentDialog: React.FC<RoleAssignmentDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Assign Event Role</DialogTitle>
           <DialogDescription>
-            Assign a role to this user for the event. This will determine their permissions and access level.
+            Assign a role to this user for the event. This will determine their
+            permissions and access level.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {currentRole && (
             <div className="p-3 bg-gray-50 rounded-lg">
-              <Label className="text-sm font-medium text-gray-700">Current Role</Label>
+              <Label className="text-sm font-medium text-gray-700">
+                Current Role
+              </Label>
               <div className="mt-1">
                 <RoleBadge role={currentRole} size="sm" />
               </div>
@@ -117,7 +128,10 @@ const RoleAssignmentDialog: React.FC<RoleAssignmentDialogProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="role-select">Select New Role</Label>
-            <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as UserRoleType)}>
+            <Select
+              value={selectedRole}
+              onValueChange={(value) => setSelectedRole(value as UserRoleType)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Choose a role..." />
               </SelectTrigger>
@@ -131,7 +145,7 @@ const RoleAssignmentDialog: React.FC<RoleAssignmentDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
-            
+
             {selectedRole && (
               <div className="mt-2 p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
@@ -149,8 +163,8 @@ const RoleAssignmentDialog: React.FC<RoleAssignmentDialogProps> = ({
           <Button variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleAssignRole} 
+          <Button
+            onClick={handleAssignRole}
             disabled={!selectedRole || isLoading}
           >
             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

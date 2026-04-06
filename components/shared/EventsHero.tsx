@@ -1,114 +1,199 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Calendar, Users, MapPin, Sparkles, BarChart3, Settings } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useAuth } from '@clerk/nextjs';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+
+const heroImages = [
+  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80",
+  "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
+  "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1200&q=80",
+];
+
+function CrossfadeImage({
+  activeIndex,
+  className,
+}: {
+  activeIndex: number;
+  className?: string;
+}) {
+  return (
+    <div className={`relative overflow-hidden ${className ?? ""}`}>
+      {heroImages.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          aria-hidden={i !== activeIndex}
+          className="absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+          style={{
+            opacity: i === activeIndex ? 1 : 0,
+            transform: i === activeIndex ? "scale(1)" : "scale(1.04)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function EventsHero() {
-  const { userId } = useAuth();
+  const [isVisible, setIsVisible] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
+
+  useEffect(() => {
+    setIsVisible(true);
+    const interval = setInterval(() => {
+      setActiveImage((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-red-900 to-red-500 pt-16">
-      {/* Simplified Background */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+    <section className="relative overflow-hidden bg-background pt-[4.5rem] pb-12 lg:pb-16">
+      {/* Subtle grid lines */}
+      <div className="pointer-events-none absolute inset-0 z-[2] overflow-hidden opacity-[0.04]">
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={`h-${i}`}
+            className="absolute h-px bg-foreground"
+            style={{ top: `${12.5 * (i + 1)}%`, left: 0, right: 0 }}
+          />
+        ))}
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={`v-${i}`}
+            className="absolute w-px bg-foreground"
+            style={{ left: `${8.33 * (i + 1)}%`, top: 0, bottom: 0 }}
+          />
+        ))}
+      </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            {/* Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium mb-8">
-              <Settings className="w-4 h-4 mr-2 text-blue-400" />
-              Professional Event Organization Platform
+      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 lg:px-12">
+        <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
+          {/* Left — text content */}
+          <div className="flex flex-col justify-center pt-2 lg:pt-0">
+            <div
+              className={`mb-6 transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                }`}
+            >
+              <span className="inline-flex items-center gap-3 font-mono text-sm text-muted-foreground">
+                <span className="h-px w-8 bg-border" />
+                Professional Event Organization
+              </span>
             </div>
 
-            {/* Main Heading */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Organize & Manage
-              <span className="block bg-gradient-to-r from-red-400 via-red-400 to-red-400 bg-clip-text text-transparent">
-                Your Events
-              </span>
+            <h1
+              className={`mb-8 text-[clamp(2.8rem,5.5vw,6.5rem)] font-display leading-[0.92] tracking-tight text-foreground transition-all duration-1000 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                }`}
+            >
+              <span className="block">Organize &</span>
+              <span className="block">Manage</span>
+              <span className="block text-muted-foreground">Your Events.</span>
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-3xl mx-auto">
-              Everything you need to organize successful events - from planning to execution,
-              attendee management to analytics.
+            <p
+              className={`mb-10 max-w-lg text-xl leading-relaxed text-muted-foreground transition-all delay-200 duration-1000 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                }`}
+            >
+              Everything you need to organize successful events — from planning
+              to execution, attendee management to analytics.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <div
+              className={`flex flex-col items-start gap-4 transition-all delay-300 duration-1000 sm:flex-row ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                }`}
+            >
               <Link href="/create">
-                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-semibold">
+                <Button
+                  size="lg"
+                  className="h-14 rounded-full bg-foreground px-8 text-base text-background hover:bg-foreground/90"
+                >
                   Create New Event
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-
               <Link href="/dashboard">
-                <Button variant="outline" size="lg" className="bg-white/20 border-white/30 text-white hover:bg-white/30 px-8 py-4 rounded-full text-lg font-semibold">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-14 rounded-full border-foreground/20 bg-transparent px-8 text-base text-foreground hover:bg-muted"
+                >
                   Manage My Events
                 </Button>
               </Link>
             </div>
 
-            {/* Stats - Organizer Focused */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-              <div className="text-center">
-                <div className="bg-white/20 rounded-xl p-4 border border-white/30">
-                  <Calendar className="w-6 h-6 text-red-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white mb-1">500+</div>
-                  <div className="text-white/80 text-sm">Events Created</div>
+            <div
+              className={`mt-12 flex gap-10 border-t border-border pt-8 transition-all delay-500 duration-1000 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                }`}
+            >
+              {[
+                { value: "1,250+", label: "Events" },
+                { value: "15K+", label: "Attendees" },
+                { value: "75+", label: "Campuses" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className="font-display text-2xl text-foreground">
+                    {s.value}
+                  </div>
+                  <div className="mt-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    {s.label}
+                  </div>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              <div className="text-center">
-                <div className="bg-white/20 rounded-xl p-4 border border-white/30">
-                  <BarChart3 className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white mb-1">95%</div>
-                  <div className="text-white/80 text-sm">Success Rate</div>
-                </div>
-              </div>
+          {/* Right — image mosaic */}
+          <div
+            className={`relative hidden lg:grid h-[520px] grid-cols-2 grid-rows-2 gap-3 transition-all delay-400 duration-1000 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-12 opacity-0"
+              }`}
+          >
+            <div className="relative col-span-1 row-span-2 overflow-hidden rounded-2xl border border-border">
+              <CrossfadeImage activeIndex={activeImage} className="h-full w-full" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+            </div>
 
-              <div className="text-center">
-                <div className="bg-white/20 rounded-xl p-4 border border-white/30">
-                  <Users className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white mb-1">10K+</div>
-                  <div className="text-white/80 text-sm">Total Attendees</div>
+            <div className="relative overflow-hidden rounded-2xl border border-border">
+              <CrossfadeImage
+                activeIndex={(activeImage + 1) % heroImages.length}
+                className="h-full min-h-[200px] w-full"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+            </div>
+
+            <div className="relative overflow-hidden rounded-2xl border border-border">
+              <CrossfadeImage
+                activeIndex={(activeImage + 2) % heroImages.length}
+                className="h-full min-h-[200px] w-full"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-5">
+                <div className="font-display text-3xl text-white">4.9/5</div>
+                <div className="mt-1 font-mono text-xs uppercase tracking-wider text-white/70">
+                  Avg. Rating
                 </div>
               </div>
             </div>
 
-            {/* Key Features for Organizers */}
-            {/* <div className="mt-12 max-w-4xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                <div className="bg-white/10 rounded-lg p-4 border border-white/20">
-                  <Calendar className="w-5 h-5 text-red-400 mx-auto mb-2" />
-                  <div className="text-white text-sm font-medium">Event Planning</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-4 border border-white/20">
-                  <Users className="w-5 h-5 text-blue-400 mx-auto mb-2" />
-                  <div className="text-white text-sm font-medium">Attendee Management</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-4 border border-white/20">
-                  <BarChart3 className="w-5 h-5 text-green-400 mx-auto mb-2" />
-                  <div className="text-white text-sm font-medium">Analytics Dashboard</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-4 border border-white/20">
-                  <Settings className="w-5 h-5 text-purple-400 mx-auto mb-2" />
-                  <div className="text-white text-sm font-medium">Full Control</div>
-                </div>
-              </div>
-            </div> */}
-
+            <div className="absolute -bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
+              {heroImages.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  className={`h-1.5 rounded-full transition-all duration-500 ease-out ${i === activeImage
+                      ? "w-4 bg-foreground"
+                      : "w-1.5 bg-foreground/30"
+                    }`}
+                  aria-label={`Show image ${i + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Bottom Gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
     </section>
   );
 }

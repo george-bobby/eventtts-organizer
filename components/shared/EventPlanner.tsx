@@ -1,15 +1,37 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, Clock, AlertCircle, Edit2, Trash2, Plus, Save, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+"use client";
+import React, { useState, useEffect } from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Loader2,
+  Clock,
+  AlertCircle,
+  Edit2,
+  Trash2,
+  Plus,
+  Save,
+  X,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 // Define types
 interface Subtask {
@@ -24,7 +46,7 @@ interface Task {
   content: string;
   column: string;
   subtasks: Subtask[];
-  priority?: 'high' | 'medium' | 'low';
+  priority?: "high" | "medium" | "low";
   estimatedDuration?: string;
   completed: boolean;
 }
@@ -51,15 +73,27 @@ const SubtaskItem: React.FC<{
   subtask: Subtask;
   taskId: string;
   index: number;
-  onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
+  onMoveSubtask: (
+    subtaskId: string,
+    sourceTaskId: string,
+    targetTaskId: string,
+    targetIndex: number,
+  ) => void;
   onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
   onDeleteSubtask: (taskId: string, subtaskId: string) => void;
-}> = ({ subtask, taskId, index, onMoveSubtask, onEditSubtask, onDeleteSubtask }) => {
+}> = ({
+  subtask,
+  taskId,
+  index,
+  onMoveSubtask,
+  onEditSubtask,
+  onDeleteSubtask,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(subtask.content);
 
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'subtask',
+    type: "subtask",
     item: { id: subtask.id, taskId, index },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -81,8 +115,11 @@ const SubtaskItem: React.FC<{
   return (
     <div
       ref={drag as any}
-      className={`p-3 ml-4 mb-2 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg transition-all duration-150 group ${isDragging ? 'opacity-50 scale-95' : 'hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200'
-        }`}
+      className={`p-3 ml-4 mb-2 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg transition-all duration-150 group ${
+        isDragging
+          ? "opacity-50 scale-95"
+          : "hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200"
+      }`}
     >
       <div className="flex items-center gap-3">
         <div className="flex-1">
@@ -93,8 +130,8 @@ const SubtaskItem: React.FC<{
                 onChange={(e) => setEditContent(e.target.value)}
                 className="text-sm"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveEdit();
-                  if (e.key === 'Escape') handleCancelEdit();
+                  if (e.key === "Enter") handleSaveEdit();
+                  if (e.key === "Escape") handleCancelEdit();
                 }}
                 autoFocus
               />
@@ -141,12 +178,17 @@ const SubtaskItem: React.FC<{
 const SubtaskList: React.FC<{
   taskId: string;
   subtasks: Subtask[];
-  onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
+  onMoveSubtask: (
+    subtaskId: string,
+    sourceTaskId: string,
+    targetTaskId: string,
+    targetIndex: number,
+  ) => void;
   onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
   onDeleteSubtask: (taskId: string, subtaskId: string) => void;
 }> = ({ taskId, subtasks, onMoveSubtask, onEditSubtask, onDeleteSubtask }) => {
   const [{ isOver }, drop] = useDrop(() => ({
-    accept: 'subtask',
+    accept: "subtask",
     drop: (item: { id: string; taskId: string; index: number }) => {
       onMoveSubtask(item.id, item.taskId, taskId, subtasks.length);
     },
@@ -156,7 +198,10 @@ const SubtaskList: React.FC<{
   }));
 
   return (
-    <div ref={drop as any} className={`min-h-[50px] mt-2 ${isOver ? 'bg-blue-50 border-2 border-dashed border-blue-300 rounded' : ''}`}>
+    <div
+      ref={drop as any}
+      className={`min-h-[50px] mt-2 ${isOver ? "bg-blue-50 border-2 border-dashed border-blue-300 rounded" : ""}`}
+    >
       {subtasks.map((sub, idx) => (
         <SubtaskItem
           key={sub.id}
@@ -173,13 +218,15 @@ const SubtaskList: React.FC<{
 };
 
 // Priority badge component
-const PriorityBadge: React.FC<{ priority?: 'high' | 'medium' | 'low' }> = ({ priority }) => {
+const PriorityBadge: React.FC<{ priority?: "high" | "medium" | "low" }> = ({
+  priority,
+}) => {
   if (!priority) return null;
 
   const colors = {
-    high: 'bg-red-100 text-red-800 border-red-200',
-    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    low: 'bg-green-100 text-green-800 border-green-200'
+    high: "bg-red-100 text-red-800 border-red-200",
+    medium: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    low: "bg-green-100 text-green-800 border-green-200",
   };
 
   return (
@@ -193,20 +240,41 @@ const PriorityBadge: React.FC<{ priority?: 'high' | 'medium' | 'low' }> = ({ pri
 const TaskCard: React.FC<{
   task: Task;
   onDropTask: (id: string, newColumn: string) => void;
-  onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
-  onEditTask: (taskId: string, content: string, priority?: string, estimatedDuration?: string) => void;
+  onMoveSubtask: (
+    subtaskId: string,
+    sourceTaskId: string,
+    targetTaskId: string,
+    targetIndex: number,
+  ) => void;
+  onEditTask: (
+    taskId: string,
+    content: string,
+    priority?: string,
+    estimatedDuration?: string,
+  ) => void;
   onDeleteTask: (taskId: string) => void;
   onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
   onDeleteSubtask: (taskId: string, subtaskId: string) => void;
   onAddSubtask: (taskId: string) => void;
-}> = ({ task, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask, onAddSubtask }) => {
+}> = ({
+  task,
+  onDropTask,
+  onMoveSubtask,
+  onEditTask,
+  onDeleteTask,
+  onEditSubtask,
+  onDeleteSubtask,
+  onAddSubtask,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
-  const [editPriority, setEditPriority] = useState(task.priority || 'medium');
-  const [editDuration, setEditDuration] = useState(task.estimatedDuration || '');
+  const [editPriority, setEditPriority] = useState(task.priority || "medium");
+  const [editDuration, setEditDuration] = useState(
+    task.estimatedDuration || "",
+  );
 
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'task',
+    type: "task",
     item: { id: task.id, column: task.column },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -224,16 +292,19 @@ const TaskCard: React.FC<{
 
   const handleCancelEdit = () => {
     setEditContent(task.content);
-    setEditPriority(task.priority || 'medium');
-    setEditDuration(task.estimatedDuration || '');
+    setEditPriority(task.priority || "medium");
+    setEditDuration(task.estimatedDuration || "");
     setIsEditing(false);
   };
 
   return (
     <div
       ref={drag as any}
-      className={`p-4 mb-3 bg-white border-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 group ${isDragging ? 'opacity-50 rotate-2' : 'border-gray-200 hover:border-gray-300'
-        }`}
+      className={`p-4 mb-3 bg-white border-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 group ${
+        isDragging
+          ? "opacity-50 rotate-2"
+          : "border-gray-200 hover:border-gray-300"
+      }`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -244,13 +315,18 @@ const TaskCard: React.FC<{
                 onChange={(e) => setEditContent(e.target.value)}
                 className="font-semibold"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveEdit();
-                  if (e.key === 'Escape') handleCancelEdit();
+                  if (e.key === "Enter") handleSaveEdit();
+                  if (e.key === "Escape") handleCancelEdit();
                 }}
                 autoFocus
               />
               <div className="flex gap-2">
-                <Select value={editPriority} onValueChange={(value: "high" | "medium" | "low") => setEditPriority(value)}>
+                <Select
+                  value={editPriority}
+                  onValueChange={(value: "high" | "medium" | "low") =>
+                    setEditPriority(value)
+                  }
+                >
                   <SelectTrigger className="w-24">
                     <SelectValue />
                   </SelectTrigger>
@@ -321,7 +397,9 @@ const TaskCard: React.FC<{
         <div className="flex items-center justify-between mb-2">
           {totalSubtasks > 0 && (
             <div className="flex items-center gap-1 text-xs text-gray-600">
-              <span>{totalSubtasks} subtask{totalSubtasks !== 1 ? 's' : ''}</span>
+              <span>
+                {totalSubtasks} subtask{totalSubtasks !== 1 ? "s" : ""}
+              </span>
             </div>
           )}
           <Button
@@ -355,17 +433,40 @@ const Column: React.FC<{
   columnId: string;
   tasks: Task[];
   onDropTask: (id: string, newColumn: string) => void;
-  onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
-  onEditTask: (taskId: string, content: string, priority?: string, estimatedDuration?: string) => void;
+  onMoveSubtask: (
+    subtaskId: string,
+    sourceTaskId: string,
+    targetTaskId: string,
+    targetIndex: number,
+  ) => void;
+  onEditTask: (
+    taskId: string,
+    content: string,
+    priority?: string,
+    estimatedDuration?: string,
+  ) => void;
   onDeleteTask: (taskId: string) => void;
   onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
   onDeleteSubtask: (taskId: string, subtaskId: string) => void;
   onAddTask: (columnId: string) => void;
   onAddSubtask: (taskId: string) => void;
-}> = ({ title, columnId, tasks, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask, onAddTask, onAddSubtask }) => {
+}> = ({
+  title,
+  columnId,
+  tasks,
+  onDropTask,
+  onMoveSubtask,
+  onEditTask,
+  onDeleteTask,
+  onEditSubtask,
+  onDeleteSubtask,
+  onAddTask,
+  onAddSubtask,
+}) => {
   const [{ isOver }, drop] = useDrop(() => ({
-    accept: 'task',
-    drop: (item: { id: string; column: string }) => onDropTask(item.id, columnId),
+    accept: "task",
+    drop: (item: { id: string; column: string }) =>
+      onDropTask(item.id, columnId),
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
@@ -373,22 +474,38 @@ const Column: React.FC<{
 
   const getColumnColor = () => {
     switch (columnId) {
-      case 'planning': return 'border-t-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50';
-      case 'developing': return 'border-t-orange-500 bg-gradient-to-br from-orange-50 to-amber-50';
-      case 'reviewing': return 'border-t-purple-500 bg-gradient-to-br from-purple-50 to-violet-50';
-      case 'finished': return 'border-t-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50';
-      default: return 'border-t-gray-500 bg-gradient-to-br from-gray-50 to-gray-100';
+      case "planning":
+        return "border-t-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50";
+      case "developing":
+        return "border-t-orange-500 bg-gradient-to-br from-orange-50 to-amber-50";
+      case "reviewing":
+        return "border-t-purple-500 bg-gradient-to-br from-purple-50 to-violet-50";
+      case "finished":
+        return "border-t-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50";
+      default:
+        return "border-t-gray-500 bg-gradient-to-br from-gray-50 to-gray-100";
     }
   };
 
   return (
-    <div ref={drop as any} className={`flex-1 min-w-0 p-2 border-2 border-dashed border-transparent rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50/50 shadow-lg scale-105' : 'hover:shadow-md'
-      }`}>
-      <div className={`bg-white rounded-xl p-4 shadow-lg border-t-4 ${getColumnColor()}`}>
+    <div
+      ref={drop as any}
+      className={`flex-1 min-w-0 p-2 border-2 border-dashed border-transparent rounded-xl transition-all duration-200 ${
+        isOver
+          ? "border-blue-400 bg-blue-50/50 shadow-lg scale-105"
+          : "hover:shadow-md"
+      }`}
+    >
+      <div
+        className={`bg-white rounded-xl p-4 shadow-lg border-t-4 ${getColumnColor()}`}
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800">{title}</h2>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs font-semibold bg-white/70">
+            <Badge
+              variant="secondary"
+              className="text-xs font-semibold bg-white/70"
+            >
               {tasks.length}
             </Badge>
             <Button
@@ -429,7 +546,10 @@ const Column: React.FC<{
 };
 
 // Main EventPlanner component
-const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }) => {
+const EventPlanner: React.FC<EventPlannerProps> = ({
+  event,
+  isSubEvent = false,
+}) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -460,7 +580,7 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
         await handleGenerateTasks();
       }
     } catch (error) {
-      console.error('Error loading tasks:', error);
+      console.error("Error loading tasks:", error);
       // Fallback to generating tasks
       await handleGenerateTasks();
     } finally {
@@ -471,12 +591,15 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
   const handleGenerateTasks = async (forceRegenerate = false) => {
     setIsGenerating(true);
     try {
-      const categoryName = typeof event.category === 'string' ? event.category : event.category.name;
+      const categoryName =
+        typeof event.category === "string"
+          ? event.category
+          : event.category.name;
 
-      const response = await fetch('/api/tasks/generate', {
-        method: 'POST',
+      const response = await fetch("/api/tasks/generate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventType: categoryName.toLowerCase(),
@@ -491,15 +614,15 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
             endDate: event.endDate,
             isFree: event.isFree,
             price: event.price,
-            category: categoryName
+            category: categoryName,
           },
           eventId: event._id,
-          forceRegenerate
+          forceRegenerate,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate tasks');
+        throw new Error("Failed to generate tasks");
       }
 
       const data = await response.json();
@@ -518,11 +641,11 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
           column: task.column,
           subtasks: task.subtasks.map((sub: any) => ({
             ...sub,
-            completed: false
+            completed: false,
           })),
           priority: task.priority,
           estimatedDuration: task.estimatedDuration,
-          completed: false
+          completed: false,
         }));
 
         setTasks(newTasks);
@@ -530,15 +653,15 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
         toast({
           title: "Tasks Generated Successfully! ✨",
-          description: `Generated ${newTasks.length} tasks for ${isSubEvent ? 'sub-event' : 'event'}: "${event.title}".`,
+          description: `Generated ${newTasks.length} tasks for ${isSubEvent ? "sub-event" : "event"}: "${event.title}".`,
         });
       }
     } catch (error) {
-      console.error('Error generating tasks:', error);
+      console.error("Error generating tasks:", error);
       toast({
         title: "Error generating tasks",
         description: "Failed to generate tasks. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -547,38 +670,47 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
   const handleDropTask = async (id: string, newColumn: string) => {
     // Optimistically update UI
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, column: newColumn } : t)));
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, column: newColumn } : t)),
+    );
 
     try {
-      const response = await fetch('/api/tasks', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventId: event._id,
-          taskUpdates: [{ taskId: id, updates: { column: newColumn } }]
+          taskUpdates: [{ taskId: id, updates: { column: newColumn } }],
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update task');
+        throw new Error("Failed to update task");
       }
     } catch (error) {
-      console.error('Error updating task:', error);
+      console.error("Error updating task:", error);
       // Revert optimistic update
-      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, column: t.column } : t)));
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, column: t.column } : t)),
+      );
       toast({
         title: "Error",
         description: "Failed to update task. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
-  const handleEditTask = async (taskId: string, content: string, priority?: string, estimatedDuration?: string) => {
+  const handleEditTask = async (
+    taskId: string,
+    content: string,
+    priority?: string,
+    estimatedDuration?: string,
+  ) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventId: event._id,
           content,
@@ -588,38 +720,43 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to edit task');
+        throw new Error("Failed to edit task");
       }
 
       // Update local state
-      setTasks((prev) => prev.map((task) =>
-        task.id === taskId
-          ? { ...task, content, priority: priority as any, estimatedDuration }
-          : task
-      ));
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? { ...task, content, priority: priority as any, estimatedDuration }
+            : task,
+        ),
+      );
 
       toast({
         title: "Success",
         description: "Task updated successfully.",
       });
     } catch (error) {
-      console.error('Error editing task:', error);
+      console.error("Error editing task:", error);
       toast({
         title: "Error",
         description: "Failed to edit task. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}?eventId=${event._id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/tasks/${taskId}?eventId=${event._id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete task');
+        throw new Error("Failed to delete task");
       }
 
       // Update local state
@@ -630,100 +767,132 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
         description: "Task deleted successfully.",
       });
     } catch (error) {
-      console.error('Error deleting task:', error);
+      console.error("Error deleting task:", error);
       toast({
         title: "Error",
         description: "Failed to delete task. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
-  const handleEditSubtask = async (taskId: string, subtaskId: string, content: string) => {
+  const handleEditSubtask = async (
+    taskId: string,
+    subtaskId: string,
+    content: string,
+  ) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/subtasks/${subtaskId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId: event._id,
-          content,
-        }),
-      });
+      const response = await fetch(
+        `/api/tasks/${taskId}/subtasks/${subtaskId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventId: event._id,
+            content,
+          }),
+        },
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to edit subtask');
+        throw new Error("Failed to edit subtask");
       }
 
       // Update local state
-      setTasks((prev) => prev.map((task) =>
-        task.id === taskId
-          ? {
-            ...task,
-            subtasks: task.subtasks.map((sub) =>
-              sub.id === subtaskId ? { ...sub, content } : sub
-            )
-          }
-          : task
-      ));
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                subtasks: task.subtasks.map((sub) =>
+                  sub.id === subtaskId ? { ...sub, content } : sub,
+                ),
+              }
+            : task,
+        ),
+      );
 
       toast({
         title: "Success",
         description: "Subtask updated successfully.",
       });
     } catch (error) {
-      console.error('Error editing subtask:', error);
+      console.error("Error editing subtask:", error);
       toast({
         title: "Error",
         description: "Failed to edit subtask. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteSubtask = async (taskId: string, subtaskId: string) => {
     try {
-      console.log('Deleting subtask:', { taskId, subtaskId, eventId: event._id });
-
-      const response = await fetch(`/api/tasks/${taskId}/subtasks/${subtaskId}?eventId=${event._id}`, {
-        method: 'DELETE',
+      console.log("Deleting subtask:", {
+        taskId,
+        subtaskId,
+        eventId: event._id,
       });
 
+      const response = await fetch(
+        `/api/tasks/${taskId}/subtasks/${subtaskId}?eventId=${event._id}`,
+        {
+          method: "DELETE",
+        },
+      );
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-        console.error('Delete subtask failed:', {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Failed to parse error response" }));
+        console.error("Delete subtask failed:", {
           status: response.status,
           statusText: response.statusText,
           errorData,
-          url: response.url
+          url: response.url,
         });
-        throw new Error(errorData.error || errorData.message || `Failed to delete subtask (${response.status}: ${response.statusText})`);
+        throw new Error(
+          errorData.error ||
+            errorData.message ||
+            `Failed to delete subtask (${response.status}: ${response.statusText})`,
+        );
       }
 
       // Update local state
-      setTasks((prev) => prev.map((task) =>
-        task.id === taskId
-          ? {
-            ...task,
-            subtasks: task.subtasks.filter((sub) => sub.id !== subtaskId)
-          }
-          : task
-      ));
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                subtasks: task.subtasks.filter((sub) => sub.id !== subtaskId),
+              }
+            : task,
+        ),
+      );
 
       toast({
         title: "Success",
         description: "Subtask deleted successfully.",
       });
     } catch (error) {
-      console.error('Error deleting subtask:', error);
+      console.error("Error deleting subtask:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete subtask. Please try again.",
-        variant: "destructive"
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete subtask. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleMoveSubtask = (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => {
+  const handleMoveSubtask = (
+    subtaskId: string,
+    sourceTaskId: string,
+    targetTaskId: string,
+    targetIndex: number,
+  ) => {
     setTasks((prev) => {
       let subtaskToMove: Subtask | undefined;
       const updatedTasks = prev.map((task) => {
@@ -756,22 +925,22 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
   const handleAddTask = async (columnId: string) => {
     try {
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
+      const response = await fetch("/api/tasks", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId: event._id,
-          content: 'New Task',
+          content: "New Task",
           column: columnId,
-          priority: 'medium',
-          estimatedDuration: '1 hour',
+          priority: "medium",
+          estimatedDuration: "1 hour",
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create task');
+        throw new Error("Failed to create task");
       }
 
       const data = await response.json();
@@ -784,7 +953,7 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
         description: "New task created successfully.",
       });
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error("Error creating task:", error);
       toast({
         title: "Error",
         description: "Failed to create task. Please try again.",
@@ -796,35 +965,37 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
   const handleAddSubtask = async (taskId: string) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}/subtasks`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId: event._id,
-          content: 'New Subtask',
+          content: "New Subtask",
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create subtask');
+        throw new Error("Failed to create subtask");
       }
 
       const data = await response.json();
 
       // Add the new subtask to local state
-      setTasks((prev) => prev.map((task) =>
-        task.id === taskId
-          ? { ...task, subtasks: [...task.subtasks, data.subtask] }
-          : task
-      ));
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? { ...task, subtasks: [...task.subtasks, data.subtask] }
+            : task,
+        ),
+      );
 
       toast({
         title: "Success",
         description: "New subtask created successfully.",
       });
     } catch (error) {
-      console.error('Error creating subtask:', error);
+      console.error("Error creating subtask:", error);
       toast({
         title: "Error",
         description: "Failed to create subtask. Please try again.",
@@ -834,20 +1005,24 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
   };
 
   const columns = [
-    { id: 'planning', title: 'Planning', icon: '📋' },
-    { id: 'developing', title: 'In Progress', icon: '🔧' },
-    { id: 'reviewing', title: 'Review', icon: '👁️' },
-    { id: 'finished', title: 'Completed', icon: '✅' },
+    { id: "planning", title: "Planning", icon: "📋" },
+    { id: "developing", title: "In Progress", icon: "🔧" },
+    { id: "reviewing", title: "Review", icon: "👁️" },
+    { id: "finished", title: "Completed", icon: "✅" },
   ];
 
   const getTaskStats = () => {
     const total = tasks.length;
-    const totalSubtasks = tasks.reduce((sum, task) => sum + task.subtasks.length, 0);
+    const totalSubtasks = tasks.reduce(
+      (sum, task) => sum + task.subtasks.length,
+      0,
+    );
     return { total, totalSubtasks };
   };
 
   const stats = getTaskStats();
-  const categoryName = typeof event.category === 'string' ? event.category : event.category.name;
+  const categoryName =
+    typeof event.category === "string" ? event.category : event.category.name;
 
   // Show loading state
   if (isLoading) {
@@ -858,7 +1033,9 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
             <div className="flex items-center justify-center gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
               <div className="text-center">
-                <h3 className="text-xl font-semibold text-blue-900 mb-2">Loading Event Tasks</h3>
+                <h3 className="text-xl font-semibold text-blue-900 mb-2">
+                  Loading Event Tasks
+                </h3>
               </div>
             </div>
           </CardContent>
@@ -876,8 +1053,13 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
             <div className="flex items-center justify-center gap-3">
               <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
               <div>
-                <h3 className="text-lg font-semibold text-emerald-900">Generating AI-Powered Tasks</h3>
-                <p className="text-emerald-700">Creating a personalized task list for your {categoryName.toLowerCase()} event...</p>
+                <h3 className="text-lg font-semibold text-emerald-900">
+                  Generating AI-Powered Tasks
+                </h3>
+                <p className="text-emerald-700">
+                  Creating a personalized task list for your{" "}
+                  {categoryName.toLowerCase()} event...
+                </p>
               </div>
             </div>
           </CardContent>
@@ -890,8 +1072,12 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
           <CardContent className="p-4">
             <div className="flex items-center justify-between text-sm">
               <div className="flex gap-4">
-                <span><strong>{stats.total}</strong> tasks</span>
-                <span><strong>{stats.totalSubtasks}</strong> subtasks</span>
+                <span>
+                  <strong>{stats.total}</strong> tasks
+                </span>
+                <span>
+                  <strong>{stats.totalSubtasks}</strong> subtasks
+                </span>
               </div>
             </div>
           </CardContent>
@@ -928,9 +1114,17 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
       {tasks.length === 0 && hasGenerated && (
         <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
           <AlertCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks generated</h3>
-          <p className="text-gray-600 mb-4">Something went wrong with task generation. Please try again.</p>
-          <Button onClick={() => handleGenerateTasks(false)} disabled={isGenerating} className="flex items-center gap-2">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No tasks generated
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Something went wrong with task generation. Please try again.
+          </p>
+          <Button
+            onClick={() => handleGenerateTasks(false)}
+            disabled={isGenerating}
+            className="flex items-center gap-2"
+          >
             <Plus className="h-4 w-4" />
             Generate Tasks
           </Button>

@@ -1,18 +1,45 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from '@/hooks/use-toast';
-import { Plus, Users, Search, Mail, Loader2 } from 'lucide-react';
-import RoleBadge from './RoleBadge';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "@/hooks/use-toast";
+import { Plus, Users, Search, Mail, Loader2 } from "lucide-react";
+import RoleBadge from "./RoleBadge";
 
 interface StakeholderManagementProps {
   eventId: string;
@@ -31,23 +58,25 @@ export default function StakeholderManagement({
   filters,
 }: StakeholderManagementProps) {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState(filters.search || '');
-  const [selectedRole, setSelectedRole] = useState(filters.role || 'all');
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
+  const [selectedRole, setSelectedRole] = useState(filters.role || "all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState<string | null>(null);
   const [newStakeholder, setNewStakeholder] = useState({
-    email: '',
-    role: 'volunteer',
+    email: "",
+    role: "volunteer",
   });
 
   // Filter stakeholders based on search and role
   const filteredStakeholders = stakeholders.filter((stakeholder) => {
-    const matchesSearch = !searchTerm ||
+    const matchesSearch =
+      !searchTerm ||
       stakeholder.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stakeholder.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesRole = selectedRole === 'all' || stakeholder.role === selectedRole;
+    const matchesRole =
+      selectedRole === "all" || stakeholder.role === selectedRole;
 
     return matchesSearch && matchesRole;
   });
@@ -55,9 +84,9 @@ export default function StakeholderManagement({
   const handleAddStakeholder = async () => {
     if (!newStakeholder.email || !newStakeholder.role) {
       toast({
-        title: 'Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive',
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
       });
       return;
     }
@@ -65,10 +94,10 @@ export default function StakeholderManagement({
     setIsLoading(true);
     try {
       // Send invitation email and create stakeholder
-      const response = await fetch('/api/stakeholders/invite', {
-        method: 'POST',
+      const response = await fetch("/api/stakeholders/invite", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId,
@@ -78,27 +107,28 @@ export default function StakeholderManagement({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send invitation');
+        throw new Error("Failed to send invitation");
       }
 
       const result = await response.json();
 
       toast({
-        title: 'Success',
-        description: result.message || 'Invitation sent successfully',
+        title: "Success",
+        description: result.message || "Invitation sent successfully",
       });
 
       setIsAddDialogOpen(false);
       setNewStakeholder({
-        email: '',
-        role: 'volunteer',
+        email: "",
+        role: "volunteer",
       });
       router.refresh();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to send invitation',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to send invitation",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -107,8 +137,8 @@ export default function StakeholderManagement({
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (searchTerm) params.set('search', searchTerm);
-    if (selectedRole !== 'all') params.set('role', selectedRole);
+    if (searchTerm) params.set("search", searchTerm);
+    if (selectedRole !== "all") params.set("role", selectedRole);
 
     router.push(`/event/${eventId}/stakeholders?${params.toString()}`);
   };
@@ -118,9 +148,9 @@ export default function StakeholderManagement({
       setIsSendingEmail(stakeholder._id);
 
       const response = await fetch(`/api/stakeholders/send-email`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId,
@@ -134,18 +164,19 @@ export default function StakeholderManagement({
 
       if (response.ok) {
         toast({
-          title: 'Email sent successfully',
+          title: "Email sent successfully",
           description: `Event details sent to ${stakeholder.email}`,
         });
       } else {
-        throw new Error(result.error || 'Failed to send email');
+        throw new Error(result.error || "Failed to send email");
       }
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error("Error sending email:", error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to send email',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to send email",
+        variant: "destructive",
       });
     } finally {
       setIsSendingEmail(null);
@@ -234,14 +265,21 @@ export default function StakeholderManagement({
                       type="email"
                       placeholder="Enter email address"
                       value={newStakeholder.email}
-                      onChange={(e) => setNewStakeholder({ ...newStakeholder, email: e.target.value })}
+                      onChange={(e) =>
+                        setNewStakeholder({
+                          ...newStakeholder,
+                          email: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div>
                     <Label htmlFor="role">Role</Label>
                     <Select
                       value={newStakeholder.role}
-                      onValueChange={(value) => setNewStakeholder({ ...newStakeholder, role: value })}
+                      onValueChange={(value) =>
+                        setNewStakeholder({ ...newStakeholder, role: value })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select role" />
@@ -254,11 +292,16 @@ export default function StakeholderManagement({
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddDialogOpen(false)}
+                  >
                     Cancel
                   </Button>
                   <Button onClick={handleAddStakeholder} disabled={isLoading}>
-                    {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {isLoading && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
                     Send Invitation
                   </Button>
                 </DialogFooter>
@@ -315,7 +358,8 @@ export default function StakeholderManagement({
                         <Users className="h-8 w-8 text-gray-400" />
                         <p className="text-gray-500">No stakeholders found</p>
                         <p className="text-sm text-gray-400">
-                          Start by inviting volunteers and speakers to your event
+                          Start by inviting volunteers and speakers to your
+                          event
                         </p>
                       </div>
                     </TableCell>
@@ -323,14 +367,22 @@ export default function StakeholderManagement({
                 ) : (
                   filteredStakeholders.map((stakeholder) => (
                     <TableRow key={stakeholder._id}>
-                      <TableCell className="font-medium">{stakeholder.email}</TableCell>
-                      <TableCell>{stakeholder.name || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">
+                        {stakeholder.email}
+                      </TableCell>
+                      <TableCell>{stakeholder.name || "N/A"}</TableCell>
                       <TableCell>
                         <RoleBadge role={stakeholder.role} size="sm" />
                       </TableCell>
                       <TableCell>
-                        <Badge variant={stakeholder.attendanceStatus === 'confirmed' ? 'default' : 'secondary'}>
-                          {stakeholder.attendanceStatus || 'invited'}
+                        <Badge
+                          variant={
+                            stakeholder.attendanceStatus === "confirmed"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {stakeholder.attendanceStatus || "invited"}
                         </Badge>
                       </TableCell>
                       <TableCell>

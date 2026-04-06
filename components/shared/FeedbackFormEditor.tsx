@@ -1,14 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { Settings, Save, RefreshCw } from 'lucide-react';
-import CustomQuestionsManager from './CustomQuestionsManager';
-import { ICustomQuestion } from '@/types';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Settings, Save, RefreshCw } from "lucide-react";
+import CustomQuestionsManager from "./CustomQuestionsManager";
+import { ICustomQuestion } from "@/types";
 
 interface FeedbackTemplate {
   _id: string;
@@ -42,7 +54,7 @@ export default function FeedbackFormEditor({
     setLoading(true);
     try {
       const response = await fetch(`/api/feedback/template/${eventId}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         setTemplate(data.template);
@@ -54,10 +66,10 @@ export default function FeedbackFormEditor({
         setCustomQuestions([]);
         setFeedbackHours(2);
       } else {
-        throw new Error('Failed to fetch feedback template');
+        throw new Error("Failed to fetch feedback template");
       }
     } catch (error) {
-      console.error('Error fetching template:', error);
+      console.error("Error fetching template:", error);
       toast({
         title: "Error",
         description: "Failed to load feedback template",
@@ -72,9 +84,9 @@ export default function FeedbackFormEditor({
     setSaving(true);
     try {
       const response = await fetch(`/api/feedback/template/${eventId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           customQuestions,
@@ -91,13 +103,16 @@ export default function FeedbackFormEditor({
         });
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update feedback form');
+        throw new Error(errorData.message || "Failed to update feedback form");
       }
     } catch (error) {
-      console.error('Error saving template:', error);
+      console.error("Error saving template:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update feedback form",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update feedback form",
         variant: "destructive",
       });
     } finally {
@@ -139,7 +154,7 @@ export default function FeedbackFormEditor({
           ) : (
             <Save className="h-4 w-4 mr-2" />
           )}
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 
@@ -175,7 +190,8 @@ export default function FeedbackFormEditor({
                 </SelectContent>
               </Select>
               <p className="text-sm text-gray-600">
-                How long after the event ends should feedback emails be sent to attendees
+                How long after the event ends should feedback emails be sent to
+                attendees
               </p>
             </div>
           </div>
@@ -187,7 +203,8 @@ export default function FeedbackFormEditor({
         <CardHeader>
           <CardTitle>Custom Questions</CardTitle>
           <CardDescription>
-            Add custom questions specific to your event. These will appear in addition to the default feedback questions.
+            Add custom questions specific to your event. These will appear in
+            addition to the default feedback questions.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -221,15 +238,19 @@ export default function FeedbackFormEditor({
                 <li>• Additional comments (text)</li>
               </ul>
             </div>
-            
+
             {customQuestions.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-medium">Your Custom Questions</h4>
                 <ul className="text-sm text-gray-600 space-y-1">
                   {customQuestions.map((question, index) => (
                     <li key={question.id}>
-                      • {question.question} ({question.type === 'rating' ? '1-5 stars' : question.type})
-                      {question.required && <span className="text-red-500"> *</span>}
+                      • {question.question} (
+                      {question.type === "rating" ? "1-5 stars" : question.type}
+                      )
+                      {question.required && (
+                        <span className="text-red-500"> *</span>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -13,7 +13,15 @@ interface EventCardsProps {
   isBookedEvent?: boolean; // Whether these are booked events
 }
 
-const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page, user, isBookedEvent = false }: EventCardsProps) => {
+const EventCards = ({
+  events,
+  currentUserId,
+  emptyTitle,
+  emptyStateSubtext,
+  page,
+  user,
+  isBookedEvent = false,
+}: EventCardsProps) => {
   if (!events || events.length === 0) {
     return (
       <NoResults
@@ -29,7 +37,9 @@ const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:gap-10">
       {events.map((event, index) => {
         // Check if this event is liked by the current user
-        const likedEvent = user?.likedEvents ? user.likedEvents.includes(event._id) : false;
+        const likedEvent = user?.likedEvents
+          ? user.likedEvents.includes(event._id)
+          : false;
 
         return (
           <EventCard

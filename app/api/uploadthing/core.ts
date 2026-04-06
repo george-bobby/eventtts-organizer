@@ -1,5 +1,5 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { headers } from 'next/headers';
 
 const f = createUploadthing();
@@ -18,7 +18,7 @@ export const ourFileRouter = {
 			// This code RUNS ON YOUR SERVER after upload
 			console.log('Upload complete for userId:', metadata.userId);
 
-			console.log('file url', file.url);
+			console.log('file url', file.ufsUrl);
 
 			// !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
 			return { uploadedBy: metadata.userId };
@@ -38,7 +38,7 @@ export const ourFileRouter = {
 				'Certificate template upload complete for userId:',
 				metadata.userId
 			);
-			console.log('file url', file.url);
+			console.log('file url', file.ufsUrl);
 			return { uploadedBy: metadata.userId, uploadType: metadata.uploadType };
 		}),
 
@@ -60,9 +60,9 @@ export const ourFileRouter = {
 			return { userId, uploadType: 'photo-gallery' };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
-			console.log('Photo gallery upload complete for userId:', metadata.userId);
-			console.log('file url', file.url);
-			return { uploadedBy: metadata.userId, uploadType: metadata.uploadType };
+		console.log('Photo gallery upload complete for userId:', metadata.userId);
+		console.log('file url', file.ufsUrl);
+		return { uploadedBy: metadata.userId, uploadType: metadata.uploadType };
 		}),
 
 	// Stakeholder CSV/Excel uploader
@@ -82,7 +82,7 @@ export const ourFileRouter = {
 				'Stakeholder data upload complete for userId:',
 				metadata.userId
 			);
-			console.log('file url', file.url);
+			console.log('file url', file.ufsUrl);
 			return { uploadedBy: metadata.userId, uploadType: metadata.uploadType };
 		}),
 } satisfies FileRouter;

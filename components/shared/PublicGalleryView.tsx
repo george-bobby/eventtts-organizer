@@ -1,12 +1,24 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   Download,
   Search,
@@ -17,8 +29,8 @@ import {
   Share2,
   Filter,
   Grid3X3,
-  List
-} from 'lucide-react';
+  List,
+} from "lucide-react";
 
 interface PublicGalleryViewProps {
   gallery: any;
@@ -44,10 +56,12 @@ export default function PublicGalleryView({
   photosData,
   filters,
 }: PublicGalleryViewProps) {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState(filters.search || '');
-  const [selectedCategory, setSelectedCategory] = useState(filters.category || 'all');
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    filters.category || "all",
+  );
 
   const { photos, pagination } = photosData;
 
@@ -55,9 +69,9 @@ export default function PublicGalleryView({
     setSelectedPhoto(photo);
     // Increment view count
     fetch(`/api/gallery/${gallery._id}/photos/${photo._id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'view' }),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "view" }),
     });
   };
 
@@ -66,13 +80,13 @@ export default function PublicGalleryView({
 
     // Track download
     await fetch(`/api/gallery/${gallery._id}/photos/${photo._id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'download' }),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "download" }),
     });
 
     // Download the photo
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = photo.fileUrl;
     link.download = photo.originalName;
     link.click();
@@ -87,12 +101,12 @@ export default function PublicGalleryView({
           url: window.location.href,
         });
       } catch (error) {
-        console.log('Error sharing:', error);
+        console.log("Error sharing:", error);
       }
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert('Gallery link copied to clipboard!');
+      alert("Gallery link copied to clipboard!");
     }
   };
 
@@ -102,7 +116,9 @@ export default function PublicGalleryView({
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{gallery.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {gallery.name}
+            </h1>
             {gallery.description && (
               <p className="text-gray-600 mb-4">{gallery.description}</p>
             )}
@@ -150,15 +166,21 @@ export default function PublicGalleryView({
               />
             </div>
             {gallery.categories && gallery.categories.length > 0 && (
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {gallery.categories.map((category: string) => (
-                    <SelectItem key={category} value={category || 'uncategorized'}>
-                      {category || 'Uncategorized'}
+                    <SelectItem
+                      key={category}
+                      value={category || "uncategorized"}
+                    >
+                      {category || "Uncategorized"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -172,17 +194,17 @@ export default function PublicGalleryView({
             </span>
             <div className="flex border rounded-md">
               <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setViewMode('grid')}
+                onClick={() => setViewMode("grid")}
                 className="rounded-r-none"
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
               <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setViewMode('list')}
+                onClick={() => setViewMode("list")}
                 className="rounded-l-none"
               >
                 <List className="h-4 w-4" />
@@ -200,25 +222,28 @@ export default function PublicGalleryView({
             <h3 className="text-lg font-semibold mb-2">No Photos Found</h3>
             <p className="text-gray-600 text-center">
               {filters.search || filters.category
-                ? 'Try adjusting your search filters.'
-                : 'Photos will appear here once they are uploaded.'}
+                ? "Try adjusting your search filters."
+                : "Photos will appear here once they are uploaded."}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className={
-          viewMode === 'grid'
-            ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'
-            : 'space-y-4'
-        }>
+        <div
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+              : "space-y-4"
+          }
+        >
           {photos.map((photo) => (
             <Card
               key={photo._id}
-              className={`cursor-pointer hover:shadow-lg transition-shadow ${viewMode === 'list' ? 'flex flex-row' : ''
-                }`}
+              className={`cursor-pointer hover:shadow-lg transition-shadow ${
+                viewMode === "list" ? "flex flex-row" : ""
+              }`}
               onClick={() => handlePhotoClick(photo)}
             >
-              <div className={viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}>
+              <div className={viewMode === "list" ? "w-48 flex-shrink-0" : ""}>
                 <div className="relative aspect-square overflow-hidden rounded-t-lg">
                   <Image
                     src={photo.thumbnailUrl || photo.fileUrl}
@@ -229,7 +254,7 @@ export default function PublicGalleryView({
                 </div>
               </div>
 
-              {viewMode === 'list' && (
+              {viewMode === "list" && (
                 <CardContent className="flex-1 p-4">
                   <h4 className="font-medium mb-2">
                     {photo.metadata?.caption || photo.originalName}
@@ -242,7 +267,11 @@ export default function PublicGalleryView({
                   {photo.metadata?.tags && photo.metadata.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                       {photo.metadata.tags.slice(0, 3).map((tag: string) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -266,7 +295,7 @@ export default function PublicGalleryView({
                 </CardContent>
               )}
 
-              {viewMode === 'grid' && photo.metadata?.caption && (
+              {viewMode === "grid" && photo.metadata?.caption && (
                 <CardContent className="p-3">
                   <p className="text-sm text-gray-600 line-clamp-2">
                     {photo.metadata.caption}
@@ -282,20 +311,22 @@ export default function PublicGalleryView({
       {pagination.totalPages > 1 && (
         <div className="flex justify-center mt-8">
           <div className="flex gap-2">
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={page === pagination.page ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('page', page.toString());
-                  window.location.href = url.toString();
-                }}
-              >
-                {page}
-              </Button>
-            ))}
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
+              (page) => (
+                <Button
+                  key={page}
+                  variant={page === pagination.page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("page", page.toString());
+                    window.location.href = url.toString();
+                  }}
+                >
+                  {page}
+                </Button>
+              ),
+            )}
           </div>
         </div>
       )}
@@ -310,7 +341,9 @@ export default function PublicGalleryView({
             <div className="relative">
               <Image
                 src={selectedPhoto.fileUrl}
-                alt={selectedPhoto.metadata?.caption || selectedPhoto.originalName}
+                alt={
+                  selectedPhoto.metadata?.caption || selectedPhoto.originalName
+                }
                 width={selectedPhoto.dimensions.width}
                 height={selectedPhoto.dimensions.height}
                 className="max-w-full max-h-[80vh] object-contain"
@@ -326,7 +359,9 @@ export default function PublicGalleryView({
             </div>
             {selectedPhoto.metadata?.caption && (
               <div className="p-4">
-                <p className="text-gray-800">{selectedPhoto.metadata.caption}</p>
+                <p className="text-gray-800">
+                  {selectedPhoto.metadata.caption}
+                </p>
               </div>
             )}
           </div>

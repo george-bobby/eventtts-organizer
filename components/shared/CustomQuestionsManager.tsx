@@ -1,50 +1,62 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Plus, 
-  Trash2, 
-  Star, 
-  MessageSquare, 
-  List, 
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Trash2,
+  Star,
+  MessageSquare,
+  List,
   ToggleLeft,
-  GripVertical
-} from 'lucide-react';
-import { ICustomQuestion } from '@/types';
+  GripVertical,
+} from "lucide-react";
+import { ICustomQuestion } from "@/types";
 
 interface CustomQuestionsManagerProps {
   questions: ICustomQuestion[];
   onQuestionsChange: (questions: ICustomQuestion[]) => void;
 }
 
-export default function CustomQuestionsManager({ 
-  questions, 
-  onQuestionsChange 
+export default function CustomQuestionsManager({
+  questions,
+  onQuestionsChange,
 }: CustomQuestionsManagerProps) {
   const [newQuestion, setNewQuestion] = useState<Partial<ICustomQuestion>>({
-    question: '',
-    type: 'text',
+    question: "",
+    type: "text",
     required: false,
-    options: []
+    options: [],
   });
 
   const getQuestionIcon = (type: string) => {
     switch (type) {
-      case 'rating':
+      case "rating":
         return <Star className="w-4 h-4 text-yellow-500" />;
-      case 'multipleChoice':
+      case "multipleChoice":
         return <List className="w-4 h-4 text-purple-500" />;
-      case 'yesNo':
+      case "yesNo":
         return <ToggleLeft className="w-4 h-4 text-blue-500" />;
-      case 'text':
+      case "text":
         return <MessageSquare className="w-4 h-4 text-green-500" />;
       default:
         return <MessageSquare className="w-4 h-4 text-gray-500" />;
@@ -53,16 +65,16 @@ export default function CustomQuestionsManager({
 
   const getQuestionTypeLabel = (type: string) => {
     switch (type) {
-      case 'rating':
-        return 'Star Rating';
-      case 'multipleChoice':
-        return 'Multiple Choice';
-      case 'yesNo':
-        return 'Yes/No';
-      case 'text':
-        return 'Text Response';
+      case "rating":
+        return "Star Rating";
+      case "multipleChoice":
+        return "Multiple Choice";
+      case "yesNo":
+        return "Yes/No";
+      case "text":
+        return "Text Response";
       default:
-        return 'Unknown';
+        return "Unknown";
     }
   };
 
@@ -72,41 +84,46 @@ export default function CustomQuestionsManager({
     const question: ICustomQuestion = {
       id: `custom_${Date.now()}`,
       question: newQuestion.question,
-      type: newQuestion.type as 'rating' | 'text' | 'multipleChoice' | 'yesNo',
+      type: newQuestion.type as "rating" | "text" | "multipleChoice" | "yesNo",
       required: newQuestion.required || false,
-      options: newQuestion.type === 'multipleChoice' ? newQuestion.options : undefined
+      options:
+        newQuestion.type === "multipleChoice" ? newQuestion.options : undefined,
     };
 
     onQuestionsChange([...questions, question]);
     setNewQuestion({
-      question: '',
-      type: 'text',
+      question: "",
+      type: "text",
       required: false,
-      options: []
+      options: [],
     });
   };
 
   const removeQuestion = (id: string) => {
-    onQuestionsChange(questions.filter(q => q.id !== id));
+    onQuestionsChange(questions.filter((q) => q.id !== id));
   };
 
   const updateQuestion = (id: string, updates: Partial<ICustomQuestion>) => {
-    onQuestionsChange(questions.map(q => 
-      q.id === id ? { ...q, ...updates } : q
-    ));
+    onQuestionsChange(
+      questions.map((q) => (q.id === id ? { ...q, ...updates } : q)),
+    );
   };
 
   const addOption = (questionId: string) => {
-    const question = questions.find(q => q.id === questionId);
+    const question = questions.find((q) => q.id === questionId);
     if (question && question.options) {
       updateQuestion(questionId, {
-        options: [...question.options, `Option ${question.options.length + 1}`]
+        options: [...question.options, `Option ${question.options.length + 1}`],
       });
     }
   };
 
-  const updateOption = (questionId: string, optionIndex: number, value: string) => {
-    const question = questions.find(q => q.id === questionId);
+  const updateOption = (
+    questionId: string,
+    optionIndex: number,
+    value: string,
+  ) => {
+    const question = questions.find((q) => q.id === questionId);
     if (question && question.options) {
       const newOptions = [...question.options];
       newOptions[optionIndex] = value;
@@ -115,10 +132,10 @@ export default function CustomQuestionsManager({
   };
 
   const removeOption = (questionId: string, optionIndex: number) => {
-    const question = questions.find(q => q.id === questionId);
+    const question = questions.find((q) => q.id === questionId);
     if (question && question.options) {
       updateQuestion(questionId, {
-        options: question.options.filter((_, i) => i !== optionIndex)
+        options: question.options.filter((_, i) => i !== optionIndex),
       });
     }
   };
@@ -126,9 +143,12 @@ export default function CustomQuestionsManager({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">Custom Questions</h3>
+        <h3 className="text-lg font-semibold text-gray-900">
+          Custom Questions
+        </h3>
         <p className="text-sm text-gray-600">
-          Add specific questions tailored to your event. These will appear after the default questions.
+          Add specific questions tailored to your event. These will appear after
+          the default questions.
         </p>
       </div>
 
@@ -143,7 +163,9 @@ export default function CustomQuestionsManager({
               <Label>Question Type</Label>
               <Select
                 value={newQuestion.type}
-                onValueChange={(value) => setNewQuestion({ ...newQuestion, type: value as any })}
+                onValueChange={(value) =>
+                  setNewQuestion({ ...newQuestion, type: value as any })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -151,7 +173,9 @@ export default function CustomQuestionsManager({
                 <SelectContent>
                   <SelectItem value="text">Text Response</SelectItem>
                   <SelectItem value="rating">Star Rating (1-5)</SelectItem>
-                  <SelectItem value="multipleChoice">Multiple Choice</SelectItem>
+                  <SelectItem value="multipleChoice">
+                    Multiple Choice
+                  </SelectItem>
                   <SelectItem value="yesNo">Yes/No</SelectItem>
                 </SelectContent>
               </Select>
@@ -160,7 +184,9 @@ export default function CustomQuestionsManager({
               <Switch
                 id="required"
                 checked={newQuestion.required}
-                onCheckedChange={(checked) => setNewQuestion({ ...newQuestion, required: checked })}
+                onCheckedChange={(checked) =>
+                  setNewQuestion({ ...newQuestion, required: checked })
+                }
               />
               <Label htmlFor="required">Required</Label>
             </div>
@@ -171,12 +197,14 @@ export default function CustomQuestionsManager({
             <Textarea
               placeholder="Enter your question..."
               value={newQuestion.question}
-              onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+              onChange={(e) =>
+                setNewQuestion({ ...newQuestion, question: e.target.value })
+              }
               className="min-h-[80px]"
             />
           </div>
 
-          {newQuestion.type === 'multipleChoice' && (
+          {newQuestion.type === "multipleChoice" && (
             <div className="space-y-2">
               <Label>Options</Label>
               <div className="space-y-2">
@@ -196,7 +224,9 @@ export default function CustomQuestionsManager({
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const newOptions = (newQuestion.options || []).filter((_, i) => i !== index);
+                        const newOptions = (newQuestion.options || []).filter(
+                          (_, i) => i !== index,
+                        );
                         setNewQuestion({ ...newQuestion, options: newOptions });
                       }}
                     >
@@ -209,7 +239,10 @@ export default function CustomQuestionsManager({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const newOptions = [...(newQuestion.options || []), `Option ${(newQuestion.options || []).length + 1}`];
+                    const newOptions = [
+                      ...(newQuestion.options || []),
+                      `Option ${(newQuestion.options || []).length + 1}`,
+                    ];
                     setNewQuestion({ ...newQuestion, options: newOptions });
                   }}
                   className="w-full"
@@ -243,37 +276,50 @@ export default function CustomQuestionsManager({
                     </div>
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{question.question}</span>
+                        <span className="font-medium text-gray-900">
+                          {question.question}
+                        </span>
                         {question.required && (
-                          <Badge variant="secondary" className="text-xs">Required</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            Required
+                          </Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
                           {getQuestionTypeLabel(question.type)}
                         </Badge>
-                        <span className="text-xs text-gray-500">Question #{index + 1}</span>
+                        <span className="text-xs text-gray-500">
+                          Question #{index + 1}
+                        </span>
                       </div>
-                      
-                      {question.type === 'multipleChoice' && question.options && (
-                        <div className="space-y-1">
-                          <p className="text-xs text-gray-600">Options:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {question.options.map((option, optIndex) => (
-                              <Badge key={optIndex} variant="outline" className="text-xs">
-                                {option}
-                              </Badge>
-                            ))}
+
+                      {question.type === "multipleChoice" &&
+                        question.options && (
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-600">Options:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {question.options.map((option, optIndex) => (
+                                <Badge
+                                  key={optIndex}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {option}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={question.required}
-                      onCheckedChange={(checked) => updateQuestion(question.id, { required: checked })}
+                      onCheckedChange={(checked) =>
+                        updateQuestion(question.id, { required: checked })
+                      }
                     />
                     <Button
                       size="sm"

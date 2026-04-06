@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import QRCodeLib from 'qrcode';
-import { cn } from '@/lib/utils';
+import React, { useEffect, useRef, useState } from "react";
+import QRCodeLib from "qrcode";
+import { cn } from "@/lib/utils";
 
 interface QRCodeProps {
   data: string;
   size?: number;
-  level?: 'L' | 'M' | 'Q' | 'H';
+  level?: "L" | "M" | "Q" | "H";
   includeMargin?: boolean;
   imageSettings?: {
     src: string;
@@ -23,10 +23,10 @@ interface QRCodeProps {
 export function QRCode({
   data,
   size = 200,
-  level = 'M',
+  level = "M",
   includeMargin = true,
-  bgColor = '#FFFFFF',
-  fgColor = '#000000',
+  bgColor = "#FFFFFF",
+  fgColor = "#000000",
   className,
 }: QRCodeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,8 +48,8 @@ export function QRCode({
           width: size,
         });
       } catch (err) {
-        console.error('Error generating QR code:', err);
-        setError('Failed to generate QR code');
+        console.error("Error generating QR code:", err);
+        setError("Failed to generate QR code");
       }
     };
 
@@ -61,7 +61,7 @@ export function QRCode({
       <div
         className={cn(
           "flex items-center justify-center border border-red-200 bg-red-50 text-red-600 rounded-lg",
-          className
+          className,
         )}
         style={{ width: size, height: size }}
       >
@@ -74,7 +74,7 @@ export function QRCode({
     <canvas
       ref={canvasRef}
       className={cn("border border-gray-200 rounded-lg", className)}
-      style={{ maxWidth: '100%', height: 'auto' }}
+      style={{ maxWidth: "100%", height: "auto" }}
     />
   );
 }
@@ -83,7 +83,7 @@ export function QRCode({
 export function TicketQRCode({
   entryCode,
   size = 150,
-  className
+  className,
 }: {
   entryCode: string;
   size?: number;

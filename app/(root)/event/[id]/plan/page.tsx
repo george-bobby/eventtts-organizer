@@ -1,13 +1,13 @@
-import EventPlanner from '@/components/shared/EventPlanner';
-import { getEventById } from '@/lib/actions/event.action';
-import { getUserByClerkId } from '@/lib/actions/user.action';
-import { auth } from '@clerk/nextjs';
-import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import NoResults from '@/components/shared/NoResults';
+import EventPlanner from "@/components/shared/EventPlanner";
+import { getEventById } from "@/lib/actions/event.action";
+import { getUserByClerkId } from "@/lib/actions/user.action";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import NoResults from "@/components/shared/NoResults";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -24,26 +24,40 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect('/sign-in');
+    redirect("/sign-in");
   }
 
   const user = await getUserByClerkId(userId);
   const event = await getEventById(awaitedParams.id);
 
   if (!event) {
-    return <NoResults title="Event not found" desc="The event you are looking for does not exist." link="/" linkTitle="Go Home" />;
+    return (
+      <NoResults
+        title="Event not found"
+        desc="The event you are looking for does not exist."
+        link="/"
+        linkTitle="Go Home"
+      />
+    );
   }
 
   // Check if user is the organizer
   if (String(event.organizer._id) !== String(user._id)) {
-    return <NoResults title="Access Denied" desc="Only the event organizer can access the planning board." link={`/event/${event._id}`} linkTitle="Back to Event" />;
+    return (
+      <NoResults
+        title="Access Denied"
+        desc="Only the event organizer can access the planning board."
+        link={`/event/${event._id}`}
+        linkTitle="Back to Event"
+      />
+    );
   }
 
   // If subEventId is provided, find the sub-event
   let targetEvent = {
     _id: event._id.toString(),
     title: event.title,
-    category: (event.category as any)?.name || event.category || 'Unknown',
+    category: (event.category as any)?.name || event.category || "Unknown",
     description: event.description,
     startDate: event.startDate.toString(),
     endDate: event.endDate.toString(),
@@ -56,12 +70,15 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
   let isSubEvent = false;
 
   if (awaitedSearchParams.subEventId) {
-    const subEvent = event.subEvents?.find((se: any) => se._id.toString() === awaitedSearchParams.subEventId);
+    const subEvent = event.subEvents?.find(
+      (se: any) => se._id.toString() === awaitedSearchParams.subEventId,
+    );
     if (subEvent) {
       targetEvent = {
         _id: (subEvent._id as any).toString(),
         title: subEvent.title,
-        category: (subEvent.category as any)?.name || subEvent.category || 'Unknown',
+        category:
+          (subEvent.category as any)?.name || subEvent.category || "Unknown",
         description: subEvent.description,
         startDate: subEvent.startDate.toString(),
         endDate: subEvent.endDate.toString(),
@@ -76,29 +93,40 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-background min-h-screen pt-16">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-purple-500 to-purple-600 py-8">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Button asChild variant="outline" size="sm" className="bg-white text-purple-600 hover:bg-gray-100">
-              <Link href={`/event/${awaitedParams.id}/manage`}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="bg-white text-purple-600 hover:bg-gray-100">
-              <Link href={`/event/${awaitedParams.id}`}>
-                View Event Page
-              </Link>
-            </Button>
-          </div>
-          <h1 className="text-3xl font-bold text-white">Event Planning Board</h1>
-          <p className="text-purple-100 mt-2">
-            AI-powered task planning and management for {targetEvent.title}
-          </p>
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12 lg:py-20">
+        <div className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+          <span className="w-8 h-px bg-border" />
+          Planning
         </div>
-      </section>
+        <h1 className="text-[clamp(2.5rem,5vw,5rem)] font-display tracking-tight leading-[0.9] text-foreground mb-4">
+          Plan<br />
+          <span className="text-muted-foreground">Event.</span>
+        </h1>
+        <p className="text-xl text-muted-foreground mb-8">
+          AI-powered task planning and management for {targetEvent.title}
+        </p>
+        <div className="flex items-center gap-4">
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full border-foreground/20 text-foreground hover:bg-muted"
+          >
+            <Link href={`/event/${awaitedParams.id}/manage`}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full border-foreground/20 text-foreground hover:bg-muted"
+          >
+            <Link href={`/event/${awaitedParams.id}`}>View Event Page</Link>
+          </Button>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="w-full px-4 py-6">

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { headers } from 'next/headers';
 import { publishEventUpdate } from '@/lib/actions/eventupdate.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';

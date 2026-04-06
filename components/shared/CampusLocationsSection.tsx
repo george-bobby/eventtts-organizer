@@ -1,9 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { campusLocations, locationImages } from '@/lib/campus-data';
+import { useState } from "react";
+import { campusLocations, locationImages } from "@/lib/campus-data";
 
 const locations = [
   {
@@ -57,7 +55,8 @@ const locations = [
   },
   {
     name: "Amphi Theater",
-    description: "A semi-circular outdoor theater used for cultural events and ceremonies.",
+    description:
+      "A semi-circular outdoor theater used for cultural events and ceremonies.",
     coordinates: "12.861424, 77.438057",
     image: "loc_images/class9.jpg",
   },
@@ -77,22 +76,33 @@ const locations = [
 
 export default function CampusLocationsSection() {
   const [selected, setSelected] = useState(0);
+
   return (
-    <section className="w-full py-10 px-4 bg-white dark:bg-black text-black dark:text-white flex flex-col items-center">
-      <h2 className="text-4xl font-bold mb-2 text-center text-black dark:text-white">Campus Locations</h2>
-      <p className="mb-8 text-center text-lg max-w-2xl text-black dark:text-white">
-        Explore the 11 key locations around campus that our AI model can recognize. These are<br />
-        the places you can navigate to and from using our navigation system.
-      </p>
+    <section id="locations" className="w-full py-16 px-6 lg:px-12 max-w-[1400px] mx-auto flex flex-col items-center">
+      <div className="mb-12 lg:mb-16 flex flex-col items-center text-center">
+        <div className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+          <span className="w-8 h-px bg-border" />
+          Campus Overview
+          <span className="w-8 h-px bg-border" />
+        </div>
+        <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] font-display tracking-tight leading-[0.9] text-foreground mb-6">
+          Campus Locations.
+        </h2>
+        <p className="text-lg text-muted-foreground max-w-2xl">
+          Explore the 11 key locations around campus that our AI model can recognize.
+          These are the places you can navigate to and from using our navigation system.
+        </p>
+      </div>
+
       {/* Tabs in two parallel rows, centered and spaced evenly */}
-      <div className="flex flex-col gap-4 w-full max-w-4xl mb-8">
-        <div className="flex flex-row gap-2 justify-center">
+      <div className="flex flex-col gap-4 w-full max-w-4xl mb-12">
+        <div className="flex flex-wrap gap-3 justify-center">
           {locations.slice(0, 6).map((loc, idx) => (
             <button
               key={loc.name}
-              className={`px-6 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none text-base ${selected === idx
-                ? "bg-gray-100 text-black dark:bg-white dark:text-black shadow"
-                : "bg-zinc-200 text-black dark:bg-zinc-800 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+              className={`px-6 py-2.5 rounded-full font-medium transition-all duration-200 focus:outline-none text-sm border ${selected === idx
+                  ? "bg-foreground text-background border-foreground shadow-sm"
+                  : "bg-muted/40 text-foreground hover:bg-muted border-border"
                 }`}
               onClick={() => setSelected(idx)}
             >
@@ -100,13 +110,13 @@ export default function CampusLocationsSection() {
             </button>
           ))}
         </div>
-        <div className="flex flex-row gap-2 justify-center">
+        <div className="flex flex-wrap gap-3 justify-center">
           {locations.slice(6).map((loc, idx) => (
             <button
               key={loc.name}
-              className={`px-6 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none text-base ${selected === idx + 6
-                ? "bg-gray-100 text-black dark:bg-white dark:text-black shadow"
-                : "bg-zinc-200 text-black dark:bg-zinc-800 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+              className={`px-6 py-2.5 rounded-full font-medium transition-all duration-200 focus:outline-none text-sm border ${selected === idx + 6
+                  ? "bg-foreground text-background border-foreground shadow-sm"
+                  : "bg-muted/40 text-foreground hover:bg-muted border-border"
                 }`}
               onClick={() => setSelected(idx + 6)}
             >
@@ -115,137 +125,35 @@ export default function CampusLocationsSection() {
           ))}
         </div>
       </div>
-      {/* Content card: image and description side by side, max width, rounded corners, centered vertically */}
-      <div className="flex flex-row items-center bg-gray-100 dark:bg-zinc-900 rounded-lg shadow-lg overflow-hidden w-full max-w-4xl gap-x-8">
+
+      {/* Content card: image and description side by side */}
+      <div className="flex flex-col md:flex-row items-stretch bg-card border border-border rounded-2xl overflow-hidden w-full max-w-5xl mx-auto">
         {/* Left - Image */}
-        <img
-          src={locations[selected].image}
-          alt={locations[selected].name}
-          className="w-1/2 h-80 object-cover rounded-l-lg"
-        />
+        <div className="w-full md:w-1/2 h-64 md:h-[400px]">
+          <img
+            src={locations[selected].image}
+            alt={locations[selected].name}
+            className="w-full h-full object-cover"
+          />
+        </div>
         {/* Right - Centered Text */}
-        <div className="p-8 flex flex-col justify-center items-center w-1/3 min-w-[250px] gap-2 text-center">
-          <h3 className="text-2xl font-bold mb-2 text-black dark:text-white">
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+          <h3 className="text-4xl font-display font-bold mb-4 text-foreground">
             {locations[selected].name}
           </h3>
-          <p className="mb-2 text-lg text-black dark:text-zinc-300">
+          <p className="mb-8 text-lg text-muted-foreground leading-relaxed">
             {locations[selected].description}
           </p>
-          <span className="font-semibold text-base text-black dark:text-white">
-            Coordinates:{" "}
-            <span className="text-black dark:text-zinc-300">
+          <div className="mt-auto">
+            <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider block mb-1">
+              Coordinates
+            </span>
+            <span className="font-medium text-foreground">
               {locations[selected].coordinates}
             </span>
-          </span>
+          </div>
         </div>
       </div>
-
     </section>
   );
-  // ...existing code...
-  const [selectedLocation, setSelectedLocation] = useState(campusLocations[0].name);
-
-  return (
-    <section id="locations" className="py-16 container">
-      <h2 className="text-3xl font-extrabold tracking-tight text-center mb-6 text-gray-900">
-        Campus Locations
-      </h2>
-
-      {/* Tabs Navigation */}
-      <Tabs defaultValue={campusLocations[0].name} className="w-full max-w-4xl mx-auto">
-        {/* First row of tabs */}
-        <TabsList className="flex flex-wrap justify-center gap-2 mb-4 bg-muted rounded-lg p-2">
-          {campusLocations.slice(0, 6).map((location) => (
-            <TabsTrigger
-              key={location.name}
-              value={location.name}
-              onClick={() => setSelectedLocation(location.name)}
-              className="py-2 px-4 text-sm font-medium rounded-md 
-                 data-[state=active]:bg-white 
-                 data-[state=active]:shadow-sm 
-                 data-[state=active]:font-semibold"
-            >
-              {location.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {/* Second row of tabs */}
-        <TabsList className="flex flex-wrap justify-center gap-2 mb-8 bg-muted rounded-lg p-2">
-          {campusLocations.slice(6).map((location) => (
-            <TabsTrigger
-              key={location.name}
-              value={location.name}
-              onClick={() => setSelectedLocation(location.name)}
-              className="py-2 px-4 text-sm font-medium rounded-md 
-                 data-[state=active]:bg-white 
-                 data-[state=active]:shadow-sm 
-                 data-[state=active]:font-semibold"
-            >
-              {location.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {/* Location Cards */}
-        {campusLocations.map((location) => (
-          <TabsContent key={location.name} value={location.name}>
-            <Card className="shadow-md border border-gray-200 max-w-3xl mx-auto">
-              <CardContent className="p-0">
-                <div className="flex flex-col md:flex-row items-start">
-                  {/* Smaller Image on the left */}
-                  <div className="w-full md:w-1/4 flex-shrink-0">
-                    <img
-                      src={locationImages[location.name as keyof typeof locationImages]}
-                      alt={location.name}
-                      className="w-full h-auto object-cover rounded-t-md md:rounded-l-md md:rounded-t-none"
-                      style={{ aspectRatio: "4/3", maxHeight: "200px" }}
-                    />
-                  </div>
-
-                  {/* Text on the right */}
-                  <div className="md:w-3/4 w-full p-4 md:p-6 flex flex-col justify-center">
-                    <h3 className="text-lg md:text-xl font-bold mb-2 text-gray-900">
-                      {location.name}
-                    </h3>
-                    <p className="text-gray-700 mb-3 text-sm leading-relaxed">
-                      {getLocationDescription(location.name)}
-                    </p>
-                    <p className="text-xs font-semibold text-gray-900">
-                      Coordinates:{" "}
-                      <span className="font-normal text-gray-800">
-                        {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-        ))}
-
-
-      </Tabs>
-    </section>
-  );
-}
-
-// Helper function to get location descriptions
-function getLocationDescription(locationName: string): string {
-  const descriptions: Record<string, string> = {
-    "Main Gate": "The primary entrance to the campus, featuring the college emblem and security checkpoint.",
-    "Cross Road": "A central intersection connecting multiple pathways to different blocks and facilities.",
-    "Block 1": "Houses administrative offices and several departments with modern classrooms.",
-    "Students Square": "A popular gathering spot for students with seating areas and open space.",
-    "Open Auditorium": "An outdoor venue for college events, performances and gatherings.",
-    "Block 4": "Contains specialized labs and research facilities for engineering students.",
-    "Xpress Cafe": "A favorite spot for students to grab coffee and snacks between classes.",
-    "Block 6": "The newest academic building with state-of-the-art lecture halls.",
-    "Amphi Theater": "A semi-circular outdoor theater used for cultural events and ceremonies.",
-    "PU Block": "Houses the post-graduate departments and advanced research facilities.",
-    "Architecture Block": "Dedicated to architecture students with design studios and model-making workshops."
-  };
-
-  return descriptions[locationName] || "A key location on campus with modern facilities.";
 }

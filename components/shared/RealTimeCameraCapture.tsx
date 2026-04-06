@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, X, RotateCcw, Settings, MapPin, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Camera, X, RotateCcw, Settings, MapPin, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import CameraDiagnostics from '@/components/shared/CameraDiagnostics';
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import CameraDiagnostics from "@/components/shared/CameraDiagnostics";
 
 interface PredictionResult {
   predicted_class: string;
@@ -31,7 +31,7 @@ interface RealTimeCameraCaptureProps {
 export default function RealTimeCameraCapture({
   isOpen,
   onClose,
-  onLocationDetected
+  onLocationDetected,
 }: RealTimeCameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -40,11 +40,14 @@ export default function RealTimeCameraCapture({
 
   const [isLoading, setIsLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [facingMode, setFacingMode] = useState<"user" | "environment">(
+    "environment",
+  );
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [currentDeviceId, setCurrentDeviceId] = useState<string>('');
+  const [currentDeviceId, setCurrentDeviceId] = useState<string>("");
   const [isCapturing, setIsCapturing] = useState(false);
-  const [currentPrediction, setCurrentPrediction] = useState<PredictionResult | null>(null);
+  const [currentPrediction, setCurrentPrediction] =
+    useState<PredictionResult | null>(null);
   const [nextCaptureIn, setNextCaptureIn] = useState<number>(3);
   const [isProcessing, setIsProcessing] = useState(false);
   const [initialCountdown, setInitialCountdown] = useState<number>(10);
@@ -56,27 +59,30 @@ export default function RealTimeCameraCapture({
   const getDevices = useCallback(async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      const videoDevices = devices.filter(
+        (device) => device.kind === "videoinput",
+      );
       setDevices(videoDevices);
 
       if (videoDevices.length > 0 && !currentDeviceId) {
         // Prefer back camera if available
-        const backCamera = videoDevices.find(device =>
-          device.label.toLowerCase().includes('back') ||
-          device.label.toLowerCase().includes('rear') ||
-          device.label.toLowerCase().includes('environment')
+        const backCamera = videoDevices.find(
+          (device) =>
+            device.label.toLowerCase().includes("back") ||
+            device.label.toLowerCase().includes("rear") ||
+            device.label.toLowerCase().includes("environment"),
         );
         setCurrentDeviceId(backCamera?.deviceId || videoDevices[0].deviceId);
       }
     } catch (error) {
-      console.error('Error getting devices:', error);
+      console.error("Error getting devices:", error);
     }
   }, [currentDeviceId]);
 
   // Stop camera stream
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
 
@@ -99,7 +105,7 @@ export default function RealTimeCameraCapture({
 
       // Stop existing stream
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
       const constraints: MediaStreamConstraints = {
@@ -107,12 +113,12 @@ export default function RealTimeCameraCapture({
           facingMode: facingMode,
           width: { ideal: 1920, max: 1920 },
           height: { ideal: 1080, max: 1080 },
-          ...(currentDeviceId && { deviceId: { exact: currentDeviceId } })
+          ...(currentDeviceId && { deviceId: { exact: currentDeviceId } }),
         },
-        audio: false
+        audio: false,
       };
 
-      console.log('Requesting camera with constraints:', constraints);
+      console.log("Requesting camera with constraints:", constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
@@ -122,8 +128,8 @@ export default function RealTimeCameraCapture({
         // Handle video play promise properly
         const playPromise = videoRef.current.play();
         if (playPromise !== undefined) {
-          await playPromise.catch(error => {
-            console.warn('Video play interrupted:', error);
+          await playPromise.catch((error) => {
+            console.warn("Video play interrupted:", error);
             // Don't throw error, just log it as this is often due to rapid state changes
           });
         }
@@ -134,33 +140,34 @@ export default function RealTimeCameraCapture({
 
       // Start the automatic capture process
       startAutomaticCapture();
-
     } catch (error: any) {
-      console.error('Camera access error:', error);
+      console.error("Camera access error:", error);
       setIsLoading(false);
       setHasPermission(false);
 
-      let errorTitle = 'Camera Access Error';
-      let errorMessage = 'Unable to access camera. Please check permissions.';
+      let errorTitle = "Camera Access Error";
+      let errorMessage = "Unable to access camera. Please check permissions.";
 
-      if (error.name === 'NotAllowedError') {
-        errorTitle = 'Camera Permission Denied';
-        errorMessage = 'Please allow camera access and try again.';
-      } else if (error.name === 'NotFoundError') {
-        errorTitle = 'No Camera Found';
-        errorMessage = 'No camera device was found on this device.';
-      } else if (error.name === 'OverconstrainedError') {
-        errorTitle = 'Camera Constraints Error';
-        errorMessage = 'Camera settings are not supported. Trying with basic settings...';
+      if (error.name === "NotAllowedError") {
+        errorTitle = "Camera Permission Denied";
+        errorMessage = "Please allow camera access and try again.";
+      } else if (error.name === "NotFoundError") {
+        errorTitle = "No Camera Found";
+        errorMessage = "No camera device was found on this device.";
+      } else if (error.name === "OverconstrainedError") {
+        errorTitle = "Camera Constraints Error";
+        errorMessage =
+          "Camera settings are not supported. Trying with basic settings...";
 
         // Try with basic constraints
         try {
           const basicConstraints: MediaStreamConstraints = {
             video: true,
-            audio: false
+            audio: false,
           };
-          console.log('Retrying with basic constraints:', basicConstraints);
-          const stream = await navigator.mediaDevices.getUserMedia(basicConstraints);
+          console.log("Retrying with basic constraints:", basicConstraints);
+          const stream =
+            await navigator.mediaDevices.getUserMedia(basicConstraints);
           streamRef.current = stream;
 
           if (videoRef.current) {
@@ -169,8 +176,8 @@ export default function RealTimeCameraCapture({
             // Handle video play promise properly
             const playPromise = videoRef.current.play();
             if (playPromise !== undefined) {
-              await playPromise.catch(error => {
-                console.warn('Video play interrupted:', error);
+              await playPromise.catch((error) => {
+                console.warn("Video play interrupted:", error);
                 // Don't throw error, just log it as this is often due to rapid state changes
               });
             }
@@ -181,14 +188,14 @@ export default function RealTimeCameraCapture({
           startAutomaticCapture();
           return;
         } catch (basicError) {
-          console.error('Basic camera access also failed:', basicError);
+          console.error("Basic camera access also failed:", basicError);
         }
       }
 
       toast({
         title: errorTitle,
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   }, [facingMode, currentDeviceId, toast]);
@@ -199,7 +206,7 @@ export default function RealTimeCameraCapture({
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext("2d");
 
     if (!context) return null;
 
@@ -211,58 +218,63 @@ export default function RealTimeCameraCapture({
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Convert to data URL
-    return canvas.toDataURL('image/jpeg', 0.8);
+    return canvas.toDataURL("image/jpeg", 0.8);
   }, []);
 
   // Send frame to backend for prediction
-  const predictLocation = useCallback(async (imageDataUrl: string): Promise<PredictionResult | null> => {
-    try {
-      setIsProcessing(true);
+  const predictLocation = useCallback(
+    async (imageDataUrl: string): Promise<PredictionResult | null> => {
+      try {
+        setIsProcessing(true);
 
-      // Convert base64 to blob
-      const response = await fetch(imageDataUrl);
-      const blob = await response.blob();
+        // Convert base64 to blob
+        const response = await fetch(imageDataUrl);
+        const blob = await response.blob();
 
-      const formData = new FormData();
-      formData.append('image', blob, 'frame.jpg');
+        const formData = new FormData();
+        formData.append("image", blob, "frame.jpg");
 
-      // Use Next.js API route
-      const res = await fetch('/api/predict', {
-        method: 'POST',
-        body: formData,
-      });
+        // Use Next.js API route
+        const res = await fetch("/api/predict", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (!res.ok) {
-        throw new Error('Failed to process image');
-      }
+        if (!res.ok) {
+          throw new Error("Failed to process image");
+        }
 
-      const data = await res.json();
+        const data = await res.json();
 
-      // Check if there's an error in the response
-      if (data.error) {
-        console.warn('Prediction failed:', data.message || data.error);
+        // Check if there's an error in the response
+        if (data.error) {
+          console.warn("Prediction failed:", data.message || data.error);
+          return null;
+        }
+
+        // Check if we have a valid prediction
+        if (!data.predicted_class) {
+          console.warn("No location detected in this frame");
+          return null;
+        }
+
+        return {
+          predicted_class: data.predicted_class,
+          confidence:
+            data.confidence ||
+            (data.probabilities ? data.probabilities[data.predicted_class] : 0),
+          top_predictions: data.probabilities || {},
+          timestamp: Date.now(),
+        };
+      } catch (error) {
+        console.error("Prediction error:", error);
         return null;
+      } finally {
+        setIsProcessing(false);
       }
-
-      // Check if we have a valid prediction
-      if (!data.predicted_class) {
-        console.warn('No location detected in this frame');
-        return null;
-      }
-
-      return {
-        predicted_class: data.predicted_class,
-        confidence: data.confidence || (data.probabilities ? data.probabilities[data.predicted_class] : 0),
-        top_predictions: data.probabilities || {},
-        timestamp: Date.now()
-      };
-    } catch (error) {
-      console.error('Prediction error:', error);
-      return null;
-    } finally {
-      setIsProcessing(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   // Start automatic capture process
   const startAutomaticCapture = useCallback(() => {
@@ -277,7 +289,7 @@ export default function RealTimeCameraCapture({
 
     // Initial countdown timer
     const initialCountdownInterval = setInterval(() => {
-      setInitialCountdown(prev => {
+      setInitialCountdown((prev) => {
         if (prev <= 1) {
           // Initial wait is over, start regular capture cycle
           clearInterval(initialCountdownInterval);
@@ -287,7 +299,7 @@ export default function RealTimeCameraCapture({
 
           // Start regular countdown timer
           const countdownInterval = setInterval(() => {
-            setNextCaptureIn(prev => {
+            setNextCaptureIn((prev) => {
               if (prev <= 1) {
                 // Time to capture
                 (async () => {
@@ -318,12 +330,14 @@ export default function RealTimeCameraCapture({
   // Switch camera (front/back)
   const switchCamera = useCallback(() => {
     if (devices.length > 1) {
-      const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
+      const currentIndex = devices.findIndex(
+        (device) => device.deviceId === currentDeviceId,
+      );
       const nextIndex = (currentIndex + 1) % devices.length;
       setCurrentDeviceId(devices[nextIndex].deviceId);
     } else {
       // Fallback to facing mode toggle
-      setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+      setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
     }
   }, [devices, currentDeviceId]);
 
@@ -336,7 +350,10 @@ export default function RealTimeCameraCapture({
   // Handle location selection
   const handleSelectLocation = useCallback(() => {
     if (currentPrediction) {
-      onLocationDetected(currentPrediction.predicted_class, currentPrediction.confidence);
+      onLocationDetected(
+        currentPrediction.predicted_class,
+        currentPrediction.confidence,
+      );
       handleClose();
     }
   }, [currentPrediction, onLocationDetected, handleClose]);
@@ -395,7 +412,9 @@ export default function RealTimeCameraCapture({
                   <div className="text-center p-4">
                     <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Camera access denied</p>
-                    <p className="text-xs opacity-75 mt-1">Please allow camera access and try again</p>
+                    <p className="text-xs opacity-75 mt-1">
+                      Please allow camera access and try again
+                    </p>
                   </div>
                 ) : (
                   <div className="text-center">
@@ -421,7 +440,10 @@ export default function RealTimeCameraCapture({
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span>Confidence:</span>
-                  <Badge variant="secondary" className="bg-green-400/20 text-green-400">
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-400/20 text-green-400"
+                  >
                     {Math.round(currentPrediction.confidence * 100)}%
                   </Badge>
                 </div>
@@ -528,10 +550,7 @@ export default function RealTimeCameraCapture({
                 >
                   Use This Location
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleClose}
-                >
+                <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
               </div>

@@ -1,16 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { MapPin, Camera, Settings, Info, AlertCircle, CheckCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { checkGPSPermission, type GPSPermissionState } from '@/lib/gps-utils';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  MapPin,
+  Camera,
+  Settings,
+  Info,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { checkGPSPermission, type GPSPermissionState } from "@/lib/gps-utils";
 
 export interface PredictionSettings {
   gpsEnabled: boolean;
@@ -30,12 +43,12 @@ export default function GPSSettings({
   settings,
   onSettingsChange,
   onRequestGPSPermission,
-  className
+  className,
 }: GPSSettingsProps) {
   const [gpsPermission, setGpsPermission] = useState<GPSPermissionState>({
     granted: false,
     denied: false,
-    prompt: true
+    prompt: true,
   });
   const [isCheckingPermission, setIsCheckingPermission] = useState(true);
 
@@ -46,7 +59,7 @@ export default function GPSSettings({
         const permission = await checkGPSPermission();
         setGpsPermission(permission);
       } catch (error) {
-        console.error('Error checking GPS permission:', error);
+        console.error("Error checking GPS permission:", error);
         setGpsPermission({ granted: false, denied: true, prompt: false });
       } finally {
         setIsCheckingPermission(false);
@@ -108,7 +121,7 @@ export default function GPSSettings({
     onSettingsChange({
       ...settings,
       gpsWeight,
-      aiWeight
+      aiWeight,
     });
   };
 
@@ -120,23 +133,26 @@ export default function GPSSettings({
         const permission = await checkGPSPermission();
         setGpsPermission(permission);
       } catch (error) {
-        console.error('Error requesting GPS permission:', error);
+        console.error("Error requesting GPS permission:", error);
       }
     }
   };
 
   const getGPSStatusIcon = () => {
-    if (isCheckingPermission) return <Settings className="h-4 w-4 animate-spin" />;
-    if (gpsPermission.granted) return <CheckCircle className="h-4 w-4 text-green-500" />;
-    if (gpsPermission.denied) return <AlertCircle className="h-4 w-4 text-red-500" />;
+    if (isCheckingPermission)
+      return <Settings className="h-4 w-4 animate-spin" />;
+    if (gpsPermission.granted)
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (gpsPermission.denied)
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
     return <Info className="h-4 w-4 text-yellow-500" />;
   };
 
   const getGPSStatusText = () => {
-    if (isCheckingPermission) return 'Checking GPS permission...';
-    if (gpsPermission.granted) return 'GPS access granted';
-    if (gpsPermission.denied) return 'GPS access denied';
-    return 'GPS permission required';
+    if (isCheckingPermission) return "Checking GPS permission...";
+    if (gpsPermission.granted) return "GPS access granted";
+    if (gpsPermission.denied) return "GPS access denied";
+    return "GPS permission required";
   };
 
   const bothEnabled = settings.gpsEnabled && settings.aiEnabled;
@@ -150,7 +166,8 @@ export default function GPSSettings({
           Prediction Settings
         </CardTitle>
         <CardDescription className="text-base mt-2">
-          Configure how location predictions are made using GPS and AI technology
+          Configure how location predictions are made using GPS and AI
+          technology
         </CardDescription>
       </CardHeader>
 
@@ -178,7 +195,9 @@ export default function GPSSettings({
         <div className="space-y-6">
           <div className="border-b pb-3">
             <h4 className="font-semibold text-lg">Prediction Methods</h4>
-            <p className="text-sm text-muted-foreground mt-1">Choose which technologies to use for location detection</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Choose which technologies to use for location detection
+            </p>
           </div>
 
           {/* GPS Toggle */}
@@ -198,12 +217,20 @@ export default function GPSSettings({
               role="button"
               tabIndex={0}
               aria-checked={settings.gpsEnabled}
-              onClick={() => gpsPermission.granted && handleGPSToggle(!settings.gpsEnabled)}
-              onKeyPress={e => { if ((e.key === 'Enter' || e.key === ' ') && gpsPermission.granted) handleGPSToggle(!settings.gpsEnabled); }}
-              className={`px-5 py-2.5 rounded-full font-semibold cursor-pointer transition-colors shadow-sm select-none ${settings.gpsEnabled ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-700'} ${!gpsPermission.granted ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() =>
+                gpsPermission.granted && handleGPSToggle(!settings.gpsEnabled)
+              }
+              onKeyPress={(e) => {
+                if (
+                  (e.key === "Enter" || e.key === " ") &&
+                  gpsPermission.granted
+                )
+                  handleGPSToggle(!settings.gpsEnabled);
+              }}
+              className={`px-5 py-2.5 rounded-full font-semibold cursor-pointer transition-colors shadow-sm select-none ${settings.gpsEnabled ? "bg-blue-600 text-white" : "bg-gray-300 text-gray-700"} ${!gpsPermission.granted ? "opacity-50 cursor-not-allowed" : ""}`}
               id="gps-toggle"
             >
-              {settings.gpsEnabled ? 'Enabled' : 'Disabled'}
+              {settings.gpsEnabled ? "Enabled" : "Disabled"}
             </span>
           </div>
 
@@ -224,11 +251,14 @@ export default function GPSSettings({
               role="button"
               tabIndex={0}
               onClick={() => handleAIToggle(!settings.aiEnabled)}
-              onKeyPress={e => { if (e.key === 'Enter' || e.key === ' ') handleAIToggle(!settings.aiEnabled); }}
-              className={`px-5 py-2.5 rounded-full font-semibold cursor-pointer transition-colors shadow-sm select-none ${settings.aiEnabled ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}
+              onKeyPress={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  handleAIToggle(!settings.aiEnabled);
+              }}
+              className={`px-5 py-2.5 rounded-full font-semibold cursor-pointer transition-colors shadow-sm select-none ${settings.aiEnabled ? "bg-green-600 text-white" : "bg-gray-300 text-gray-700"}`}
               id="ai-toggle"
             >
-              {settings.aiEnabled ? 'Enabled' : 'Disabled'}
+              {settings.aiEnabled ? "Enabled" : "Disabled"}
             </span>
           </div>
         </div>
@@ -241,7 +271,9 @@ export default function GPSSettings({
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-lg">Prediction Weights</h4>
-                  <p className="text-sm text-muted-foreground mt-1">Adjust the balance between GPS and AI predictions</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Adjust the balance between GPS and AI predictions
+                  </p>
                 </div>
                 <div className="flex gap-3">
                   <Badge variant="outline" className="px-3 py-1 font-medium">
@@ -267,8 +299,12 @@ export default function GPSSettings({
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs">
-                  <span className="text-blue-500">GPS {settings.gpsWeight}%</span>
-                  <span className="text-green-500">AI {settings.aiWeight}%</span>
+                  <span className="text-blue-500">
+                    GPS {settings.gpsWeight}%
+                  </span>
+                  <span className="text-green-500">
+                    AI {settings.aiWeight}%
+                  </span>
                 </div>
               </div>
             </div>
@@ -289,7 +325,8 @@ export default function GPSSettings({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              GPS is enabled but permission is not granted. Click "Enable GPS" to request access.
+              GPS is enabled but permission is not granted. Click "Enable GPS"
+              to request access.
             </AlertDescription>
           </Alert>
         )}

@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, RotateCcw, Settings, MapPin, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Camera, RotateCcw, Settings, MapPin, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import CameraDiagnostics from '@/components/shared/CameraDiagnostics';
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import CameraDiagnostics from "@/components/shared/CameraDiagnostics";
 
 interface PredictionResult {
   predicted_class: string;
@@ -27,23 +27,26 @@ interface RealTimeCameraInlineProps {
 }
 
 export default function RealTimeCameraInline({
-  onLocationDetected
+  onLocationDetected,
 }: RealTimeCameraInlineProps) {
-  console.log('RealTimeCameraInline component rendered');
+  console.log("RealTimeCameraInline component rendered");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const cameraStateRef = useRef<'idle' | 'starting' | 'running'>('idle');
+  const cameraStateRef = useRef<"idle" | "starting" | "running">("idle");
 
   const [isLoading, setIsLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [facingMode, setFacingMode] = useState<"user" | "environment">(
+    "environment",
+  );
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [currentDeviceId, setCurrentDeviceId] = useState<string>('');
+  const [currentDeviceId, setCurrentDeviceId] = useState<string>("");
   const [isCapturing, setIsCapturing] = useState(false);
-  const [currentPrediction, setCurrentPrediction] = useState<PredictionResult | null>(null);
+  const [currentPrediction, setCurrentPrediction] =
+    useState<PredictionResult | null>(null);
   const [nextCaptureIn, setNextCaptureIn] = useState<number>(3);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isStartingCamera, setIsStartingCamera] = useState(false);
@@ -56,42 +59,48 @@ export default function RealTimeCameraInline({
   const getDevices = useCallback(async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      const videoDevices = devices.filter(
+        (device) => device.kind === "videoinput",
+      );
       setDevices(videoDevices);
 
       if (videoDevices.length > 0 && !currentDeviceId) {
         // Prefer back camera if available
-        const backCamera = videoDevices.find(device =>
-          device.label.toLowerCase().includes('back') ||
-          device.label.toLowerCase().includes('rear') ||
-          device.label.toLowerCase().includes('environment')
+        const backCamera = videoDevices.find(
+          (device) =>
+            device.label.toLowerCase().includes("back") ||
+            device.label.toLowerCase().includes("rear") ||
+            device.label.toLowerCase().includes("environment"),
         );
         setCurrentDeviceId(backCamera?.deviceId || videoDevices[0].deviceId);
       }
     } catch (error) {
-      console.error('Error getting devices:', error);
+      console.error("Error getting devices:", error);
     }
   }, [currentDeviceId]);
 
   // Start camera stream
   const startCamera = useCallback(async () => {
-    console.log('startCamera called, current state:', cameraStateRef.current);
+    console.log("startCamera called, current state:", cameraStateRef.current);
 
     // Prevent multiple simultaneous camera starts
-    if (cameraStateRef.current === 'starting' || cameraStateRef.current === 'running') {
-      console.log('Camera start already in progress or running, skipping...');
+    if (
+      cameraStateRef.current === "starting" ||
+      cameraStateRef.current === "running"
+    ) {
+      console.log("Camera start already in progress or running, skipping...");
       return;
     }
 
     try {
-      console.log('Starting live detection camera...');
-      cameraStateRef.current = 'starting';
+      console.log("Starting live detection camera...");
+      cameraStateRef.current = "starting";
       setIsStartingCamera(true);
       setIsLoading(true);
 
       // Stop existing stream
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
       const constraints: MediaStreamConstraints = {
@@ -99,12 +108,12 @@ export default function RealTimeCameraInline({
           facingMode: facingMode,
           width: { ideal: 1920, max: 1920 },
           height: { ideal: 1080, max: 1080 },
-          ...(currentDeviceId && { deviceId: { exact: currentDeviceId } })
+          ...(currentDeviceId && { deviceId: { exact: currentDeviceId } }),
         },
-        audio: false
+        audio: false,
       };
 
-      console.log('Requesting camera with constraints:', constraints);
+      console.log("Requesting camera with constraints:", constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
@@ -114,55 +123,55 @@ export default function RealTimeCameraInline({
         videoRef.current.srcObject = null;
 
         // Small delay to ensure previous stream is fully stopped
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         videoRef.current.srcObject = stream;
 
         // Add event listeners for debugging
         videoRef.current.onloadedmetadata = () => {
-          console.log('Video metadata loaded');
+          console.log("Video metadata loaded");
         };
         videoRef.current.oncanplay = () => {
-          console.log('Video can play');
+          console.log("Video can play");
         };
         videoRef.current.onplaying = () => {
-          console.log('Video is playing');
+          console.log("Video is playing");
         };
         videoRef.current.onerror = (e) => {
-          console.error('Video error:', e);
+          console.error("Video error:", e);
         };
 
         // Handle video play promise properly with additional checks
         try {
-          console.log('Attempting to play video...');
+          console.log("Attempting to play video...");
           const playPromise = videoRef.current.play();
           if (playPromise !== undefined) {
             await playPromise;
-            console.log('Video play promise resolved');
+            console.log("Video play promise resolved");
           }
         } catch (error) {
-          console.warn('Video play interrupted:', error);
+          console.warn("Video play interrupted:", error);
           // Don't throw error, just log it as this is often due to rapid state changes
         }
       }
 
       setHasPermission(true);
-      cameraStateRef.current = 'running';
+      cameraStateRef.current = "running";
 
       // Start automatic capture after camera is ready
       setTimeout(() => {
         startAutomaticCapture();
       }, 1000);
-
     } catch (error) {
-      console.error('Error starting camera:', error);
+      console.error("Error starting camera:", error);
       setHasPermission(false);
-      cameraStateRef.current = 'idle';
+      cameraStateRef.current = "idle";
 
       toast({
-        title: 'Camera Error',
-        description: 'Unable to access camera. Please check permissions and try again.',
-        variant: 'destructive',
+        title: "Camera Error",
+        description:
+          "Unable to access camera. Please check permissions and try again.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -172,10 +181,10 @@ export default function RealTimeCameraInline({
 
   // Stop camera stream
   const stopCamera = useCallback(() => {
-    cameraStateRef.current = 'idle';
+    cameraStateRef.current = "idle";
 
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
 
@@ -184,7 +193,7 @@ export default function RealTimeCameraInline({
         videoRef.current.pause();
         videoRef.current.srcObject = null;
       } catch (error) {
-        console.warn('Error stopping video:', error);
+        console.warn("Error stopping video:", error);
       }
     }
 
@@ -201,7 +210,9 @@ export default function RealTimeCameraInline({
   // Switch between front and back camera
   const switchCamera = useCallback(() => {
     if (devices.length > 1) {
-      const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
+      const currentIndex = devices.findIndex(
+        (device) => device.deviceId === currentDeviceId,
+      );
       const nextIndex = (currentIndex + 1) % devices.length;
       setCurrentDeviceId(devices[nextIndex].deviceId);
     }
@@ -216,7 +227,7 @@ export default function RealTimeCameraInline({
     try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
 
       if (!context) return;
 
@@ -228,53 +239,57 @@ export default function RealTimeCameraInline({
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       // Convert to blob
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
+      canvas.toBlob(
+        async (blob) => {
+          if (!blob) return;
 
-        const formData = new FormData();
-        formData.append('image', blob, 'frame.jpg');
+          const formData = new FormData();
+          formData.append("image", blob, "frame.jpg");
 
-        try {
-          // Use Next.js API route
-          const response = await fetch('/api/predict', {
-            method: 'POST',
-            body: formData,
-          });
+          try {
+            // Use Next.js API route
+            const response = await fetch("/api/predict", {
+              method: "POST",
+              body: formData,
+            });
 
-          if (!response.ok) {
-            throw new Error('Failed to process frame');
+            if (!response.ok) {
+              throw new Error("Failed to process frame");
+            }
+
+            const data = await response.json();
+
+            // Check if there's an error in the response
+            if (data.error) {
+              console.warn("Prediction failed:", data.message || data.error);
+              return;
+            }
+
+            // Check if we have a valid prediction
+            if (!data.predicted_class) {
+              console.warn("No location detected in this frame");
+              return;
+            }
+
+            const prediction: PredictionResult = {
+              predicted_class: data.predicted_class,
+              confidence: data.probabilities
+                ? data.probabilities[data.predicted_class]
+                : data.confidence || 0,
+              top_predictions: data.probabilities || {},
+              timestamp: Date.now(),
+            };
+
+            setCurrentPrediction(prediction);
+          } catch (error) {
+            console.error("Error processing frame:", error);
           }
-
-          const data = await response.json();
-
-          // Check if there's an error in the response
-          if (data.error) {
-            console.warn('Prediction failed:', data.message || data.error);
-            return;
-          }
-
-          // Check if we have a valid prediction
-          if (!data.predicted_class) {
-            console.warn('No location detected in this frame');
-            return;
-          }
-
-          const prediction: PredictionResult = {
-            predicted_class: data.predicted_class,
-            confidence: data.probabilities ? data.probabilities[data.predicted_class] : (data.confidence || 0),
-            top_predictions: data.probabilities || {},
-            timestamp: Date.now()
-          };
-
-          setCurrentPrediction(prediction);
-
-        } catch (error) {
-          console.error('Error processing frame:', error);
-        }
-      }, 'image/jpeg', 0.8);
-
+        },
+        "image/jpeg",
+        0.8,
+      );
     } catch (error) {
-      console.error('Error capturing frame:', error);
+      console.error("Error capturing frame:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -293,7 +308,7 @@ export default function RealTimeCameraInline({
 
     // Initial countdown timer
     const initialCountdownInterval = setInterval(() => {
-      setInitialCountdown(prev => {
+      setInitialCountdown((prev) => {
         if (prev <= 1) {
           // Initial wait is over, start regular capture cycle
           clearInterval(initialCountdownInterval);
@@ -303,7 +318,7 @@ export default function RealTimeCameraInline({
 
           // Start regular countdown timer
           const countdownInterval = setInterval(() => {
-            setNextCaptureIn(prev => {
+            setNextCaptureIn((prev) => {
               if (prev <= 1) {
                 captureFrame();
                 return 3; // Reset to 3 seconds
@@ -336,7 +351,10 @@ export default function RealTimeCameraInline({
   // Handle location selection
   const handleSelectLocation = useCallback(() => {
     if (currentPrediction) {
-      onLocationDetected(currentPrediction.predicted_class, currentPrediction.confidence);
+      onLocationDetected(
+        currentPrediction.predicted_class,
+        currentPrediction.confidence,
+      );
       stopAutomaticCapture();
       stopCamera();
     }
@@ -348,14 +366,14 @@ export default function RealTimeCameraInline({
 
     const initCamera = async () => {
       try {
-        console.log('Initializing live detection camera...');
+        console.log("Initializing live detection camera...");
         await getDevices();
-        if (isMounted && cameraStateRef.current === 'idle') {
-          console.log('Starting live detection camera...');
+        if (isMounted && cameraStateRef.current === "idle") {
+          console.log("Starting live detection camera...");
           await startCamera();
         }
       } catch (error) {
-        console.error('Failed to initialize live detection camera:', error);
+        console.error("Failed to initialize live detection camera:", error);
       }
     };
 
@@ -363,17 +381,20 @@ export default function RealTimeCameraInline({
 
     return () => {
       isMounted = false;
-      console.log('Cleaning up live detection camera...');
+      console.log("Cleaning up live detection camera...");
       stopCamera();
     };
   }, [getDevices, startCamera, stopCamera]); // Add back dependencies but with proper guards
 
   // Restart camera when device changes
   useEffect(() => {
-    console.log('Device change effect triggered:', { currentDeviceId, cameraState: cameraStateRef.current });
+    console.log("Device change effect triggered:", {
+      currentDeviceId,
+      cameraState: cameraStateRef.current,
+    });
 
-    if (currentDeviceId && cameraStateRef.current === 'idle') {
-      console.log('Restarting camera for device change...');
+    if (currentDeviceId && cameraStateRef.current === "idle") {
+      console.log("Restarting camera for device change...");
       // Add a small delay to prevent rapid restarts
       const timeoutId = setTimeout(() => {
         startCamera();
@@ -383,12 +404,12 @@ export default function RealTimeCameraInline({
     }
   }, [currentDeviceId, startCamera]); // Add startCamera back
 
-  console.log('RealTimeCameraInline render state:', {
+  console.log("RealTimeCameraInline render state:", {
     hasPermission,
     isLoading,
     isStartingCamera,
     cameraState: cameraStateRef.current,
-    currentDeviceId
+    currentDeviceId,
   });
 
   return (
@@ -402,7 +423,7 @@ export default function RealTimeCameraInline({
           playsInline
           muted
           className="w-full h-full object-cover"
-          style={{ display: hasPermission && !isLoading ? 'block' : 'none' }}
+          style={{ display: hasPermission && !isLoading ? "block" : "none" }}
         />
 
         {!(hasPermission && !isLoading) && (
@@ -416,7 +437,9 @@ export default function RealTimeCameraInline({
               <div className="text-center p-4">
                 <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Camera access denied</p>
-                <p className="text-xs opacity-75 mt-1">Please allow camera access and try again</p>
+                <p className="text-xs opacity-75 mt-1">
+                  Please allow camera access and try again
+                </p>
               </div>
             ) : (
               <div className="text-center">
@@ -442,7 +465,10 @@ export default function RealTimeCameraInline({
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span>Confidence:</span>
-              <Badge variant="secondary" className="bg-green-400/20 text-green-400">
+              <Badge
+                variant="secondary"
+                className="bg-green-400/20 text-green-400"
+              >
                 {Math.round(currentPrediction.confidence * 100)}%
               </Badge>
             </div>
@@ -479,10 +505,7 @@ export default function RealTimeCameraInline({
               </div>
               <span className="font-bold">{nextCaptureIn}s</span>
             </div>
-            <Progress
-              value={((3 - nextCaptureIn) / 3) * 100}
-              className="h-2"
-            />
+            <Progress value={((3 - nextCaptureIn) / 3) * 100} className="h-2" />
             {isProcessing && (
               <div className="flex items-center gap-2 mt-2 text-sm text-blue-400">
                 <div className="animate-spin rounded-full h-3 w-3 border-b border-blue-400"></div>

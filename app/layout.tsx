@@ -1,11 +1,29 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { Inter } from "next/font/google";
+import {
+  Instrument_Sans,
+  Instrument_Serif,
+  JetBrains_Mono,
+} from "next/font/google";
 import "./globals.css";
 import React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import ClarityTracking from "@/components/shared/ClarityTracking";
 
-const inter = Inter({ subsets: ["latin"] });
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-instrument",
+});
+
+const instrumentSerif = Instrument_Serif({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+});
 
 export const metadata = {
   title: "Event Platform",
@@ -13,7 +31,7 @@ export const metadata = {
 };
 
 // ✅ Force dynamic rendering to fix headers() error
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function RootLayout({
   children,
@@ -21,12 +39,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_FRONTEND_API}
-    >
+    <ClerkProvider>
       {/* ✅ FIX: Add suppressHydrationWarning to the html tag */}
       <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
+        <body
+          className={`${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} font-sans`}
+        >
           <ClarityTracking />
           <ThemeProvider
             attribute="class"

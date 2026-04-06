@@ -6,7 +6,7 @@ import Event from '../models/event.model';
 import Order from '../models/order.model';
 import { redirect } from 'next/dist/server/api-utils';
 import { revalidatePath } from 'next/cache';
-import { clerkClient } from '@clerk/nextjs';
+import { clerkClient } from '@clerk/nextjs/server';
 export interface CreateUserParams {
 	clerkId: string;
 	email: string;
@@ -38,7 +38,7 @@ export async function getUserByClerkId(clerkId: string) {
 		if (!user) {
 			// If user doesn't exist in MongoDB, try to create them from Clerk data
 			try {
-				const clerkUser = await clerkClient.users.getUser(clerkId);
+				const clerkUser = await (await clerkClient()).users.getUser(clerkId);
 
 				const userData = {
 					clerkId: clerkId,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { getUserByClerkId, getUserByEmail } from '@/lib/actions/user.action';
 import { getEventById } from '@/lib/actions/event.action';
 import { createStakeholder } from '@/lib/actions/stakeholder.action';

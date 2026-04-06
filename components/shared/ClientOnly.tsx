@@ -22,4 +22,4 @@ const ClientOnly: React.FC<ClientOnlyProps> = ({ children }) => {
   return <>{children}</>;
 };
 
-export default ClientOnly;  
+export default ClientOnly;

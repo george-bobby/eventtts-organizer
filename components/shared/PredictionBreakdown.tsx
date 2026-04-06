@@ -1,24 +1,27 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Camera, Zap } from 'lucide-react';
-import { type HybridPredictionResult } from '@/lib/hybrid-prediction';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Camera, Zap } from "lucide-react";
+import { type HybridPredictionResult } from "@/lib/hybrid-prediction";
 
 interface PredictionBreakdownProps {
   hybridResult: HybridPredictionResult;
   className?: string;
 }
 
-export default function PredictionBreakdown({ hybridResult, className }: PredictionBreakdownProps) {
+export default function PredictionBreakdown({
+  hybridResult,
+  className,
+}: PredictionBreakdownProps) {
   const getMethodIcon = (method: string) => {
     switch (method) {
-      case 'gps-only':
+      case "gps-only":
         return <MapPin className="h-4 w-4 text-blue-500" />;
-      case 'ai-only':
+      case "ai-only":
         return <Camera className="h-4 w-4 text-green-500" />;
-      case 'hybrid':
+      case "hybrid":
         return <Zap className="h-4 w-4 text-red-500" />;
       default:
         return null;
@@ -27,14 +30,14 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
 
   const getMethodColor = (method: string) => {
     switch (method) {
-      case 'gps-only':
-        return 'bg-blue-500';
-      case 'ai-only':
-        return 'bg-green-500';
-      case 'hybrid':
-        return 'bg-red-500';
+      case "gps-only":
+        return "bg-blue-500";
+      case "ai-only":
+        return "bg-green-500";
+      case "hybrid":
+        return "bg-red-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
@@ -45,7 +48,7 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
           {getMethodIcon(hybridResult.method)}
           Prediction Analysis
           <Badge variant="outline" className="ml-auto">
-            {hybridResult.method.replace('-', ' ').toUpperCase()}
+            {hybridResult.method.replace("-", " ").toUpperCase()}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -55,11 +58,17 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
         <div className="p-3 bg-muted rounded-lg">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium">Final Location</span>
-            <span className="text-lg font-bold">{hybridResult.finalLocation}</span>
+            <span className="text-lg font-bold">
+              {hybridResult.finalLocation}
+            </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Overall Confidence</span>
-            <span className="text-sm font-medium">{Math.round(hybridResult.finalConfidence * 100)}%</span>
+            <span className="text-sm text-muted-foreground">
+              Overall Confidence
+            </span>
+            <span className="text-sm font-medium">
+              {Math.round(hybridResult.finalConfidence * 100)}%
+            </span>
           </div>
           <Progress
             value={hybridResult.finalConfidence * 100}
@@ -68,7 +77,7 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
         </div>
 
         {/* Method-specific breakdown */}
-        {hybridResult.method === 'hybrid' && (
+        {hybridResult.method === "hybrid" && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium">Contribution Breakdown</h4>
 
@@ -80,7 +89,9 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
                     <MapPin className="h-3 w-3 text-blue-500" />
                     <span className="text-sm">GPS Location</span>
                   </div>
-                  <span className="text-sm font-medium">{Math.round(hybridResult.gpsContribution)}%</span>
+                  <span className="text-sm font-medium">
+                    {Math.round(hybridResult.gpsContribution)}%
+                  </span>
                 </div>
                 <Progress
                   value={hybridResult.gpsContribution}
@@ -89,7 +100,10 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
                 <div className="text-xs text-muted-foreground ml-5">
                   <p>Location: {hybridResult.gpsData.location}</p>
                   <p>Distance: {Math.round(hybridResult.gpsData.distance)}m</p>
-                  <p>GPS Confidence: {Math.round(hybridResult.gpsData.confidence * 100)}%</p>
+                  <p>
+                    GPS Confidence:{" "}
+                    {Math.round(hybridResult.gpsData.confidence * 100)}%
+                  </p>
                 </div>
               </div>
             )}
@@ -102,7 +116,9 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
                     <Camera className="h-3 w-3 text-green-500" />
                     <span className="text-sm">AI Vision</span>
                   </div>
-                  <span className="text-sm font-medium">{Math.round(hybridResult.aiContribution)}%</span>
+                  <span className="text-sm font-medium">
+                    {Math.round(hybridResult.aiContribution)}%
+                  </span>
                 </div>
                 <Progress
                   value={hybridResult.aiContribution}
@@ -110,7 +126,10 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
                 />
                 <div className="text-xs text-muted-foreground ml-5">
                   <p>Predicted: {hybridResult.aiData.predicted_class}</p>
-                  <p>AI Confidence: {Math.round(hybridResult.aiData.confidence * 100)}%</p>
+                  <p>
+                    AI Confidence:{" "}
+                    {Math.round(hybridResult.aiData.confidence * 100)}%
+                  </p>
                 </div>
               </div>
             )}
@@ -118,20 +137,26 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
         )}
 
         {/* Single method details */}
-        {hybridResult.method === 'gps-only' && hybridResult.gpsData && (
+        {hybridResult.method === "gps-only" && hybridResult.gpsData && (
           <div className="space-y-2">
             <h4 className="text-sm font-medium flex items-center gap-2">
               <MapPin className="h-4 w-4 text-blue-500" />
               GPS-Only Prediction
             </h4>
             <div className="text-sm space-y-1 text-muted-foreground">
-              <p>Distance to location: {Math.round(hybridResult.gpsData.distance)}m</p>
-              <p>Coordinates: {hybridResult.gpsData.coordinates.lat.toFixed(6)}, {hybridResult.gpsData.coordinates.lng.toFixed(6)}</p>
+              <p>
+                Distance to location:{" "}
+                {Math.round(hybridResult.gpsData.distance)}m
+              </p>
+              <p>
+                Coordinates: {hybridResult.gpsData.coordinates.lat.toFixed(6)},{" "}
+                {hybridResult.gpsData.coordinates.lng.toFixed(6)}
+              </p>
             </div>
           </div>
         )}
 
-        {hybridResult.method === 'ai-only' && hybridResult.aiData && (
+        {hybridResult.method === "ai-only" && hybridResult.aiData && (
           <div className="space-y-2">
             <h4 className="text-sm font-medium flex items-center gap-2">
               <Camera className="h-4 w-4 text-green-500" />
@@ -143,11 +168,22 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
                 .sort(([, a], [, b]) => b - a)
                 .slice(0, 3)
                 .map(([location, confidence], index) => (
-                  <div key={location} className="flex justify-between items-center">
-                    <span className={index === 0 ? 'font-medium' : 'text-muted-foreground'}>
+                  <div
+                    key={location}
+                    className="flex justify-between items-center"
+                  >
+                    <span
+                      className={
+                        index === 0 ? "font-medium" : "text-muted-foreground"
+                      }
+                    >
                       {index + 1}. {location}
                     </span>
-                    <span className={index === 0 ? 'font-medium' : 'text-muted-foreground'}>
+                    <span
+                      className={
+                        index === 0 ? "font-medium" : "text-muted-foreground"
+                      }
+                    >
                       {Math.round(confidence * 100)}%
                     </span>
                   </div>
@@ -157,9 +193,11 @@ export default function PredictionBreakdown({ hybridResult, className }: Predict
         )}
 
         {/* Score breakdown for hybrid */}
-        {hybridResult.method === 'hybrid' && (
+        {hybridResult.method === "hybrid" && (
           <div className="pt-2 border-t">
-            <h4 className="text-xs font-medium text-muted-foreground mb-2">Raw Scores</h4>
+            <h4 className="text-xs font-medium text-muted-foreground mb-2">
+              Raw Scores
+            </h4>
             <div className="text-xs space-y-1 text-muted-foreground">
               <div className="flex justify-between">
                 <span>GPS Score:</span>

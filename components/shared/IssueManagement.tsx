@@ -1,13 +1,32 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   AlertTriangle,
   Search,
@@ -19,9 +38,9 @@ import {
   User,
   Calendar,
   Loader2,
-  RefreshCw
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+  RefreshCw,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Issue {
   _id: string;
@@ -30,10 +49,10 @@ interface Issue {
   reporterEmail: string;
   category: string;
   subcategory?: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
   title: string;
   description: string;
-  status: 'open' | 'in-progress' | 'resolved' | 'closed';
+  status: "open" | "in-progress" | "resolved" | "closed";
   adminNotes?: string;
   createdAt: string;
   updatedAt: string;
@@ -46,15 +65,19 @@ interface IssueManagementProps {
   organizerId: string;
 }
 
-export default function IssueManagement({ eventId, eventTitle, organizerId }: IssueManagementProps) {
+export default function IssueManagement({
+  eventId,
+  eventTitle,
+  organizerId,
+}: IssueManagementProps) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [severityFilter, setSeverityFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
-  const [adminNotes, setAdminNotes] = useState('');
+  const [adminNotes, setAdminNotes] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const { toast } = useToast();
 
@@ -74,7 +97,7 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
         });
       }
     } catch (error) {
-      console.error('Error fetching issues:', error);
+      console.error("Error fetching issues:", error);
       toast({
         title: "Error",
         description: "Failed to load issues",
@@ -92,7 +115,7 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
   const updateIssueStatus = async (issueId: string, newStatus: string) => {
     try {
       setUpdatingStatus(true);
-      const { updateIssueStatus } = await import('@/lib/actions/issue.action');
+      const { updateIssueStatus } = await import("@/lib/actions/issue.action");
 
       const result = await updateIssueStatus(issueId, newStatus, adminNotes);
 
@@ -103,7 +126,7 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
         });
         fetchIssues(); // Refresh the list
         setSelectedIssue(null);
-        setAdminNotes('');
+        setAdminNotes("");
       } else {
         toast({
           title: "Error",
@@ -112,7 +135,7 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
         });
       }
     } catch (error) {
-      console.error('Error updating issue status:', error);
+      console.error("Error updating issue status:", error);
       toast({
         title: "Error",
         description: "Failed to update issue status",
@@ -123,59 +146,71 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
     }
   };
 
-  const filteredIssues = issues.filter(issue => {
-    const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredIssues = issues.filter((issue) => {
+    const matchesSearch =
+      issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       issue.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       issue.reporterName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
-    const matchesSeverity = severityFilter === 'all' || issue.severity === severityFilter;
-    const matchesCategory = categoryFilter === 'all' || issue.category === categoryFilter;
+    const matchesStatus =
+      statusFilter === "all" || issue.status === statusFilter;
+    const matchesSeverity =
+      severityFilter === "all" || issue.severity === severityFilter;
+    const matchesCategory =
+      categoryFilter === "all" || issue.category === categoryFilter;
 
     return matchesSearch && matchesStatus && matchesSeverity && matchesCategory;
   });
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'open': { variant: 'destructive' as const, label: 'Open' },
-      'in-progress': { variant: 'default' as const, label: 'In Progress' },
-      'resolved': { variant: 'secondary' as const, label: 'Resolved' },
-      'closed': { variant: 'outline' as const, label: 'Closed' }
+      open: { variant: "destructive" as const, label: "Open" },
+      "in-progress": { variant: "default" as const, label: "In Progress" },
+      resolved: { variant: "secondary" as const, label: "Resolved" },
+      closed: { variant: "outline" as const, label: "Closed" },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.open;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.open;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const getSeverityBadge = (severity: string) => {
     const severityConfig = {
-      'low': { variant: 'secondary' as const, label: 'Low' },
-      'medium': { variant: 'default' as const, label: 'Medium' },
-      'high': { variant: 'destructive' as const, label: 'High' }
+      low: { variant: "secondary" as const, label: "Low" },
+      medium: { variant: "default" as const, label: "Medium" },
+      high: { variant: "destructive" as const, label: "High" },
     };
 
-    const config = severityConfig[severity as keyof typeof severityConfig] || severityConfig.medium;
+    const config =
+      severityConfig[severity as keyof typeof severityConfig] ||
+      severityConfig.medium;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'open': return <AlertTriangle className="w-4 h-4 text-red-500" />;
-      case 'in-progress': return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'resolved': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'closed': return <XCircle className="w-4 h-4 text-gray-500" />;
-      default: return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      case "open":
+        return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      case "in-progress":
+        return <Clock className="w-4 h-4 text-yellow-500" />;
+      case "resolved":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "closed":
+        return <XCircle className="w-4 h-4 text-gray-500" />;
+      default:
+        return <AlertTriangle className="w-4 h-4 text-red-500" />;
     }
   };
 
   const issueStats = {
     total: issues.length,
-    open: issues.filter(i => i.status === 'open').length,
-    inProgress: issues.filter(i => i.status === 'in-progress').length,
-    resolved: issues.filter(i => i.status === 'resolved').length,
-    closed: issues.filter(i => i.status === 'closed').length,
-    high: issues.filter(i => i.severity === 'high').length,
-    medium: issues.filter(i => i.severity === 'medium').length,
-    low: issues.filter(i => i.severity === 'low').length
+    open: issues.filter((i) => i.status === "open").length,
+    inProgress: issues.filter((i) => i.status === "in-progress").length,
+    resolved: issues.filter((i) => i.status === "resolved").length,
+    closed: issues.filter((i) => i.status === "closed").length,
+    high: issues.filter((i) => i.severity === "high").length,
+    medium: issues.filter((i) => i.severity === "medium").length,
+    low: issues.filter((i) => i.severity === "low").length,
   };
 
   if (loading) {
@@ -193,49 +228,65 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-gray-900">{issueStats.total}</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {issueStats.total}
+            </div>
             <div className="text-sm text-gray-600">Total Issues</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{issueStats.open}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {issueStats.open}
+            </div>
             <div className="text-sm text-gray-600">Open</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{issueStats.inProgress}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {issueStats.inProgress}
+            </div>
             <div className="text-sm text-gray-600">In Progress</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{issueStats.resolved}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {issueStats.resolved}
+            </div>
             <div className="text-sm text-gray-600">Resolved</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-gray-600">{issueStats.closed}</div>
+            <div className="text-2xl font-bold text-gray-600">
+              {issueStats.closed}
+            </div>
             <div className="text-sm text-gray-600">Closed</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{issueStats.high}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {issueStats.high}
+            </div>
             <div className="text-sm text-gray-600">High Priority</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{issueStats.medium}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {issueStats.medium}
+            </div>
             <div className="text-sm text-gray-600">Medium Priority</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{issueStats.low}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {issueStats.low}
+            </div>
             <div className="text-sm text-gray-600">Low Priority</div>
           </CardContent>
         </Card>
@@ -296,8 +347,12 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="event-info">Event Info</SelectItem>
-                <SelectItem value="tickets-registration">Tickets & Registration</SelectItem>
-                <SelectItem value="event-experience">Event Experience</SelectItem>
+                <SelectItem value="tickets-registration">
+                  Tickets & Registration
+                </SelectItem>
+                <SelectItem value="event-experience">
+                  Event Experience
+                </SelectItem>
                 <SelectItem value="payments">Payments</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
@@ -315,12 +370,13 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
           <Card>
             <CardContent className="p-8 text-center">
               <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Issues Found</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No Issues Found
+              </h3>
               <p className="text-gray-600">
                 {issues.length === 0
                   ? "No issues have been reported for this event yet."
-                  : "No issues match your current filters."
-                }
+                  : "No issues match your current filters."}
               </p>
             </CardContent>
           </Card>
@@ -335,9 +391,13 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
                       <h3 className="text-lg font-semibold">{issue.title}</h3>
                       {getStatusBadge(issue.status)}
                       {getSeverityBadge(issue.severity)}
-                      <Badge variant="outline">{issue.category.replace('-', ' ')}</Badge>
+                      <Badge variant="outline">
+                        {issue.category.replace("-", " ")}
+                      </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3 line-clamp-2">{issue.description}</p>
+                    <p className="text-gray-600 mb-3 line-clamp-2">
+                      {issue.description}
+                    </p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <User className="w-4 h-4" />
@@ -362,7 +422,7 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
                           size="sm"
                           onClick={() => {
                             setSelectedIssue(issue);
-                            setAdminNotes(issue.adminNotes || '');
+                            setAdminNotes(issue.adminNotes || "");
                           }}
                         >
                           <MessageSquare className="w-4 h-4 mr-2" />
@@ -385,30 +445,48 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
                             {/* Issue Information */}
                             <div className="space-y-4">
                               <div>
-                                <h4 className="font-semibold mb-2">Issue Title</h4>
-                                <p className="text-gray-700">{selectedIssue.title}</p>
+                                <h4 className="font-semibold mb-2">
+                                  Issue Title
+                                </h4>
+                                <p className="text-gray-700">
+                                  {selectedIssue.title}
+                                </p>
                               </div>
 
                               <div>
-                                <h4 className="font-semibold mb-2">Description</h4>
-                                <p className="text-gray-700 whitespace-pre-wrap">{selectedIssue.description}</p>
+                                <h4 className="font-semibold mb-2">
+                                  Description
+                                </h4>
+                                <p className="text-gray-700 whitespace-pre-wrap">
+                                  {selectedIssue.description}
+                                </p>
                               </div>
 
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <h4 className="font-semibold mb-2">Reporter</h4>
-                                  <p className="text-gray-700">{selectedIssue.reporterName}</p>
-                                  <p className="text-sm text-gray-500">{selectedIssue.reporterEmail}</p>
+                                  <h4 className="font-semibold mb-2">
+                                    Reporter
+                                  </h4>
+                                  <p className="text-gray-700">
+                                    {selectedIssue.reporterName}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    {selectedIssue.reporterEmail}
+                                  </p>
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold mb-2">Reported On</h4>
+                                  <h4 className="font-semibold mb-2">
+                                    Reported On
+                                  </h4>
                                   <p className="text-gray-700">
-                                    {new Date(selectedIssue.createdAt).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
+                                    {new Date(
+                                      selectedIssue.createdAt,
+                                    ).toLocaleDateString("en-US", {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
                                     })}
                                   </p>
                                 </div>
@@ -416,11 +494,17 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
 
                               <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                  <h4 className="font-semibold mb-2">Category</h4>
-                                  <Badge variant="outline">{selectedIssue.category.replace('-', ' ')}</Badge>
+                                  <h4 className="font-semibold mb-2">
+                                    Category
+                                  </h4>
+                                  <Badge variant="outline">
+                                    {selectedIssue.category.replace("-", " ")}
+                                  </Badge>
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold mb-2">Severity</h4>
+                                  <h4 className="font-semibold mb-2">
+                                    Severity
+                                  </h4>
                                   {getSeverityBadge(selectedIssue.severity)}
                                 </div>
                                 <div>
@@ -431,15 +515,21 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
 
                               {selectedIssue.subcategory && (
                                 <div>
-                                  <h4 className="font-semibold mb-2">Subcategory</h4>
-                                  <p className="text-gray-700">{selectedIssue.subcategory}</p>
+                                  <h4 className="font-semibold mb-2">
+                                    Subcategory
+                                  </h4>
+                                  <p className="text-gray-700">
+                                    {selectedIssue.subcategory}
+                                  </p>
                                 </div>
                               )}
                             </div>
 
                             {/* Admin Notes */}
                             <div>
-                              <h4 className="font-semibold mb-2">Admin Notes</h4>
+                              <h4 className="font-semibold mb-2">
+                                Admin Notes
+                              </h4>
                               <Textarea
                                 placeholder="Add notes about this issue..."
                                 value={adminNotes}
@@ -451,41 +541,72 @@ export default function IssueManagement({ eventId, eventTitle, organizerId }: Is
                             {/* Status Update Actions */}
                             <div className="flex flex-wrap gap-2 pt-4 border-t">
                               <Button
-                                onClick={() => updateIssueStatus(selectedIssue._id, 'in-progress')}
-                                disabled={updatingStatus || selectedIssue.status === 'in-progress'}
+                                onClick={() =>
+                                  updateIssueStatus(
+                                    selectedIssue._id,
+                                    "in-progress",
+                                  )
+                                }
+                                disabled={
+                                  updatingStatus ||
+                                  selectedIssue.status === "in-progress"
+                                }
                                 variant="default"
                                 size="sm"
                               >
-                                {updatingStatus ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                {updatingStatus ? (
+                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                ) : null}
                                 Mark In Progress
                               </Button>
                               <Button
-                                onClick={() => updateIssueStatus(selectedIssue._id, 'resolved')}
-                                disabled={updatingStatus || selectedIssue.status === 'resolved'}
+                                onClick={() =>
+                                  updateIssueStatus(
+                                    selectedIssue._id,
+                                    "resolved",
+                                  )
+                                }
+                                disabled={
+                                  updatingStatus ||
+                                  selectedIssue.status === "resolved"
+                                }
                                 variant="default"
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700"
                               >
-                                {updatingStatus ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                {updatingStatus ? (
+                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                ) : null}
                                 Mark Resolved
                               </Button>
                               <Button
-                                onClick={() => updateIssueStatus(selectedIssue._id, 'closed')}
-                                disabled={updatingStatus || selectedIssue.status === 'closed'}
+                                onClick={() =>
+                                  updateIssueStatus(selectedIssue._id, "closed")
+                                }
+                                disabled={
+                                  updatingStatus ||
+                                  selectedIssue.status === "closed"
+                                }
                                 variant="outline"
                                 size="sm"
                               >
-                                {updatingStatus ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                {updatingStatus ? (
+                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                ) : null}
                                 Close Issue
                               </Button>
-                              {selectedIssue.status !== 'open' && (
+                              {selectedIssue.status !== "open" && (
                                 <Button
-                                  onClick={() => updateIssueStatus(selectedIssue._id, 'open')}
+                                  onClick={() =>
+                                    updateIssueStatus(selectedIssue._id, "open")
+                                  }
                                   disabled={updatingStatus}
                                   variant="outline"
                                   size="sm"
                                 >
-                                  {updatingStatus ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                  {updatingStatus ? (
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                  ) : null}
                                   Reopen
                                 </Button>
                               )}

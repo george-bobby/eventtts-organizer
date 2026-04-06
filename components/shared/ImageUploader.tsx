@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Upload, X, Image as ImageIcon, Camera } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import CameraCapture from '@/components/shared/CameraCapture';
+import { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { Upload, X, Image as ImageIcon, Camera } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import CameraCapture from "@/components/shared/CameraCapture";
 
 interface ImageUploaderProps {
   onImageUpload: (imageDataUrl: string, detectedLocation: string) => void;
@@ -19,47 +19,50 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
   const [predictionError, setPredictionError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) return;
 
-    const file = acceptedFiles[0];
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload an image file (JPEG, PNG, or WebP)',
-        variant: 'destructive',
-      });
-      return;
-    }
+      const file = acceptedFiles[0];
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image file (JPEG, PNG, or WebP)",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Please upload an image smaller than 5MB',
-        variant: 'destructive',
-      });
-      return;
-    }
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPreview(reader.result as string);
-    };
-    reader.onerror = () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to read the image file',
-        variant: 'destructive',
-      });
-    };
-    reader.readAsDataURL(file);
-  }, [toast]);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreview(reader.result as string);
+      };
+      reader.onerror = () => {
+        toast({
+          title: "Error",
+          description: "Failed to read the image file",
+          variant: "destructive",
+        });
+      };
+      reader.readAsDataURL(file);
+    },
+    [toast],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.webp'],
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
     },
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024, // 5MB
@@ -68,9 +71,9 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
   const handleSubmit = async () => {
     if (!preview) {
       toast({
-        title: 'No image selected',
-        description: 'Please upload an image first',
-        variant: 'destructive',
+        title: "No image selected",
+        description: "Please upload an image first",
+        variant: "destructive",
       });
       return;
     }
@@ -84,17 +87,17 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       const blob = await response.blob();
 
       const formData = new FormData();
-      formData.append('image', blob, 'image.jpg');
+      formData.append("image", blob, "image.jpg");
 
       // Use Next.js API route
-      const res = await fetch('/api/predict', {
-        method: 'POST',
+      const res = await fetch("/api/predict", {
+        method: "POST",
         body: formData,
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to process image');
+        throw new Error(errorData.message || "Failed to process image");
       }
 
       const data = await res.json();
@@ -113,15 +116,16 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       onImageUpload(preview, predictedClass);
 
       toast({
-        title: 'Location Detected!',
+        title: "Location Detected!",
         description: `Found: ${predictedClass} (${Math.round(confidence * 100)}% confidence)`,
       });
     } catch (err) {
-      console.error('Error:', err);
+      console.error("Error:", err);
       // Set error state instead of showing toast for prediction failures
-      const errorMessage = err instanceof Error
-        ? err.message
-        : 'Failed to detect location. Please try a different image or try again later.';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to detect location. Please try a different image or try again later.";
       setPredictionError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -141,15 +145,18 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
 
   const openCamera = useCallback(() => {
     // Enhanced camera support detection
-    const isHttps = window.location.protocol === 'https:';
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHttps = window.location.protocol === "https:";
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
 
     // Check if MediaDevices API is available
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       toast({
-        title: 'Camera Not Supported',
-        description: 'Your browser does not support camera access. Please try a modern browser like Chrome, Firefox, or Safari.',
-        variant: 'destructive',
+        title: "Camera Not Supported",
+        description:
+          "Your browser does not support camera access. Please try a modern browser like Chrome, Firefox, or Safari.",
+        variant: "destructive",
       });
       return;
     }
@@ -157,9 +164,10 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     // Check HTTPS requirement (except for localhost)
     if (!isHttps && !isLocalhost) {
       toast({
-        title: 'HTTPS Required',
-        description: 'Camera access requires HTTPS. Please access the site using https:// or use file upload instead.',
-        variant: 'destructive',
+        title: "HTTPS Required",
+        description:
+          "Camera access requires HTTPS. Please access the site using https:// or use file upload instead.",
+        variant: "destructive",
       });
       return;
     }
@@ -167,9 +175,10 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     // Additional check for secure context
     if (!window.isSecureContext && !isLocalhost) {
       toast({
-        title: 'Secure Context Required',
-        description: 'Camera access requires a secure context (HTTPS). Please use file upload instead.',
-        variant: 'destructive',
+        title: "Secure Context Required",
+        description:
+          "Camera access requires a secure context (HTTPS). Please use file upload instead.",
+        variant: "destructive",
       });
       return;
     }
@@ -182,11 +191,11 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       <div
         {...getRootProps()}
         className={cn(
-          'border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer',
+          "border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer",
           isDragActive
-            ? 'border-primary bg-primary/5'
-            : 'border-muted-foreground/25 hover:border-primary/50',
-          'relative'
+            ? "border-primary bg-primary/5"
+            : "border-muted-foreground/25 hover:border-primary/50",
+          "relative",
         )}
       >
         <input {...getInputProps()} />
@@ -230,9 +239,7 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
           <div className="text-red-800 font-medium mb-2">
             Unable to detect location
           </div>
-          <div className="text-red-600 text-sm mb-3">
-            {predictionError}
-          </div>
+          <div className="text-red-600 text-sm mb-3">{predictionError}</div>
           <Button
             variant="outline"
             size="sm"
@@ -248,18 +255,18 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       )}
 
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          className="flex-1"
-          onClick={openCamera}
-        >
+        <Button variant="outline" className="flex-1" onClick={openCamera}>
           <Camera className="mr-2 h-4 w-4" />
           Take Photo
         </Button>
 
         {preview && !predictionError && (
-          <Button className="flex-1" onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? 'Detecting Location...' : 'Detect Location'}
+          <Button
+            className="flex-1"
+            onClick={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? "Detecting Location..." : "Detect Location"}
             {!isLoading && <Upload className="ml-2 h-4 w-4" />}
           </Button>
         )}

@@ -1,13 +1,32 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Loader2, Search, User, Mail, Calendar, Clock, MapPin, QrCode, Keyboard, Shield } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { QRScanner } from '@/components/ui/qr-scanner';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Search,
+  User,
+  Mail,
+  Calendar,
+  Clock,
+  MapPin,
+  QrCode,
+  Keyboard,
+  Shield,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { QRScanner } from "@/components/ui/qr-scanner";
 
 interface TicketVerificationProps {
   eventId: string;
@@ -41,21 +60,24 @@ interface VerificationResult {
   };
 }
 
-export default function TicketVerification({ eventId, eventTitle }: TicketVerificationProps) {
-  const [entryCode, setEntryCode] = useState('');
+export default function TicketVerification({
+  eventId,
+  eventTitle,
+}: TicketVerificationProps) {
+  const [entryCode, setEntryCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const { toast } = useToast();
 
   const verifyTicketCode = async (code: string) => {
     if (!code || code.length !== 6) {
-      throw new Error('Invalid entry code format');
+      throw new Error("Invalid entry code format");
     }
 
-    const response = await fetch('/api/tickets/verify', {
-      method: 'POST',
+    const response = await fetch("/api/tickets/verify", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         entryCode: code,
@@ -68,15 +90,15 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
 
     if (data.success) {
       toast({
-        title: 'Ticket Verified! ✅',
+        title: "Ticket Verified! ✅",
         description: `Welcome ${data.ticket?.user.firstName} ${data.ticket?.user.lastName}`,
       });
       return data;
     } else {
       toast({
-        title: 'Verification Failed',
+        title: "Verification Failed",
         description: data.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
       throw new Error(data.message);
     }
@@ -85,9 +107,9 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
   const handleManualVerify = async () => {
     if (!entryCode || entryCode.length !== 6) {
       toast({
-        title: 'Invalid Entry Code',
-        description: 'Please enter a 6-digit entry code',
-        variant: 'destructive',
+        title: "Invalid Entry Code",
+        description: "Please enter a 6-digit entry code",
+        variant: "destructive",
       });
       return;
     }
@@ -97,9 +119,9 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
 
     try {
       await verifyTicketCode(entryCode);
-      setEntryCode(''); // Clear input on success
+      setEntryCode(""); // Clear input on success
     } catch (error) {
-      console.error('Error verifying ticket:', error);
+      console.error("Error verifying ticket:", error);
     } finally {
       setLoading(false);
     }
@@ -109,7 +131,7 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
     // Extract 6-digit code from scanned data
     const codeMatch = scannedData.match(/\d{6}/);
     if (!codeMatch) {
-      throw new Error('No valid 6-digit code found in QR code');
+      throw new Error("No valid 6-digit code found in QR code");
     }
 
     const code = codeMatch[0];
@@ -118,30 +140,30 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
 
   const handleQRError = (error: string) => {
     toast({
-      title: 'QR Scan Error',
+      title: "QR Scan Error",
       description: error,
-      variant: 'destructive',
+      variant: "destructive",
     });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleManualVerify();
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'used':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'expired':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "active":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "used":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "expired":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -168,7 +190,7 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
                   placeholder="Enter 6-digit code"
                   value={entryCode}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
                     setEntryCode(value);
                   }}
                   onKeyDown={handleKeyPress}
@@ -223,7 +245,9 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
 
       {/* Verification Result */}
       {result && (
-        <Card className={`border-2 ${result.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+        <Card
+          className={`border-2 ${result.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
+        >
           <CardHeader>
             <div className="flex items-center gap-3">
               {result.success ? (
@@ -236,10 +260,14 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
                 </div>
               )}
               <div>
-                <CardTitle className={result.success ? 'text-green-900' : 'text-red-900'}>
-                  {result.success ? 'Valid Ticket ✓' : 'Invalid Ticket ✗'}
+                <CardTitle
+                  className={result.success ? "text-green-900" : "text-red-900"}
+                >
+                  {result.success ? "Valid Ticket ✓" : "Invalid Ticket ✗"}
                 </CardTitle>
-                <CardDescription className={result.success ? 'text-green-700' : 'text-red-700'}>
+                <CardDescription
+                  className={result.success ? "text-green-700" : "text-red-700"}
+                >
                   {result.message}
                 </CardDescription>
               </div>
@@ -251,15 +279,20 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
               {/* Ticket Status */}
               <div className="flex items-center justify-between p-3 bg-white rounded-lg">
                 <span className="font-medium text-gray-700">Status:</span>
-                <Badge className={`${getStatusColor(result.ticket.status)} border`}>
-                  {result.ticket.status.charAt(0).toUpperCase() + result.ticket.status.slice(1)}
+                <Badge
+                  className={`${getStatusColor(result.ticket.status)} border`}
+                >
+                  {result.ticket.status.charAt(0).toUpperCase() +
+                    result.ticket.status.slice(1)}
                 </Badge>
               </div>
 
               {/* Ticket ID */}
               <div className="flex items-center justify-between p-3 bg-white rounded-lg">
                 <span className="font-medium text-gray-700">Ticket ID:</span>
-                <span className="font-mono text-sm text-gray-900">{result.ticket.ticketId}</span>
+                <span className="font-mono text-sm text-gray-900">
+                  {result.ticket.ticketId}
+                </span>
               </div>
 
               {/* Attendee Details */}
@@ -272,7 +305,8 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
                   <div className="flex justify-between">
                     <span className="text-gray-600">Name:</span>
                     <span className="font-medium text-gray-900">
-                      {result.ticket.user.firstName} {result.ticket.user.lastName}
+                      {result.ticket.user.firstName}{" "}
+                      {result.ticket.user.lastName}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -280,7 +314,9 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
                       <Mail className="w-4 h-4" />
                       Email:
                     </span>
-                    <span className="text-gray-900">{result.ticket.user.email}</span>
+                    <span className="text-gray-900">
+                      {result.ticket.user.email}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -288,18 +324,24 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
               {/* Ticket Metadata */}
               {result.ticket.metadata && (
                 <div className="bg-white rounded-lg p-4 space-y-3">
-                  <h3 className="font-semibold text-gray-900">Ticket Information</h3>
+                  <h3 className="font-semibold text-gray-900">
+                    Ticket Information
+                  </h3>
                   <div className="space-y-2">
                     {result.ticket.metadata.ticketType && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Type:</span>
-                        <span className="text-gray-900">{result.ticket.metadata.ticketType}</span>
+                        <span className="text-gray-900">
+                          {result.ticket.metadata.ticketType}
+                        </span>
                       </div>
                     )}
                     {result.ticket.metadata.additionalInfo && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Info:</span>
-                        <span className="text-gray-900">{result.ticket.metadata.additionalInfo}</span>
+                        <span className="text-gray-900">
+                          {result.ticket.metadata.additionalInfo}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -322,9 +364,6 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
           )}
         </Card>
       )}
-
-
     </div>
   );
 }
-

@@ -134,40 +134,6 @@ npm install
 cp .env.example .env.local
 ```
 
-Fill in your environment variables:
-
-```env
-# Database
-MONGODB_URI=your_mongodb_uri
-
-# Authentication (Clerk)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
-
-# AI Services
-GEMINI_API_KEY=your_gemini_api_key
-ROBOFLOW_API_KEY=your_roboflow_api_key
-
-# Payment (Stripe)
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-
-# File Upload
-UPLOADTHING_SECRET=your_uploadthing_secret
-UPLOADTHING_APP_ID=your_uploadthing_app_id
-
-# Email
-RESEND_API_KEY=your_resend_api_key
-
-# App URLs
-NEXT_PUBLIC_SERVER_URL=http://localhost:3000
-```
-
 4. **Run the development server**
 
 ```bash

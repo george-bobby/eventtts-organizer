@@ -1,4 +1,4 @@
-import { HomeIcon, PersonIcon } from "@radix-ui/react-icons";
+import { HomeIcon } from "@radix-ui/react-icons";
 import { FaRegHeart } from "react-icons/fa";
 import { TfiTicket } from "react-icons/tfi";
 import { IoLocationOutline } from "react-icons/io5";
@@ -36,10 +36,5 @@ export const sidebarLinks: SidebarLink[] = [
     image: <FaRegHeart />,
     label: "Wishlist",
     path: "/wishlist",
-  },
-  {
-    image: <PersonIcon />,
-    label: "Dashboard",
-    path: "/dashboard",
   },
 ];
