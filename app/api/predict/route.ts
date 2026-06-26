@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import https from 'https';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Bypass SSL certificate verification for Roboflow API.
+// Required on Windows/corporate networks where Node.js can't verify
+// Roboflow's intermediate certificate chain.
+const roboflowAgent = new https.Agent({ rejectUnauthorized: false });
 
 // Types
 interface CampusLocation {
@@ -39,8 +46,12 @@ interface RoboflowPrediction {
 }
 
 interface RoboflowResponse {
-	predictions: RoboflowPrediction[];
-	image: {
+	// Object detection models return an array; classification models may return an object
+	predictions: RoboflowPrediction[] | Record<string, number>;
+	// Classification shorthand fields
+	top?: string;
+	confidence?: number;
+	image?: {
 		width: number;
 		height: number;
 	};
@@ -175,81 +186,143 @@ async function predictWithRoboflow(
 			url: ROBOFLOW_URL,
 			params: {
 				api_key: ROBOFLOW_API_KEY,
+				confidence: 0.01,
 			},
 			data: imageBase64,
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},
-			timeout: 30000, // 30 second timeout
+			httpsAgent: roboflowAgent,
+			timeout: 30000,
 		});
 
 		const roboflowData: RoboflowResponse = response.data;
+		console.log('[Roboflow] Raw response:', JSON.stringify(roboflowData).slice(0, 600));
 
-		if (!roboflowData.predictions || roboflowData.predictions.length === 0) {
-			console.log('No predictions returned from Roboflow for this image');
+		const probabilities: Record<string, number> = {};
+		let topClass: string | null = null;
+		let topConfidence = 0;
+
+		// ── Case 1: Classification model returns top/confidence shorthand ──
+		if (roboflowData.top && typeof roboflowData.confidence === 'number') {
+			topClass = roboflowData.top;
+			topConfidence = roboflowData.confidence;
+			probabilities[topClass] = topConfidence;
+		}
+
+		// ── Case 2: Predictions is an array (object detection / some classifiers) ──
+		if (Array.isArray(roboflowData.predictions)) {
+			if (roboflowData.predictions.length === 0) {
+				console.warn('[Roboflow] Empty predictions array — model detected nothing in this image');
+				if (!topClass) return null;
+			} else {
+				for (const pred of roboflowData.predictions) {
+					probabilities[pred.class] = Math.max(probabilities[pred.class] ?? 0, pred.confidence);
+				}
+				const top = roboflowData.predictions.reduce((a, b) =>
+					a.confidence > b.confidence ? a : b
+				);
+				if (top.confidence > topConfidence) {
+					topClass = top.class;
+					topConfidence = top.confidence;
+				}
+			}
+		}
+		// ── Case 3: Predictions is an object/dict {className: confidence} ──
+		else if (roboflowData.predictions && typeof roboflowData.predictions === 'object') {
+			const dict = roboflowData.predictions as Record<string, number>;
+			for (const [cls, conf] of Object.entries(dict)) {
+				probabilities[cls] = conf;
+				if (conf > topConfidence) {
+					topConfidence = conf;
+					topClass = cls;
+				}
+			}
+		}
+
+		if (!topClass) {
+			console.warn('[Roboflow] Could not extract any prediction from response');
 			return null;
 		}
 
-		// Convert Roboflow predictions to our format
-		const probabilities: Record<string, number> = {};
-
-		for (const pred of roboflowData.predictions) {
-			probabilities[pred.class] = pred.confidence;
-		}
-
-		// Find the prediction with highest confidence
-		const topPrediction = roboflowData.predictions.reduce((prev, current) =>
-			prev.confidence > current.confidence ? prev : current
-		);
+		console.log(`[Roboflow] Top prediction: ${topClass} (${(topConfidence * 100).toFixed(1)}%)`);
 
 		return {
-			predicted_class: topPrediction.class,
+			predicted_class: topClass,
 			probabilities,
 		};
-	} catch (error) {
-		console.error('Roboflow prediction error:', error);
-
-		// Return null instead of throwing to allow graceful fallback
-		if (error instanceof Error) {
-			console.error('Roboflow API error details:', error.message);
+	} catch (error: any) {
+		if (error?.response) {
+			console.error(
+				`[Roboflow] HTTP ${error.response.status}:`,
+				JSON.stringify(error.response.data).slice(0, 500)
+			);
+		} else if (error?.request) {
+			console.error('[Roboflow] No response (timeout/network):', error.message);
+		} else {
+			console.error('[Roboflow] Setup error:', error?.message);
 		}
 		return null;
 	}
 }
 
-// Fallback prediction when Roboflow fails
-function getFallbackPrediction(): AIPrediction {
-	// Return a default prediction with low confidence
-	return {
-		predicted_class: 'Main Gate',
-		probabilities: {
-			'Main Gate': 0.3,
-			'Cross Road': 0.2,
-			'Block 1': 0.15,
-			'Students Square': 0.1,
-			'Open Auditorium': 0.1,
-			'Block 4': 0.05,
-			'Xpress Cafe': 0.05,
-			'Block 6': 0.03,
-			'Amphi Theater': 0.01,
-			'PU Block': 0.01,
-			'Architecture Block': 0.01,
-		},
-	};
+async function validateImageWithGemini(
+	imageBase64: string
+): Promise<{ isValid: boolean; reason: string }> {
+	const apiKey = process.env.GEMINI_API_KEY;
+	if (!apiKey) {
+		console.warn('[Gemini] GEMINI_API_KEY is not defined, skipping pre-validation');
+		return { isValid: true, reason: 'Gemini API key not configured' };
+	}
+
+	try {
+		const genAI = new GoogleGenerativeAI(apiKey);
+		const model = genAI.getGenerativeModel({
+			model: 'gemini-1.5-flash',
+			generationConfig: {
+				responseMimeType: 'application/json',
+			},
+		});
+
+		const prompt = `You are a campus localization assistant.
+Analyze the provided image. Does the image depict an outdoor campus area, building, gate, landmark, or indoor facility (like a classroom, library, auditorium, student square, or academic block corridor)?
+Reject closeups of faces/selfies (where the face dominates the frame and campus context is missing), documents/text sheets, digital screens, screenshots, random household objects, food plates (where the food dominates and cafe background is missing), animals, or other unrelated things.
+Provide your response strictly in the following JSON format:
+{
+  "isValidCampusLocation": boolean,
+  "reason": "a brief explanation of why the image is or is not a valid campus location"
+}`;
+
+		const result = await model.generateContent([
+			prompt,
+			{
+				inlineData: {
+					data: imageBase64,
+					mimeType: 'image/jpeg',
+				},
+			},
+		]);
+
+		const text = result.response.text();
+		console.log('[Gemini] Raw response:', text);
+
+		const json = JSON.parse(text);
+		return {
+			isValid: !!json.isValidCampusLocation,
+			reason: json.reason || 'No reason provided',
+		};
+	} catch (error) {
+		console.error('[Gemini] Pre-validation failed:', error);
+		// In case of API/parsing failure, we fallback to true to not block the user's workflow entirely
+		return { isValid: true, reason: 'Gemini API/parsing error, bypassing pre-validation' };
+	}
 }
 
-// Separate prediction functions
 async function getAIPrediction(
 	imageBase64: string
 ): Promise<AIPrediction | null> {
 	const result = await predictWithRoboflow(imageBase64);
-
-	// If Roboflow fails completely, return a fallback prediction
-	if (!result) {
-		console.log('Roboflow failed, using fallback prediction');
-		return getFallbackPrediction();
-	}
-
+	// If Roboflow fails, return null — do NOT silently substitute a fake result.
 	return result;
 }
 
@@ -389,6 +462,18 @@ export async function POST(request: NextRequest) {
 			}
 
 			if (imageBase64) {
+				// Validate image content using Gemini before calling Roboflow
+				const validation = await validateImageWithGemini(imageBase64);
+				if (!validation.isValid) {
+					return NextResponse.json(
+						{
+							error: 'Invalid campus image',
+							message: validation.reason,
+							method: 'failed',
+						},
+						{ status: 422 }
+					);
+				}
 				aiPrediction = await getAIPrediction(imageBase64);
 			}
 		}

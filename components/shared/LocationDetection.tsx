@@ -134,6 +134,7 @@ export default function LocationDetection() {
   const handleImageUpload = async (
     imageDataUrl: string,
     detectedLocation: string,
+    confidence: number,
   ) => {
     setUploadedImage(imageDataUrl);
 
@@ -141,8 +142,8 @@ export default function LocationDetection() {
     if (predictionSettings.gpsEnabled && currentGPSLocation?.bestMatch) {
       const aiPrediction: AIPrediction = {
         predicted_class: detectedLocation,
-        confidence: 1.0,
-        probabilities: { [detectedLocation]: 1.0 },
+        confidence: confidence,
+        probabilities: { [detectedLocation]: confidence },
       };
 
       const hybrid = combineGPSAndAIPredictions(
@@ -164,7 +165,7 @@ export default function LocationDetection() {
       });
     } else {
       setCurrentLocation(detectedLocation);
-      setDetectionConfidence(1.0);
+      setDetectionConfidence(confidence);
 
       toast({
         title: "Location Detected!",

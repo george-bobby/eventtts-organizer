@@ -40,11 +40,15 @@ export async function getUserByClerkId(clerkId: string) {
 			try {
 				const clerkUser = await (await clerkClient()).users.getUser(clerkId);
 
+				const email = clerkUser.emailAddresses[0]?.emailAddress || '';
+				const username = clerkUser.username || clerkUser.firstName || email.split('@')[0] || 'user';
+				const firstName = clerkUser.firstName || username || 'User';
+
 				const userData = {
 					clerkId: clerkId,
-					email: clerkUser.emailAddresses[0]?.emailAddress || '',
-					username: clerkUser.username || clerkUser.firstName || 'user',
-					firstName: clerkUser.firstName || '',
+					email: email,
+					username: username,
+					firstName: firstName,
 					lastName: clerkUser.lastName || '',
 					photo: clerkUser.imageUrl || '',
 				};

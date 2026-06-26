@@ -62,11 +62,15 @@ export async function POST(req: Request) {
 		const { id, email_addresses, image_url, first_name, last_name, username } =
 			evt.data;
 
+		const primaryEmail = email_addresses[0]?.email_address || "";
+		const defaultUsername = username || first_name || primaryEmail.split('@')[0] || `user_${id.substring(id.length - 6)}`;
+		const defaultFirstName = first_name || defaultUsername || 'User';
+
 		const user = {
 			clerkId: id,
-			email: email_addresses[0].email_address,
-			username: username!,
-			firstName: first_name ?? '',
+			email: primaryEmail,
+			username: defaultUsername,
+			firstName: defaultFirstName,
 			lastName: last_name ?? '',
 			photo: image_url,
 		};
@@ -87,10 +91,13 @@ export async function POST(req: Request) {
 	if (eventType === 'user.updated') {
 		const { id, image_url, first_name, last_name, username } = evt.data;
 
+		const defaultUsername = username || first_name || 'user';
+		const defaultFirstName = first_name || defaultUsername || 'User';
+
 		const user = {
-			firstName: first_name ?? '',
+			firstName: defaultFirstName,
 			lastName: last_name ?? '',
-			username: username!,
+			username: defaultUsername,
 			photo: image_url,
 		};
 

@@ -38,6 +38,7 @@ export function FileUploader({
     accept: generateClientDropzoneAccept(
       generatePermittedFileTypes(routeConfig).fileTypes,
     ),
+    maxSize: 4 * 1024 * 1024, // 4MB — must match server-side imageUploader config
   });
 
   return (

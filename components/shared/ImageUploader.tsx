@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import CameraCapture from "@/components/shared/CameraCapture";
 
 interface ImageUploaderProps {
-  onImageUpload: (imageDataUrl: string, detectedLocation: string) => void;
+  onImageUpload: (imageDataUrl: string, detectedLocation: string, confidence: number) => void;
 }
 
 export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
@@ -110,10 +110,10 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       }
 
       const predictedClass = data.predicted_class;
-      const probabilities = data.probabilities;
-      const confidence = probabilities[predictedClass];
+      const probabilities = data.probabilities || {};
+      const confidence: number = probabilities[predictedClass] ?? 0;
 
-      onImageUpload(preview, predictedClass);
+      onImageUpload(preview, predictedClass, confidence);
 
       toast({
         title: "Location Detected!",

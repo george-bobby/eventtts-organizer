@@ -36,9 +36,13 @@ export default function RealTimeCameraInline({
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const cameraStateRef = useRef<"idle" | "starting" | "running">("idle");
+  // Guard against React StrictMode double-invoking effects
+  const mountedRef = useRef(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  // null = not started yet, true = granted, false = denied
+  const [cameraStarted, setCameraStarted] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">(
     "environment",
   );
@@ -360,57 +364,35 @@ export default function RealTimeCameraInline({
     }
   }, [currentPrediction, onLocationDetected, stopAutomaticCapture, stopCamera]);
 
-  // Initialize camera when component mounts
+  // Cleanup on unmount only — camera is started by user gesture, not auto-started.
   useEffect(() => {
-    let isMounted = true;
-
-    const initCamera = async () => {
-      try {
-        console.log("Initializing live detection camera...");
-        await getDevices();
-        if (isMounted && cameraStateRef.current === "idle") {
-          console.log("Starting live detection camera...");
-          await startCamera();
-        }
-      } catch (error) {
-        console.error("Failed to initialize live detection camera:", error);
-      }
-    };
-
-    initCamera();
-
+    mountedRef.current = true;
     return () => {
-      isMounted = false;
-      console.log("Cleaning up live detection camera...");
+      mountedRef.current = false;
       stopCamera();
     };
-  }, [getDevices, startCamera, stopCamera]); // Add back dependencies but with proper guards
+  }, [stopCamera]);
 
-  // Restart camera when device changes
+  // Handle the user clicking "Start Camera" — enumerate devices then open stream
+  const handleStartCamera = useCallback(async () => {
+    if (cameraStateRef.current !== "idle") return;
+    setCameraStarted(true);
+    await getDevices();
+    await startCamera();
+  }, [getDevices, startCamera]);
+
+  // Restart camera when device changes (only after camera has been started by user)
   useEffect(() => {
-    console.log("Device change effect triggered:", {
-      currentDeviceId,
-      cameraState: cameraStateRef.current,
-    });
-
+    if (!cameraStarted) return;
     if (currentDeviceId && cameraStateRef.current === "idle") {
-      console.log("Restarting camera for device change...");
-      // Add a small delay to prevent rapid restarts
       const timeoutId = setTimeout(() => {
-        startCamera();
+        if (mountedRef.current) startCamera();
       }, 200);
-
       return () => clearTimeout(timeoutId);
     }
-  }, [currentDeviceId, startCamera]); // Add startCamera back
+  }, [currentDeviceId, startCamera, cameraStarted]);
 
-  console.log("RealTimeCameraInline render state:", {
-    hasPermission,
-    isLoading,
-    isStartingCamera,
-    cameraState: cameraStateRef.current,
-    currentDeviceId,
-  });
+
 
   return (
     <div className="relative">
@@ -436,10 +418,34 @@ export default function RealTimeCameraInline({
             ) : hasPermission === false ? (
               <div className="text-center p-4">
                 <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Camera access denied</p>
-                <p className="text-xs opacity-75 mt-1">
-                  Please allow camera access and try again
+                <p className="text-sm font-semibold">Camera access denied</p>
+                <p className="text-xs opacity-75 mt-1 mb-3">
+                  Allow camera access in your browser settings, then try again.
                 </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10"
+                  onClick={() => {
+                    setHasPermission(null);
+                    setCameraStarted(false);
+                    cameraStateRef.current = "idle";
+                  }}
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : !cameraStarted ? (
+              <div className="text-center p-4">
+                <Camera className="h-12 w-12 mx-auto mb-3 opacity-70" />
+                <p className="text-sm mb-3">Camera access required for live detection</p>
+                <Button
+                  onClick={handleStartCamera}
+                  className="bg-white text-black hover:bg-white/90"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Start Camera
+                </Button>
               </div>
             ) : (
               <div className="text-center">

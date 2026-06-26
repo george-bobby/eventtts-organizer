@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileUploader } from "./FileUploader";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUploadThing } from "@/lib/uploadthing";
 import { IEvent } from "@/lib/models/event.model";
 import { useToast } from "@/hooks/use-toast";
@@ -80,7 +80,18 @@ interface PdfJsonObject {
 
 const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
   const [files, setFiles] = useState<File[]>([]);
-  const { startUpload } = useUploadThing("imageUploader");
+  const uploadErrorRef = useRef<string | null>(null);
+
+  const { startUpload } = useUploadThing("imageUploader", {
+    onUploadError: (err: any) => {
+      console.error("[ReportForm] useUploadThing onUploadError:", err);
+      uploadErrorRef.current = err.message || err.toString();
+    },
+    onClientUploadComplete: (res: any) => {
+      console.log("[ReportForm] useUploadThing onClientUploadComplete:", res);
+      uploadErrorRef.current = null;
+    }
+  });
   const { toast } = useToast();
   const [eventStats, setEventStats] = useState<any>(null);
 
@@ -119,8 +130,11 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
     try {
       let uploadedImageUrl = values.photos;
       if (files.length > 0) {
+        uploadErrorRef.current = null;
         const uploadedImages = await startUpload(files);
-        if (!uploadedImages) throw new Error("Image upload failed.");
+        if (!uploadedImages) {
+          throw new Error(uploadErrorRef.current || "Image upload failed.");
+        }
         uploadedImageUrl = uploadedImages[0].url;
       }
 
@@ -206,8 +220,11 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       const values = form.getValues();
       let uploadedImageUrl = values.photos;
       if (files.length > 0) {
+        uploadErrorRef.current = null;
         const uploadedImages = await startUpload(files);
-        if (!uploadedImages) throw new Error("Image upload failed.");
+        if (!uploadedImages) {
+          throw new Error(uploadErrorRef.current || "Image upload failed.");
+        }
         uploadedImageUrl = uploadedImages[0].url;
       }
 
@@ -256,8 +273,11 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       const values = form.getValues();
       let uploadedImageUrl = values.photos;
       if (files.length > 0) {
+        uploadErrorRef.current = null;
         const uploadedImages = await startUpload(files);
-        if (!uploadedImages) throw new Error("Image upload failed.");
+        if (!uploadedImages) {
+          throw new Error(uploadErrorRef.current || "Image upload failed.");
+        }
         uploadedImageUrl = uploadedImages[0].url;
       }
 

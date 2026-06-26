@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useForm,
@@ -172,8 +172,21 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [successEvent, setSuccessEvent] = useState<{ _id: string; title: string } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { startUpload } = useUploadThing("imageUploader");
+  const uploadErrorRef = useRef<string | null>(null);
+
+  const { startUpload } = useUploadThing("imageUploader", {
+    onUploadError: (err: any) => {
+      console.error("[EventForm] useUploadThing onUploadError:", err);
+      uploadErrorRef.current = err.message || err.toString();
+    },
+    onClientUploadComplete: (res: any) => {
+      console.log("[EventForm] useUploadThing onClientUploadComplete:", res);
+      uploadErrorRef.current = null;
+    }
+  });
 
   // ---------------- INITIAL VALUES ----------------
   const getInitialValues = () => {
@@ -252,6 +265,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
   // ---------------- SUBMIT ----------------
   async function onSubmit(values: EventFormValues) {
     setIsSubmitting(true);
+    setErrorMessage(null);
     let uploadedImageUrl = values.photo || "";
 
     try {
@@ -290,9 +304,11 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
       }
 
       if (files.length > 0) {
+        uploadErrorRef.current = null;
         const uploadedImages = await startUpload(files);
-        if (!uploadedImages)
-          throw new Error("Please upload a valid image below of 4MB.");
+        if (!uploadedImages) {
+          throw new Error(uploadErrorRef.current || "Please upload a valid image below of 4MB.");
+        }
         uploadedImageUrl = uploadedImages[0].url;
       }
 
@@ -344,18 +360,17 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 
         if (newEvent) {
           form.reset();
-          router.push(`/event/${newEvent._id}`);
-          toast({
-            title: "Success!",
-            description: "Event created successfully.",
-          });
+          setSuccessEvent({ _id: newEvent._id, title: newEvent.title });
         }
       }
     } catch (error: any) {
+      console.error("[EventForm] createEvent failed:", error);
+      const msg = error?.message || "An unexpected error occurred. Check the browser console for details.";
+      setErrorMessage(msg);
       toast({
         variant: "destructive",
-        title: "Something went wrong.",
-        description: error.message,
+        title: "Event creation failed",
+        description: msg,
       });
     } finally {
       setIsSubmitting(false);
@@ -405,8 +420,80 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
     form.setValue("tags", newTags);
   };
 
+  // ---------------- SUCCESS SCREEN ----------------
+  if (successEvent) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-in fade-in duration-500">
+        {/* Animated check */}
+        <div className="relative mb-8">
+          <div className="w-24 h-24 rounded-full bg-foreground flex items-center justify-center shadow-2xl">
+            <svg
+              className="w-12 h-12 text-background"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div className="absolute -inset-2 rounded-full border border-border animate-ping opacity-20" />
+        </div>
+
+        {/* Headline */}
+        <div className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-4">
+          <span className="w-8 h-px bg-border" />
+          Event Published
+        </div>
+        <h2 className="text-4xl md:text-5xl font-display tracking-tight leading-tight text-foreground mb-3">
+          {successEvent.title}
+        </h2>
+        <p className="text-muted-foreground text-base max-w-sm mb-10">
+          Your event is live and ready for attendees. What would you like to do next?
+        </p>
+
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+          <button
+            type="button"
+            onClick={() => router.push(`/event/${successEvent._id}`)}
+            className="flex-1 h-12 bg-foreground text-background font-medium rounded-full hover:bg-foreground/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            View Event
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="flex-1 h-12 border border-border text-foreground font-medium rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Dashboard
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setSuccessEvent(null)}
+          className="mt-5 text-sm text-muted-foreground underline-offset-4 hover:underline transition-colors"
+        >
+          Create another event
+        </button>
+      </div>
+    );
+  }
+
   // ---------------- FORM JSX ----------------
   return (
+    <>
+      {/* Processing overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-5">
+          <div className="w-12 h-12 rounded-full border-2 border-foreground border-t-transparent animate-spin" />
+          <div className="text-center">
+            <p className="text-lg font-medium text-foreground">Publishing your event…</p>
+            <p className="text-sm text-muted-foreground mt-1">This may take a moment</p>
+          </div>
+        </div>
+      )}
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -995,7 +1082,29 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
           ))}
         </div>
 
-        <div className="col-span-2 mt-8 mb-12">
+        {/* Inline error banner */}
+        {errorMessage && (
+          <div className="col-span-2 flex items-start gap-3 bg-destructive/10 border border-destructive/30 rounded-xl px-5 py-4">
+            <svg className="w-5 h-5 text-destructive shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-destructive">Event creation failed</p>
+              <p className="text-sm text-destructive/80 mt-0.5">{errorMessage}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="ml-auto text-destructive/60 hover:text-destructive transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        <div className="col-span-2 mt-4 mb-12">
           <Button
             type="submit"
             size="lg"
@@ -1005,7 +1114,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Submitting...
+                Publishing...
               </span>
             ) : (
               `${type === "create" ? "Create Event" : "Update Event"}`
@@ -1014,6 +1123,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
         </div>
       </form>
     </Form>
+    </>
   );
 };
 

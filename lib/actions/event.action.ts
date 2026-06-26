@@ -171,6 +171,8 @@ export async function createEvent(eventData: any) {
 		}
 
 		revalidatePath('/');
+		revalidatePath('/dashboard');
+		revalidatePath('/explore');
 		return JSON.parse(JSON.stringify(mainEvent));
 	} catch (error) {
 		console.error(error);
@@ -1018,6 +1020,18 @@ export async function getUserEventData(userId: string, page = 1) {
 
 		// Get role-based events
 		const roleBasedEvents = await getEventsByUserRoles(userId);
+
+		// Fallback: if UserRole records are missing for organized events,
+		// merge the legacy organized events into the organizer bucket so the
+		// dashboard always reflects reality.
+		const roleOrganizerIds = new Set(
+			roleBasedEvents.organizer.map((e: any) => e._id?.toString())
+		);
+		for (const event of organizedEvents.data) {
+			if (!roleOrganizerIds.has(event._id?.toString())) {
+				roleBasedEvents.organizer.push(event);
+			}
+		}
 
 		return {
 			organizedEvents: organizedEvents.data,

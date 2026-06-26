@@ -24,18 +24,21 @@ const Header = () => {
 
     return (
         <header
-            className={`fixed z-50 transition-all duration-500 ${isScrolled ? "top-4 left-4 right-4" : "top-0 left-0 right-0"
-                }`}
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                isScrolled ? "pt-4 px-4 sm:px-6" : "pt-0 px-0"
+            }`}
         >
             <nav
-                className={`relative z-[60] mx-auto transition-all duration-500 ${isScrolled || isMobileMenuOpen
-                    ? "bg-background/90 backdrop-blur-xl border border-foreground/10 rounded-2xl shadow-lg max-w-[1200px]"
-                    : "bg-background/80 backdrop-blur-sm max-w-[1400px]"
-                    }`}
+                className={`relative z-[60] mx-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isScrolled || isMobileMenuOpen
+                        ? "bg-background/90 backdrop-blur-xl border border-foreground/10 rounded-full shadow-lg max-w-[1200px]"
+                        : "bg-background/80 backdrop-blur-sm border border-transparent rounded-none max-w-full lg:max-w-[1400px]"
+                }`}
             >
                 <div
-                    className={`flex items-center justify-between transition-all duration-500 px-6 lg:px-8 ${isScrolled ? "h-14" : "h-20"
-                        }`}
+                    className={`flex items-center justify-between transition-all duration-500 px-6 lg:px-8 ${
+                        isScrolled ? "h-16" : "h-20"
+                    }`}
                 >
                     <BrandLogo size={isScrolled ? "compact" : "default"} />
 

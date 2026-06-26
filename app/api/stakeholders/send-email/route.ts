@@ -94,9 +94,8 @@ export async function POST(request: NextRequest) {
             <!-- Header with gradient -->
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
               <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">Event Details</h1>
-              <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">${
-								roleInfo.title
-							}</p>
+              <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">${roleInfo.title
+			}</p>
             </div>
 
             <!-- Content -->
@@ -113,9 +112,8 @@ export async function POST(request: NextRequest) {
 
               <!-- Event Details Card -->
               <div style="background-color: #f8fafc; border-radius: 8px; padding: 25px; margin: 30px 0; border-left: 4px solid #667eea;">
-                <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">${
-									event.title
-								}</h2>
+                <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">${event.title
+			}</h2>
                 
                 <div style="margin-bottom: 15px;">
                   <strong style="color: #374151; font-weight: 600;">📅 Date:</strong>
@@ -129,9 +127,8 @@ export async function POST(request: NextRequest) {
                 
                 <div style="margin-bottom: 15px;">
                   <strong style="color: #374151; font-weight: 600;">📍 Location:</strong>
-                  <span style="color: #6b7280; margin-left: 8px;">${
-										event.location || 'TBA'
-									}</span>
+                  <span style="color: #6b7280; margin-left: 8px;">${event.location || 'TBA'
+			}</span>
                 </div>
                 
                 <div style="margin-bottom: 15px;">
@@ -145,31 +142,29 @@ export async function POST(request: NextRequest) {
                 <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">Your Responsibilities:</h3>
                 <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0;">
                   ${roleInfo.responsibilities
-										.map(
-											(responsibility) =>
-												`<li style="margin-bottom: 8px;">${responsibility}</li>`
-										)
-										.join('')}
+				.map(
+					(responsibility) =>
+						`<li style="margin-bottom: 8px;">${responsibility}</li>`
+				)
+				.join('')}
                 </ul>
               </div>
 
               <!-- Event Description -->
-              ${
-								event.description
-									? `
+              ${event.description
+				? `
                 <div style="margin: 30px 0;">
                   <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">About the Event:</h3>
                   <p style="color: #374151; line-height: 1.6; margin: 0;">${event.description}</p>
                 </div>
               `
-									: ''
-							}
+				: ''
+			}
 
               <!-- Call to Action -->
               <div style="text-align: center; margin: 40px 0 30px 0;">
-                <a href="${process.env.NEXT_PUBLIC_SERVER_URL}/event/${
-			event._id
-		}" 
+                <a href="${process.env.NEXT_PUBLIC_SERVER_URL}/event/${event._id
+			}" 
                    style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                   View Event Details
                 </a>
@@ -193,8 +188,9 @@ export async function POST(request: NextRequest) {
     `;
 
 		// Send email
+		const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 		const emailResult = await resend.emails.send({
-			from: process.env.RESEND_FROM_EMAIL || 'noreply@resend.dev',
+			from: fromEmail,
 			to: email,
 			subject: `Event Details: ${event.title} - ${roleInfo.title}`,
 			html: htmlContent,
@@ -203,7 +199,7 @@ export async function POST(request: NextRequest) {
 		if (emailResult.error) {
 			console.error('Resend error:', emailResult.error);
 			return NextResponse.json(
-				{ error: 'Failed to send email' },
+				{ error: `Failed to send email: ${emailResult.error.message || JSON.stringify(emailResult.error)}` },
 				{ status: 500 }
 			);
 		}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -72,7 +72,19 @@ interface Props {
 const UpdateEventForm = ({ userId, event, eventId }: Props) => {
   const { toast } = useToast();
   const router = useRouter();
-  const { startUpload } = useUploadThing("imageUploader");
+
+  const uploadErrorRef = useRef<string | null>(null);
+
+  const { startUpload } = useUploadThing("imageUploader", {
+    onUploadError: (err: any) => {
+      console.error("[UpdateEventForm] useUploadThing onUploadError:", err);
+      uploadErrorRef.current = err.message || err.toString();
+    },
+    onClientUploadComplete: (res: any) => {
+      console.log("[UpdateEventForm] useUploadThing onClientUploadComplete:", res);
+      uploadErrorRef.current = null;
+    }
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -92,8 +104,11 @@ const UpdateEventForm = ({ userId, event, eventId }: Props) => {
 
     try {
       if (files.length > 0) {
+        uploadErrorRef.current = null;
         const uploadedImages = await startUpload(files);
-        if (!uploadedImages) throw new Error("Image upload failed.");
+        if (!uploadedImages) {
+          throw new Error(uploadErrorRef.current || "Image upload failed.");
+        }
         uploadedImageUrl = uploadedImages[0].url;
       }
 
