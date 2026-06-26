@@ -67,7 +67,7 @@ export const generatePDFFromHTML = async (
 
     // Set the HTML content
     await page.setContent(htmlString, {
-      waitUntil: ['networkidle0', 'domcontentloaded'],
+      waitUntil: ['networkidle0', 'domcontentloaded'] as any,
       timeout: 30000,
     });
 
