@@ -168,6 +168,12 @@ export async function createOrder(order: createOrderParams) {
 				? order.event.subEventId
 				: undefined;
 
+		// Guard: prevent duplicate orders for the same user + event
+		const existingOrder = await Order.findOne({ event: eventId, user: order.user });
+		if (existingOrder) {
+			throw new Error('You have already registered for this event.');
+		}
+
 		// Find the target event (could be main event or sub-event)
 		let event = await Event.findById(eventId);
 
@@ -530,33 +536,43 @@ export async function getEventAttendees({
 			])
 		);
 
-		// Transform orders to attendee format
-		const attendees = filteredOrders.map((order: any) => {
+		// Transform orders to attendee format — deduplicated per user
+		// A user can have multiple orders (e.g. due to past bugs), merge them into one row.
+		const attendeeMap = new Map<string, any>();
+
+		for (const order of filteredOrders) {
 			const userId = order.user._id.toString();
 			const verification = verificationMap.get(userId) || {
 				verifiedTickets: 0,
 				totalTickets: order.totalTickets,
 			};
 
-			return {
-				_id: order.user._id,
-				firstName: order.user.firstName,
-				lastName: order.user.lastName,
-				email: order.user.email,
-				photo: order.user.photo,
-				registrationDate: order.createdAt,
-				totalTickets: order.totalTickets,
-				totalAmount: order.totalAmount,
-				paymentStatus: order.paymentId.startsWith('free-event')
-					? 'completed'
-					: 'completed', // For now, all orders are completed
-				paymentId: order.paymentId,
-				verifiedTickets: verification.verifiedTickets,
-				totalVerified:
-					verification.verifiedTickets === verification.totalTickets &&
-					verification.totalTickets > 0,
-			};
-		});
+			if (attendeeMap.has(userId)) {
+				// Merge: add ticket counts from additional orders
+				const existing = attendeeMap.get(userId);
+				existing.totalTickets += order.totalTickets;
+			} else {
+				attendeeMap.set(userId, {
+					// Use order._id (unique per order) to avoid duplicate React keys
+					_id: order._id,
+					firstName: order.user.firstName,
+					lastName: order.user.lastName,
+					email: order.user.email,
+					photo: order.user.photo,
+					registrationDate: order.createdAt,
+					totalTickets: order.totalTickets,
+					totalAmount: order.totalAmount,
+					paymentStatus: 'completed',
+					paymentId: order.paymentId,
+					verifiedTickets: verification.verifiedTickets,
+					totalVerified:
+						verification.verifiedTickets === verification.totalTickets &&
+						verification.totalTickets > 0,
+				});
+			}
+		}
+
+		const attendees = Array.from(attendeeMap.values());
 
 		// Get total count for pagination
 		const totalOrders = await Order.countDocuments({ event: eventId });
