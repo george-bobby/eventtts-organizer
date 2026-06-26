@@ -107,7 +107,8 @@ const CheckoutDialog = ({ event, user, children }: CheckoutDialogProps) => {
         : (targetEvent.price || 0) * totalTickets;
 
       const order = {
-        totalTickets: Math.min(totalTickets, availableTickets),
+        // For unlimited capacity (ticketsLeft === -1), don't clamp — use requested amount directly
+        totalTickets: availableTickets === -1 ? totalTickets : Math.min(totalTickets, availableTickets),
         totalAmount: amount,
         user: typeof user._id === "string" ? user._id : user._id.toString(),
         event: {
