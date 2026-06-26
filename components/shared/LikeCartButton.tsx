@@ -196,7 +196,20 @@ const LikeCartButton = ({
   const { toast } = useToast();
   const [isLiked, setIsLiked] = useState(likedEvent);
 
-  const isEventPast = new Date(event.startDate) < new Date();
+  // Use endDate for the "past" check (event is only over after it ends, not when it starts).
+  // Compare at UTC day boundaries to avoid timezone off-by-one issues.
+  const eventEndDate = event.endDate
+    ? new Date(event.endDate)
+    : new Date(event.startDate);
+  // Advance to end of that UTC day so an event on Jun 27 isn't "ended" until Jun 28 UTC
+  const eventEndOfDay = new Date(
+    Date.UTC(
+      eventEndDate.getUTCFullYear(),
+      eventEndDate.getUTCMonth(),
+      eventEndDate.getUTCDate() + 1 // start of the NEXT day = end of event day
+    )
+  );
+  const isEventPast = eventEndOfDay < new Date();
   // Handle unlimited capacity (-1) and regular capacity
   const areTicketsAvailable =
     (event.ticketsLeft === -1 || event.ticketsLeft > 0) && !event.soldOut;

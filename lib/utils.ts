@@ -66,11 +66,14 @@ export const dateConverter = (inputDateString: string) => {
   if (isNaN(inputDate.getTime())) return "Invalid Date";
 
   // 'Intl' is a powerful, built-in API for date/time formatting.
+  // timeZone: "UTC" is critical — without it, dates stored as midnight UTC
+  // (e.g. 2026-06-27T00:00:00.000Z) display as the previous day in some timezones.
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   }).format(inputDate);
 };
 
