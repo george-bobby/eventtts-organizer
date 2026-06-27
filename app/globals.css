@@ -111,6 +111,31 @@
 }
 
 @layer utilities {
+  /* input-field – shared styled input used across EventForm */
+  .input-field {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground
+           ring-offset-background placeholder:text-muted-foreground
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+           disabled:cursor-not-allowed disabled:opacity-50
+           transition-colors duration-200;
+  }
+
+  /* Let browser-native time/date pickers inherit the current color scheme */
+  input[type="time"],
+  input[type="date"],
+  input[type="datetime-local"] {
+    color-scheme: light;
+    color: oklch(var(--foreground));
+    background-color: oklch(var(--background));
+  }
+  .dark input[type="time"],
+  .dark input[type="date"],
+  .dark input[type="datetime-local"] {
+    color-scheme: dark;
+    color: oklch(var(--foreground));
+    background-color: oklch(var(--background));
+  }
+
   .font-display {
     font-family: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
   }
@@ -220,4 +245,123 @@
     50%  { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
+}
+
+/* ─────────────────────────────────────────────
+   react-datepicker – theme-aware overrides
+   Uses oklch() to match this project's CSS variables
+───────────────────────────────────────────── */
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.react-datepicker {
+  font-family: inherit !important;
+  border: 1px solid oklch(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  background-color: oklch(var(--background)) !important;
+  color: oklch(var(--foreground)) !important;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 4px 10px -2px rgba(0,0,0,0.1) !important;
+}
+
+.react-datepicker__triangle {
+  display: none !important;
+}
+
+/* Header */
+.react-datepicker__header {
+  background-color: oklch(var(--muted)) !important;
+  border-bottom: 1px solid oklch(var(--border)) !important;
+  border-radius: 0.5rem 0.5rem 0 0 !important;
+  padding: 0.75rem !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker-year-header {
+  color: oklch(var(--foreground)) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+}
+
+/* Navigation arrows */
+.react-datepicker__navigation {
+  top: 0.75rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  border-radius: 0.375rem !important;
+}
+
+.react-datepicker__navigation:hover {
+  background-color: oklch(var(--accent)) !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: oklch(var(--foreground)) !important;
+  border-width: 2px 2px 0 0 !important;
+}
+
+/* Day names (Su Mo Tu ...) */
+.react-datepicker__day-names {
+  margin-bottom: 0 !important;
+}
+
+.react-datepicker__day-name {
+  color: oklch(var(--muted-foreground)) !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  line-height: 2rem !important;
+  margin: 0.1rem !important;
+}
+
+/* Month body */
+.react-datepicker__month {
+  margin: 0.5rem !important;
+  background-color: oklch(var(--background)) !important;
+}
+
+/* Day cells */
+.react-datepicker__day {
+  color: oklch(var(--foreground)) !important;
+  background-color: transparent !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  line-height: 2rem !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.875rem !important;
+  margin: 0.1rem !important;
+}
+
+.react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
+  background-color: oklch(var(--accent)) !important;
+  color: oklch(var(--accent-foreground)) !important;
+}
+
+.react-datepicker__day--today {
+  background-color: oklch(var(--accent)) !important;
+  color: oklch(var(--accent-foreground)) !important;
+  font-weight: 700 !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--selected:hover {
+  background-color: oklch(var(--primary)) !important;
+  color: oklch(var(--primary-foreground)) !important;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: oklch(var(--accent)) !important;
+  color: oklch(var(--accent-foreground)) !important;
+}
+
+.react-datepicker__day--disabled {
+  color: oklch(var(--muted-foreground)) !important;
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
+
+.react-datepicker__day--outside-month {
+  color: oklch(var(--muted-foreground)) !important;
+  opacity: 0.4 !important;
 }

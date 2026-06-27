@@ -231,8 +231,8 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
       isOnline: false,
       location: "",
       campusLocation: "",
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate: undefined as unknown as Date,
+      endDate: undefined as unknown as Date,
       startTime: "09:00",
       endTime: "17:00",
       duration: "",
@@ -554,10 +554,10 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
                           value={
                             category.title.toLowerCase() || `category-${index}`
                           }
-                          className="flex items-center space-x-3 px-4 py-3 hover:bg-red-50 focus:bg-red-100 cursor-pointer transition-colors duration-150"
+                          className="flex items-center space-x-3 px-4 py-3 hover:bg-accent focus:bg-accent cursor-pointer transition-colors duration-150 text-foreground"
                         >
                           <div className="flex items-center space-x-2">
-                            <span className="text-red-600 text-lg">
+                            <span className="text-primary text-lg">
                               {category.icon}
                             </span>
                             <span className="text-foreground font-medium">
@@ -767,7 +767,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
                             <SelectItem
                               key={index}
                               value={location.name || `location-${index}`}
-                              className="flex items-center space-x-3 px-4 py-3 hover:bg-red-50 focus:bg-red-100 cursor-pointer transition-colors duration-150"
+                              className="flex items-center space-x-3 px-4 py-3 hover:bg-accent focus:bg-accent cursor-pointer transition-colors duration-150 text-foreground"
                             >
                               <span className="text-foreground font-medium">
                                 {location.name}
@@ -800,10 +800,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
                     selected={field.value}
                     onChange={field.onChange}
                     placeholder="Pick start date"
-                    disabled={(date: Date) =>
-                      date < new Date() || date < new Date("1900-01-01")
-                    }
-                    minDate={new Date()}
+                    minDate={(() => { const d = new Date(); d.setHours(0,0,0,0); return d; })()}
                   />
                 </FormControl>
                 <FormMessage />
@@ -824,10 +821,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
                     selected={field.value}
                     onChange={field.onChange}
                     placeholder="Pick end date"
-                    disabled={(date: Date) =>
-                      date < new Date() || date < new Date("1900-01-01")
-                    }
-                    minDate={new Date()}
+                    minDate={(() => { const d = new Date(); d.setHours(0,0,0,0); return d; })()}
                   />
                 </FormControl>
                 <FormMessage />
